@@ -1,0 +1,140 @@
+/* ============================================================
+   StockViet AI — Hệ thiết kế (design tokens)
+   Phong cách: Data-Dense Dashboard (tài chính, sạch, hiện đại)
+   Quy ước VN: XANH = tăng, ĐỎ = giảm
+   ============================================================ */
+
+/* Font hỗ trợ dấu tiếng Việt (subset=vietnamese bắt buộc) */
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+@import "tailwindcss";
+
+/* Bật dark mode theo class (.dark trên <html>, do next-themes quản lý) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* ----- Light mode ----- */
+  --background: #f8fafc;       /* slate-50 */
+  --foreground: #0f172a;       /* slate-900 */
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #2563eb;          /* blue-600 (đậm hơn cho nền sáng) */
+  --primary-foreground: #f8fafc;
+  --secondary: #f1f5f9;        /* slate-100 */
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #475569; /* slate-600 (đủ tương phản trên nền sáng) */
+  --accent: #eff6ff;
+  --accent-foreground: #1d4ed8;
+  --border: #e2e8f0;           /* slate-200 */
+  --input: #e2e8f0;
+  --ring: #3b82f6;
+
+  /* Semantic tài chính */
+  --price-up: #16a34a;         /* green-600 */
+  --price-down: #dc2626;       /* red-600 */
+  --price-neutral: #64748b;    /* slate-500 */
+  --warning: #d97706;          /* amber-600 */
+  --success: #16a34a;
+  --danger: #dc2626;
+  --candle-bull: #0d9488;      /* teal-600 */
+  --candle-bear: #dc2626;
+
+  --radius: 0.75rem;
+}
+
+.dark {
+  /* ----- Dark mode (mặc định) ----- */
+  --background: #020617;       /* slate-950 */
+  --foreground: #f8fafc;
+  --card: #0f172a;             /* slate-900 */
+  --card-foreground: #f8fafc;
+  --popover: #0f172a;
+  --popover-foreground: #f8fafc;
+  --primary: #3b82f6;          /* blue-500 — trust accent */
+  --primary-foreground: #f8fafc;
+  --secondary: #1e293b;        /* slate-800 */
+  --secondary-foreground: #f8fafc;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8; /* slate-400 */
+  --accent: #1e293b;
+  --accent-foreground: #93c5fd;
+  --border: #334155;           /* slate-700 */
+  --input: #1e293b;
+  --ring: #3b82f6;
+
+  --price-up: #22c55e;         /* green-500 */
+  --price-down: #ef4444;       /* red-500 */
+  --price-neutral: #94a3b8;
+  --warning: #f59e0b;
+  --success: #22c55e;
+  --danger: #ef4444;
+  --candle-bull: #26a69a;
+  --candle-bear: #ef5350;
+}
+
+/* Map token → tiện ích Tailwind (bg-background, text-foreground, font-heading, ...) */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-up: var(--price-up);
+  --color-down: var(--price-down);
+  --color-flat: var(--price-neutral);
+  --color-warning: var(--warning);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+
+  --font-sans: 'Noto Sans', 'Be Vietnam Pro', system-ui, sans-serif;
+  --font-heading: 'Be Vietnam Pro', 'Noto Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Fira Code', 'Noto Sans Mono', monospace;
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 0.25rem);
+  --radius-sm: calc(var(--radius) - 0.4rem);
+}
+
+* { border-color: var(--border); }
+
+html { color-scheme: dark; }
+html:not(.dark) { color-scheme: light; }
+
+body {
+  margin: 0;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-feature-settings: "tnum" 1; /* số căn đều cho bảng giá */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); }
+.font-mono, .tabular { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* Thanh cuộn gọn gàng */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* Tôn trọng prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
