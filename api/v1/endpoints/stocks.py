@@ -22,6 +22,8 @@ from api.deps import get_system_config_service
 from api.v1.schemas.stocks import (
     ExtractFromImageResponse,
     ExtractItem,
+    ForeignFlowItem,
+    ForeignFlowResponse,
     KLineData,
     StockHistoryResponse,
     StockQuote,
@@ -487,8 +489,9 @@ def get_stock_quote(stock_code: str) -> StockQuote:
 )
 def get_stock_history(
     stock_code: str,
-    period: str = Query("daily", description="K 线周期", pattern="^(daily|weekly|monthly)$"),
-    days: int = Query(30, ge=1, le=365, description="获取天数")
+    period: str = Query("daily", description="Chu kỳ nến", pattern="^(daily|weekly|monthly)$"),
+    days: int = Query(30, ge=1, le=365, description="Số ngày cần lấy"),
+    indicators: bool = Query(False, description="Kèm chỉ báo kỹ thuật (MA/RSI/MACD)"),
 ) -> StockHistoryResponse:
     """
     Lấy dữ liệu lịch sử cổ phiếu
@@ -504,6 +507,9 @@ def get_stock_history(
         StockHistoryResponse: Dữ liệu lịch sử giá
     """
     try:
+        if indicators and period == "daily":
+            return _history_with_indicators(stock_code, days)
+
         service = StockService()
 
         # Dùng def thay vì async def, FastAPI tự chạy trong thread pool
@@ -553,3 +559,118 @@ def get_stock_history(
                 "message": f"Lấy dữ liệu lịch sử thất bại: {str(e)}"
             }
         )
+
+
+def _history_with_indicators(stock_code: str, days: int) -> StockHistoryResponse:
+    """Nến ngày kèm chỉ báo kỹ thuật (MA5/10/20 có sẵn + RSI14 + MACD tính thêm)."""
+    import math
+    from data_provider.base import DataFetcherManager
+
+    mgr = DataFetcherManager()
+    # Lấy dư ~40 nến để các chỉ báo (MA20/RSI/MACD) đủ dữ liệu khởi động rồi mới cắt.
+    df, _src = mgr.get_daily_data(stock_code, days=days + 40)
+    if df is None or df.empty:
+        return StockHistoryResponse(stock_code=stock_code, stock_name=None, period="daily", data=[])
+
+    df = df.copy()
+    close = df["close"].astype(float)
+    delta = close.diff()
+    gain = delta.clip(lower=0).rolling(14).mean()
+    loss = (-delta.clip(upper=0)).rolling(14).mean()
+    rs = gain / loss.replace(0, float("nan"))
+    df["rsi"] = 100 - (100 / (1 + rs))
+    ema12 = close.ewm(span=12, adjust=False).mean()
+    ema26 = close.ewm(span=26, adjust=False).mean()
+    df["macd"] = ema12 - ema26
+    df["macd_signal"] = df["macd"].ewm(span=9, adjust=False).mean()
+    df = df.tail(days)
+
+    def opt(v):
+        try:
+            v = float(v)
+            return None if math.isnan(v) else round(v, 4)
+        except Exception:
+            return None
+
+    def req(v):
+        try:
+            v = float(v)
+            return 0.0 if math.isnan(v) else v
+        except Exception:
+            return 0.0
+
+    data = [
+        KLineData(
+            date=str(r.get("date"))[:10],
+            open=req(r.get("open")), high=req(r.get("high")), low=req(r.get("low")), close=req(r.get("close")),
+            volume=opt(r.get("volume")), amount=opt(r.get("amount")), change_percent=opt(r.get("pct_chg")),
+            ma5=opt(r.get("ma5")), ma10=opt(r.get("ma10")), ma20=opt(r.get("ma20")),
+            rsi=opt(r.get("rsi")), macd=opt(r.get("macd")), macd_signal=opt(r.get("macd_signal")),
+        )
+        for _, r in df.iterrows()
+    ]
+    name = None
+    try:
+        name = mgr.get_stock_name(stock_code)
+    except Exception:
+        name = None
+    return StockHistoryResponse(stock_code=stock_code, stock_name=name, period="daily", data=data)
+
+
+def _fetch_foreign_flow_series(stock_code: str, days: int) -> list:
+    """Chuỗi giao dịch khối ngoại theo ngày qua vnstock_data (fail-open)."""
+    import warnings
+    import datetime as _dt
+    import math
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            from vnstock_data.explorer.vci.trading import Trading  # type: ignore
+        bare = stock_code.upper().replace(".VN", "")
+        end = _dt.date.today().isoformat()
+        start = (_dt.date.today() - _dt.timedelta(days=days + 5)).isoformat()
+        df = Trading(bare).foreign_trade(resolution="1D", start=start, end=end, limit=days)
+        if df is None or df.empty:
+            return []
+
+        def f(row, col):
+            try:
+                v = row[col] if col in df.columns else None
+                if v is None:
+                    return None
+                v = float(v)
+                return None if math.isnan(v) else v
+            except Exception:
+                return None
+
+        out = []
+        for _, row in df.tail(days).iterrows():
+            out.append({
+                "date": str(row.get("trading_date") or "")[:10],
+                "net_volume": f(row, "fr_net_volume_total"),
+                "net_value": f(row, "fr_net_value_total"),
+                "buy_volume": f(row, "fr_buy_volume_total"),
+                "sell_volume": f(row, "fr_sell_volume_total"),
+                "room_pct": f(row, "fr_room_percentage"),
+            })
+        return out
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("foreign flow fetch failed for %s: %s", stock_code, exc)
+        return []
+
+
+@router.get(
+    "/{stock_code}/foreign-flow",
+    response_model=ForeignFlowResponse,
+    summary="Giao dịch khối ngoại theo ngày",
+    description="Chuỗi mua/bán ròng của nhà đầu tư nước ngoài (chỉ có ý nghĩa với mã .VN)",
+)
+def get_stock_foreign_flow(
+    stock_code: str,
+    days: int = Query(30, ge=1, le=120, description="Số ngày"),
+) -> ForeignFlowResponse:
+    series = _fetch_foreign_flow_series(stock_code, days)
+    return ForeignFlowResponse(
+        stock_code=stock_code,
+        data=[ForeignFlowItem(**it) for it in series],
+    )

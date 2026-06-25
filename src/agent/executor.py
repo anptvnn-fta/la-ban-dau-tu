@@ -568,7 +568,8 @@ class AgentExecutor:
         default_skill_policy_section = ""
         if self.default_skill_policy:
             default_skill_policy_section = f"\n{self.default_skill_policy}\n"
-        report_language = normalize_report_language((context or {}).get("report_language", "zh"))
+        # Vietnam-only product: default to Vietnamese + VN market for free chat.
+        report_language = normalize_report_language((context or {}).get("report_language", "vi"))
         stock_code = (context or {}).get("stock_code", "")
         market_role = get_market_role(stock_code, report_language)
         market_guidelines = get_market_guidelines(stock_code, report_language)
@@ -583,6 +584,15 @@ class AgentExecutor:
             default_skill_policy_section=default_skill_policy_section,
             skills_section=skills_section,
             language_section=_build_language_section(report_language, chat_mode=True),
+        )
+        # High-priority override appended at the END of the system prompt so it wins
+        # over the (Chinese-scaffolded) template body for this Vietnam-only assistant.
+        system_prompt += (
+            "\n\n## CHỈ THỊ NGÔN NGỮ & THỊ TRƯỜNG (ưu tiên CAO NHẤT — ghi đè mọi nội dung phía trên)\n"
+            "- Đây là trợ lý phân tích chứng khoán VIỆT NAM. Mặc định MỌI mã người dùng nhập là mã Việt Nam "
+            "(HOSE/HNX/UPCOM); TUYỆT ĐỐI không hỏi 'có phải mã A-share không', không coi là cổ phiếu Trung Quốc.\n"
+            "- TOÀN BỘ câu trả lời PHẢI viết 100% bằng tiếng Việt chuẩn ngành chứng khoán — không dùng chữ Hán, không pinyin, không trộn ngôn ngữ.\n"
+            "- Giữ nguyên thuật ngữ quốc tế: RSI, MACD, ADX, Bollinger, P/E, P/B, ROE, ROA, MA. Tiền tệ VND; ngày dd/mm/yyyy."
         )
 
         # Build tool declarations in OpenAI format (litellm handles all providers)
@@ -836,11 +846,11 @@ class AgentExecutor:
 
         parts.append("\n请使用可用工具获取缺失的数据（如历史K线、新闻等），然后以决策仪表盘 JSON 格式输出分析结果。")
 
-        # VN stocks: force Vietnamese output (highest-weight, end-of-prompt position).
-        _vn_code = str((context or {}).get("stock_code") or "")
-        if _vn_code.upper().endswith(".VN") or (context or {}).get("vn_ta_indicators") or (context or {}).get("vn_foreign"):
+        # Vietnam-only product: ALWAYS force Vietnamese output (highest-weight, end-of-prompt position).
+        if True:
             parts.append(
                 "\n## Ngôn ngữ đầu ra (ưu tiên CAO NHẤT — ghi đè mọi hướng dẫn ngôn ngữ ở trên)\n"
+                "- Đây là trợ lý cho thị trường chứng khoán VIỆT NAM. Mặc định mọi mã cổ phiếu là mã Việt Nam (HOSE/HNX/UPCOM), KHÔNG hỏi lại 'có phải mã A-share không'.\n"
                 "- Giữ nguyên tên khóa JSON; `decision_type` giữ `buy|hold|sell`.\n"
                 "- TẤT CẢ giá trị văn bản hiển thị cho người dùng PHẢI viết 100% bằng tiếng Việt chuẩn ngành chứng khoán Việt Nam — TUYỆT ĐỐI KHÔNG dùng tiếng Trung (chữ Hán), không pinyin, không trộn ngôn ngữ.\n"
                 "- Thuật ngữ chuẩn: Mua mạnh/Mua/Nắm giữ/Quan sát/Giảm tỷ trọng/Bán/Bán mạnh; Tích cực/Tiêu cực/Đi ngang; MA xếp tăng/MA xếp giảm; Ngưỡng hỗ trợ/Ngưỡng kháng cự/Ngưỡng cắt lỗ/Giá mục tiêu; Khối ngoại, Mua ròng/Bán ròng, Room ngoại; Vốn hóa, Doanh thu, LNST, so với cùng kỳ (YoY).\n"

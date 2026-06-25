@@ -13,7 +13,7 @@ export type ExtractFromImageResponse = {
   rawText?: string;
 };
 
-/** Một nến (OHLC) trong dữ liệu lịch sử. */
+/** Một nến (OHLC) trong dữ liệu lịch sử, kèm chỉ báo kỹ thuật (tuỳ chọn). */
 export interface OhlcBar {
   date: string;
   open: number;
@@ -23,6 +23,12 @@ export interface OhlcBar {
   volume?: number;
   amount?: number;
   changePercent?: number;
+  ma5?: number;
+  ma10?: number;
+  ma20?: number;
+  rsi?: number;
+  macd?: number;
+  macdSignal?: number;
 }
 
 export interface StockHistoryResponse {
@@ -32,18 +38,43 @@ export interface StockHistoryResponse {
   data: OhlcBar[];
 }
 
+/** Một ngày giao dịch khối ngoại. */
+export interface ForeignFlowBar {
+  date: string;
+  netVolume?: number;
+  netValue?: number;
+  buyVolume?: number;
+  sellVolume?: number;
+  roomPct?: number;
+}
+
+export interface ForeignFlowResponse {
+  stockCode: string;
+  data: ForeignFlowBar[];
+}
+
 export const stocksApi = {
-  /** Lấy dữ liệu nến (OHLC) cho biểu đồ giá. */
+  /** Lấy dữ liệu nến (OHLC) cho biểu đồ giá, kèm chỉ báo kỹ thuật. */
   async getHistory(
     stockCode: string,
     days = 120,
     period: 'daily' | 'weekly' | 'monthly' = 'daily',
+    indicators = true,
   ): Promise<StockHistoryResponse> {
     const response = await apiClient.get<Record<string, unknown>>(
       `/api/v1/stocks/${encodeURIComponent(stockCode)}/history`,
-      { params: { period, days } },
+      { params: { period, days, indicators } },
     );
     return toCamelCase<StockHistoryResponse>(response.data);
+  },
+
+  /** Lấy chuỗi giao dịch khối ngoại theo ngày. */
+  async getForeignFlow(stockCode: string, days = 30): Promise<ForeignFlowResponse> {
+    const response = await apiClient.get<Record<string, unknown>>(
+      `/api/v1/stocks/${encodeURIComponent(stockCode)}/foreign-flow`,
+      { params: { days } },
+    );
+    return toCamelCase<ForeignFlowResponse>(response.data);
   },
 
   async extractFromImage(file: File): Promise<ExtractFromImageResponse> {

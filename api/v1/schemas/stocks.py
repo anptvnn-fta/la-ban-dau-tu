@@ -56,10 +56,17 @@ class KLineData(BaseModel):
     high: float = Field(..., description="最高价")
     low: float = Field(..., description="最低价")
     close: float = Field(..., description="收盘价")
-    volume: Optional[float] = Field(None, description="成交量")
-    amount: Optional[float] = Field(None, description="成交额")
-    change_percent: Optional[float] = Field(None, description="涨跌幅 (%)")
-    
+    volume: Optional[float] = Field(None, description="Khối lượng")
+    amount: Optional[float] = Field(None, description="Giá trị giao dịch")
+    change_percent: Optional[float] = Field(None, description="Thay đổi (%)")
+    # Chỉ báo kỹ thuật (chỉ điền khi indicators=true)
+    ma5: Optional[float] = Field(None, description="MA5")
+    ma10: Optional[float] = Field(None, description="MA10")
+    ma20: Optional[float] = Field(None, description="MA20")
+    rsi: Optional[float] = Field(None, description="RSI(14)")
+    macd: Optional[float] = Field(None, description="MACD")
+    macd_signal: Optional[float] = Field(None, description="Đường tín hiệu MACD")
+
     model_config = ConfigDict(json_schema_extra={
         "example": {
             "date": "2024-01-01",
@@ -100,9 +107,27 @@ class StockHistoryResponse(BaseModel):
     
     model_config = ConfigDict(json_schema_extra={
         "example": {
-            "stock_code": "600519",
-            "stock_name": "贵州茅台",
+            "stock_code": "FPT.VN",
+            "stock_name": "Công ty Cổ phần FPT",
             "period": "daily",
             "data": []
         }
     })
+
+
+class ForeignFlowItem(BaseModel):
+    """Giao dịch khối ngoại theo ngày."""
+
+    date: str = Field(..., description="Ngày giao dịch")
+    net_volume: Optional[float] = Field(None, description="Khối lượng mua/bán ròng (cổ phiếu)")
+    net_value: Optional[float] = Field(None, description="Giá trị mua/bán ròng (VND)")
+    buy_volume: Optional[float] = Field(None, description="Khối lượng mua")
+    sell_volume: Optional[float] = Field(None, description="Khối lượng bán")
+    room_pct: Optional[float] = Field(None, description="Tỷ lệ room còn lại")
+
+
+class ForeignFlowResponse(BaseModel):
+    """Chuỗi giao dịch khối ngoại của một mã."""
+
+    stock_code: str = Field(..., description="Mã cổ phiếu")
+    data: List[ForeignFlowItem] = Field(default_factory=list, description="Chuỗi theo ngày")

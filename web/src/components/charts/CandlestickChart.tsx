@@ -1,20 +1,28 @@
 import { useEffect, useRef } from 'react'
 import {
-  createChart, CandlestickSeries, HistogramSeries, ColorType,
-  type UTCTimestamp, type CandlestickData, type HistogramData,
+  createChart, CandlestickSeries, HistogramSeries, LineSeries, ColorType,
+  type UTCTimestamp, type CandlestickData, type HistogramData, type LineData,
 } from 'lightweight-charts'
 import type { OhlcBar } from '@/api/stocks'
 
-/** Biểu đồ nến + khối lượng (TradingView Lightweight Charts). */
-export function CandlestickChart({ bars, height = 340 }: { bars: OhlcBar[]; height?: number }) {
+/** Biểu đồ nến + khối lượng + chỉ báo (MA overlay, pane RSI) — TradingView Lightweight Charts. */
+export function CandlestickChart({
+  bars,
+  height = 340,
+  showIndicators = true,
+}: {
+  bars: OhlcBar[]
+  height?: number
+  showIndicators?: boolean
+}) {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const el = ref.current
     if (!el || !bars.length) return
 
-    const css = getComputedStyle(document.documentElement)
-    const v = (name: string, fallback: string) => css.getPropertyValue(name).trim() || fallback
+    const cs = getComputedStyle(document.documentElement)
+    const v = (name: string, fallback: string) => cs.getPropertyValue(name).trim() || fallback
     const bull = v('--candle-bull', '#26a69a')
     const bear = v('--candle-bear', '#ef5350')
     const text = v('--muted-foreground', '#94a3b8')
@@ -54,6 +62,32 @@ export function CandlestickChart({ bars, height = 340 }: { bars: OhlcBar[]; heig
       })),
     )
 
+    if (showIndicators) {
+      // Đường trung bình động (overlay trên thang giá)
+      const addMA = (key: 'ma5' | 'ma10' | 'ma20', color: string) => {
+        const pts = bars.filter((b) => b[key] != null).map<LineData>((b) => ({ time: toTime(b.date), value: b[key] as number }))
+        if (!pts.length) return
+        const s = chart.addSeries(LineSeries, { color, lineWidth: 1, priceLineVisible: false, lastValueVisible: false })
+        s.setData(pts)
+      }
+      addMA('ma5', '#f59e0b')
+      addMA('ma10', '#3b82f6')
+      addMA('ma20', '#a855f7')
+
+      // RSI ở pane riêng (paneIndex 1) — bao trong try để an toàn nếu API khác
+      const rsiPts = bars.filter((b) => b.rsi != null).map<LineData>((b) => ({ time: toTime(b.date), value: b.rsi as number }))
+      if (rsiPts.length) {
+        try {
+          const rsi = chart.addSeries(LineSeries, { color: '#22d3ee', lineWidth: 1, priceFormat: { type: 'price', precision: 1, minMove: 0.1 } }, 1)
+          rsi.setData(rsiPts)
+          const panes = chart.panes()
+          if (panes[1]) panes[1].setHeight(90)
+        } catch {
+          /* phiên bản không hỗ trợ pane → bỏ qua RSI */
+        }
+      }
+    }
+
     chart.timeScale().fitContent()
     const resize = () => chart.applyOptions({ width: el.clientWidth })
     resize()
@@ -62,7 +96,7 @@ export function CandlestickChart({ bars, height = 340 }: { bars: OhlcBar[]; heig
       window.removeEventListener('resize', resize)
       chart.remove()
     }
-  }, [bars, height])
+  }, [bars, height, showIndicators])
 
-  return <div ref={ref} style={{ height, width: '100%' }} />
+  return <div ref={ref} style={{ height: showIndicators ? height + 90 : height, width: '100%' }} />
 }
