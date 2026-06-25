@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 ===================================
-历史记录相关模型
+Các model liên quan đến lịch sử
 ===================================
 
-职责：
-1. 定义历史记录列表和详情模型
-2. 定义分析报告完整模型
+Trách nhiệm:
+1. Định nghĩa model danh sách và chi tiết lịch sử
+2. Định nghĩa model báo cáo phân tích đầy đủ
 """
 
 from typing import Optional, List, Any, Dict, Literal
@@ -18,7 +18,7 @@ from src.schemas.decision_action import DecisionAction
 
 
 class HistoryItem(BaseModel):
-    """历史记录摘要（列表展示用）"""
+    """Tóm tắt bản ghi lịch sử (dùng để hiển thị trong danh sách)"""
 
     id: Optional[int] = Field(None, description="分析历史记录主键 ID")
     query_id: str = Field(..., description="分析记录关联 query_id（批量分析时重复）")
@@ -63,7 +63,7 @@ class HistoryItem(BaseModel):
 
 
 class HistoryListResponse(BaseModel):
-    """历史记录列表响应"""
+    """Phản hồi danh sách lịch sử"""
     
     total: int = Field(..., description="总记录数")
     page: int = Field(..., description="当前页码")
@@ -81,19 +81,19 @@ class HistoryListResponse(BaseModel):
 
 
 class DeleteHistoryRequest(BaseModel):
-    """删除历史记录请求"""
+    """Yêu cầu xóa lịch sử"""
 
     record_ids: List[int] = Field(default_factory=list, description="要删除的历史记录主键 ID 列表")
 
 
 class DeleteHistoryResponse(BaseModel):
-    """删除历史记录响应"""
+    """Phản hồi xóa lịch sử"""
 
     deleted: int = Field(..., description="实际删除的历史记录数量")
 
 
 class NewsIntelItem(BaseModel):
-    """新闻情报条目"""
+    """Mục tin tức/thông tin tình báo"""
 
     title: str = Field(..., description="新闻标题")
     snippet: str = Field("", description="新闻摘要（最多200字）")
@@ -109,7 +109,7 @@ class NewsIntelItem(BaseModel):
 
 
 class NewsIntelResponse(BaseModel):
-    """新闻情报响应"""
+    """Phản hồi tin tức/thông tin tình báo"""
 
     total: int = Field(..., description="新闻条数")
     items: List[NewsIntelItem] = Field(default_factory=list, description="新闻列表")
@@ -123,7 +123,7 @@ class NewsIntelResponse(BaseModel):
 
 
 class ReportMeta(BaseModel):
-    """报告元信息"""
+    """Thông tin meta của báo cáo"""
 
     model_config = ConfigDict(protected_namespaces=("model_validate", "model_dump"))
 
@@ -147,7 +147,7 @@ class ReportMeta(BaseModel):
 
 
 class ReportSummary(BaseModel):
-    """报告概览区"""
+    """Phần tóm tắt tổng quan của báo cáo"""
     
     analysis_summary: Optional[str] = Field(None, description="关键结论")
     operation_advice: Optional[str] = Field(None, description="操作建议")
@@ -162,7 +162,7 @@ class ReportSummary(BaseModel):
 
 
 class ReportStrategy(BaseModel):
-    """策略点位区"""
+    """Phần chiến lược và mức giá mục tiêu"""
     
     ideal_buy: Optional[str] = Field(None, description="理想买入价")
     secondary_buy: Optional[str] = Field(None, description="第二买入价")
@@ -171,7 +171,7 @@ class ReportStrategy(BaseModel):
 
 
 class AnalysisContextPackOverviewSubject(BaseModel):
-    """AnalysisContextPack 可见摘要标的信息"""
+    """Thông tin mã chứng khoán trong tóm tắt công khai của AnalysisContextPack"""
 
     code: str = Field(..., description="股票代码")
     stock_name: Optional[str] = Field(None, description="股票名称")
@@ -179,7 +179,7 @@ class AnalysisContextPackOverviewSubject(BaseModel):
 
 
 class AnalysisContextPackOverviewBlock(BaseModel):
-    """AnalysisContextPack 可见摘要数据块"""
+    """Khối dữ liệu trong tóm tắt công khai của AnalysisContextPack"""
 
     key: str = Field(..., description="数据块稳定 key")
     label: str = Field(..., description="数据块展示名称")
@@ -199,7 +199,7 @@ class AnalysisContextPackOverviewBlock(BaseModel):
 
 
 class AnalysisContextPackOverviewCounts(BaseModel):
-    """AnalysisContextPack 可见摘要状态计数"""
+    """Đếm trạng thái trong tóm tắt công khai của AnalysisContextPack"""
 
     available: int = 0
     missing: int = 0
@@ -212,14 +212,14 @@ class AnalysisContextPackOverviewCounts(BaseModel):
 
 
 class AnalysisContextPackOverviewMetadata(BaseModel):
-    """AnalysisContextPack 可见摘要元数据"""
+    """Metadata trong tóm tắt công khai của AnalysisContextPack"""
 
     trigger_source: Optional[str] = Field(None, description="触发来源")
     news_result_count: Optional[int] = Field(None, description="新闻结果数量")
 
 
 class AnalysisContextPackOverviewDataQuality(BaseModel):
-    """AnalysisContextPack 可见摘要数据质量评分"""
+    """Điểm chất lượng dữ liệu trong tóm tắt công khai của AnalysisContextPack"""
 
     overall_score: Optional[int] = Field(None, ge=0, le=100, description="输入数据质量总分")
     level: Optional[Literal["good", "usable", "limited", "poor"]] = Field(
@@ -231,7 +231,7 @@ class AnalysisContextPackOverviewDataQuality(BaseModel):
 
 
 class AnalysisContextPackOverview(BaseModel):
-    """历史/API 可见的低敏 AnalysisContextPack 摘要"""
+    """Tóm tắt AnalysisContextPack ít nhạy cảm, hiển thị qua lịch sử/API"""
 
     pack_version: str = Field(..., description="AnalysisContextPack 版本")
     created_at: Optional[str] = Field(None, description="创建时间")
@@ -247,7 +247,7 @@ class AnalysisContextPackOverview(BaseModel):
 
 
 class ReportDetails(BaseModel):
-    """报告详情区"""
+    """Phần chi tiết báo cáo"""
     
     news_content: Optional[str] = Field(None, description="新闻摘要")
     raw_result: Optional[Any] = Field(None, description="原始分析结果（JSON）")
@@ -263,7 +263,7 @@ class ReportDetails(BaseModel):
 
 
 class AnalysisReport(BaseModel):
-    """完整分析报告"""
+    """Báo cáo phân tích đầy đủ"""
 
     meta: ReportMeta = Field(..., description="元信息")
     summary: ReportSummary = Field(..., description="概览区")
@@ -299,7 +299,7 @@ class AnalysisReport(BaseModel):
 
 
 class MarkdownReportResponse(BaseModel):
-    """Markdown 格式报告响应"""
+    """Phản hồi báo cáo định dạng Markdown"""
 
     content: str = Field(..., description="Markdown 格式的完整报告内容")
 
@@ -311,7 +311,7 @@ class MarkdownReportResponse(BaseModel):
 
 
 class StockBarItem(BaseModel):
-    """个股栏条目（去重后的股票维度摘要）"""
+    """Mục thanh cổ phiếu (tóm tắt theo chiều cổ phiếu sau khi loại trùng)"""
 
     id: int = Field(..., description="该股最新一次分析的历史记录主键 ID")
     stock_code: str = Field(..., description="股票代码")
@@ -350,27 +350,27 @@ class StockBarItem(BaseModel):
 
 
 class StockBarResponse(BaseModel):
-    """个股栏列表响应"""
+    """Phản hồi danh sách thanh cổ phiếu"""
 
     total: int = Field(..., description="不重复个股数")
     items: List[StockBarItem] = Field(default_factory=list, description="个股列表")
 
 
 class WatchlistRequest(BaseModel):
-    """自选队列操作请求"""
+    """Yêu cầu thao tác danh mục theo dõi"""
 
     stock_code: str = Field(..., description="股票代码", min_length=1)
 
 
 class WatchlistResponse(BaseModel):
-    """自选队列响应"""
+    """Phản hồi danh mục theo dõi"""
 
     stock_codes: List[str] = Field(default_factory=list, description="当前自选队列股票代码列表")
     message: str = Field(..., description="操作结果描述")
 
 
 class RunDiagnosticComponent(BaseModel):
-    """单个运行诊断组件摘要。"""
+    """Tóm tắt một thành phần chẩn đoán khi chạy."""
 
     key: str = Field(..., description="组件键")
     label: str = Field(..., description="组件显示名称")
@@ -380,7 +380,7 @@ class RunDiagnosticComponent(BaseModel):
 
 
 class RunDiagnosticSummaryResponse(BaseModel):
-    """历史报告运行诊断摘要。"""
+    """Tóm tắt chẩn đoán chạy của báo cáo lịch sử."""
 
     trace_id: Optional[str] = Field(None, description="诊断 trace ID")
     task_id: Optional[str] = Field(None, description="任务 ID")

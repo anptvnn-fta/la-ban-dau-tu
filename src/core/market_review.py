@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 """
 ===================================
-股票智能分析系统 - 大盘复盘模块（支持 A 股 / 港股 / 美股）
+Hệ thống phân tích cổ phiếu thông minh - Mô-đun tổng kết thị trường
+(Hỗ trợ A-share / Hồng Kông / Mỹ / Việt Nam)
 ===================================
 
-职责：
-1. 根据 MARKET_REVIEW_REGION 配置选择市场区域（cn / hk / us / both）
-2. 执行大盘复盘分析并生成复盘报告
-3. 保存和发送复盘报告
+Trách nhiệm:
+1. Chọn vùng thị trường theo cấu hình MARKET_REVIEW_REGION (cn / hk / us / both / vn)
+2. Thực hiện phân tích tổng kết thị trường và tạo báo cáo tổng kết
+3. Lưu và gửi báo cáo tổng kết
 """
 
 import logging
@@ -163,23 +164,23 @@ def run_market_review(
     trigger_source: str = "cli",
 ) -> Optional[str] | Optional[MarketReviewRunResult]:
     """
-    执行大盘复盘分析
+    Thực hiện phân tích tổng kết thị trường
 
     Args:
-        notifier: 通知服务
-        analyzer: AI分析器（可选）
-        search_service: 搜索服务（可选）
-        config: 本次复盘使用的配置（可选，未传时读取全局配置）
-        send_notification: 是否发送通知
-        merge_notification: 是否合并推送（跳过本次推送，由 main 层合并个股+大盘后统一发送，Issue #190）
-        override_region: 覆盖 config 的 market_review_region（Issue #373 交易日过滤后有效子集）
-        query_id: 历史记录关联 ID；API 后台任务会传入 task_id，CLI/Bot 为空时自动生成
-        save_report_file: 是否保存 Markdown 文件；上下文生成路径可关闭以避免多区域临时复盘互相覆盖
-        persist_history: 是否写入 analysis_history；预热路径可关闭以避免覆盖用户可见的同日大盘复盘记录
-        trigger_source: 触发来源，用于日志排障（cli/schedule/api/bot/service 等）
+        notifier: Dịch vụ thông báo
+        analyzer: Bộ phân tích AI (tùy chọn)
+        search_service: Dịch vụ tìm kiếm (tùy chọn)
+        config: Cấu hình dùng cho lần tổng kết này (tùy chọn; nếu không truyền thì đọc cấu hình toàn cục)
+        send_notification: Có gửi thông báo không
+        merge_notification: Có gộp thông báo không (bỏ qua lần gửi này, để tầng main gộp cổ phiếu+tổng kết rồi gửi một lần, Issue #190)
+        override_region: Ghi đè market_review_region của config (Issue #373 — tập con hợp lệ sau lọc ngày giao dịch)
+        query_id: ID liên kết lịch sử; tác vụ nền API truyền task_id, CLI/Bot để trống thì tự sinh
+        save_report_file: Có lưu file Markdown không; có thể tắt trên đường dẫn sinh ngữ cảnh để tránh nhiều vùng tổng kết tạm thời ghi đè nhau
+        persist_history: Có ghi vào analysis_history không; có thể tắt trên đường dẫn pre-warm để tránh ghi đè bản ghi tổng kết thị trường cùng ngày mà người dùng đang xem
+        trigger_source: Nguồn kích hoạt, dùng cho log debug (cli/schedule/api/bot/service, v.v.)
 
     Returns:
-        复盘报告文本
+        Nội dung văn bản báo cáo tổng kết
     """
     runtime_config = config or get_config()
     history_query_id = query_id or f"market_review_{uuid.uuid4().hex}"
@@ -205,7 +206,7 @@ def run_market_review(
 
     try:
         if len(run_markets) > 1:
-            # 多市场顺序执行，合并报告
+            # Thực hiện tuần tự nhiều thị trường, gộp báo cáo
             parts = []
             market_light_snapshots: Dict[str, Dict[str, Any]] = {}
             market_review_payloads: Dict[str, Dict[str, Any]] = {}
@@ -284,7 +285,7 @@ def run_market_review(
                 wrapper_title=review_text["root_title"],
             )
             if save_report_file:
-                # 保存报告到文件
+                # Lưu báo cáo ra file
                 date_str = datetime.now().strftime('%Y%m%d')
                 report_filename = f"market_review_{date_str}.md"
                 filepath = notifier.save_report_to_file(
@@ -311,7 +312,7 @@ def run_market_review(
                     market_review_payload=market_review_payload,
                 )
             
-            # 推送通知（合并模式下跳过，由 main 层统一发送）
+            # Gửi thông báo (bỏ qua ở chế độ gộp, để tầng main gửi thống nhất)
             if merge_notification and send_notification:
                 logger.info(
                     "[MarketReview] component=market_review action=skip_standalone_notification "
@@ -328,7 +329,7 @@ def run_market_review(
                     attempts=0,
                 )
             elif send_notification and notifier.is_available():
-                # 添加标题
+                # Thêm tiêu đề
                 report_content = _render_market_review_payload_markdown(
                     market_review_payload,
                     wrapper_title=review_text["push_title"],

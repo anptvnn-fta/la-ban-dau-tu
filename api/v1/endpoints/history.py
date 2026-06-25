@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 ===================================
-历史记录接口
+API lịch sử phân tích
 ===================================
 
-职责：
-1. 提供 GET /api/v1/history 历史列表查询接口
-2. 提供 GET /api/v1/history/{query_id} 历史详情查询接口
+Trách nhiệm:
+1. Cung cấp GET /api/v1/history để truy vấn danh sách lịch sử
+2. Cung cấp GET /api/v1/history/{query_id} để truy vấn chi tiết lịch sử
 """
 
 import logging
@@ -91,26 +91,26 @@ def get_history_list(
     db_manager: DatabaseManager = Depends(get_database_manager)
 ) -> HistoryListResponse:
     """
-    获取历史分析列表
-    
-    分页获取历史分析记录摘要，支持按股票代码和日期范围筛选
-    
+    Lấy danh sách lịch sử phân tích
+
+    Lấy tóm tắt bản ghi lịch sử phân tích theo phân trang, hỗ trợ lọc theo mã cổ phiếu và khoảng thời gian
+
     Args:
-        stock_code: 股票代码筛选
-        report_type: 报告类型筛选
-        start_date: 开始日期
-        end_date: 结束日期
-        page: 页码
-        limit: 每页数量
-        db_manager: 数据库管理器依赖
-        
+        stock_code: Lọc theo mã cổ phiếu
+        report_type: Lọc theo loại báo cáo
+        start_date: Ngày bắt đầu
+        end_date: Ngày kết thúc
+        page: Số trang
+        limit: Số lượng mỗi trang
+        db_manager: Dependency quản lý cơ sở dữ liệu
+
     Returns:
-        HistoryListResponse: 历史记录列表
+        HistoryListResponse: Danh sách bản ghi lịch sử
     """
     try:
         service = HistoryService(db_manager)
-        
-        # 使用 def 而非 async def，FastAPI 自动在线程池中执行
+
+        # Dùng def thay vì async def, FastAPI tự chạy trong thread pool
         result = service.get_history_list(
             stock_code=stock_code,
             report_type=report_type,
@@ -120,7 +120,7 @@ def get_history_list(
             limit=limit
         )
         
-        # 转换为响应模型
+        # Chuyển đổi sang response model
         items = [
             HistoryItem(
                 id=item.get("id"),
@@ -210,7 +210,7 @@ def delete_history_records(
     db_manager: DatabaseManager = Depends(get_database_manager)
 ) -> DeleteHistoryResponse:
     """
-    按主键 ID 批量删除历史分析记录。
+    Xóa hàng loạt bản ghi lịch sử phân tích theo khóa chính ID.
     """
     record_ids = sorted({record_id for record_id in request.record_ids if record_id is not None})
     if not record_ids:
@@ -354,27 +354,27 @@ def get_history_detail(
     db_manager: DatabaseManager = Depends(get_database_manager)
 ) -> AnalysisReport:
     """
-    获取历史报告详情
-    
-    根据分析历史记录主键 ID 或 query_id 获取完整的历史分析报告。
-    优先尝试按主键 ID（整数）查询，若参数不是合法整数则按 query_id 查询。
-    
+    Lấy chi tiết báo cáo lịch sử
+
+    Lấy báo cáo phân tích lịch sử đầy đủ theo khóa chính ID hoặc query_id.
+    Ưu tiên truy vấn theo khóa chính ID (số nguyên); nếu tham số không phải số nguyên hợp lệ thì truy vấn theo query_id.
+
     Args:
-        record_id: 分析历史记录主键 ID（整数）或 query_id（字符串）
-        db_manager: 数据库管理器依赖
-        
+        record_id: Khóa chính ID (số nguyên) hoặc query_id (chuỗi) của bản ghi lịch sử phân tích
+        db_manager: Dependency quản lý cơ sở dữ liệu
+
     Returns:
-        AnalysisReport: 完整分析报告
-        
+        AnalysisReport: Báo cáo phân tích đầy đủ
+
     Raises:
-        HTTPException: 404 - 报告不存在
+        HTTPException: 404 - Báo cáo không tồn tại
     """
     try:
         service = HistoryService(db_manager)
-        
+
         # Try integer ID first, fall back to query_id string lookup
         result = service.resolve_and_get_detail(record_id)
-        
+
         if result is None:
             raise HTTPException(
                 status_code=404,
@@ -384,9 +384,9 @@ def get_history_detail(
                 }
             )
 
-        # 从 context_snapshot 中提取价格信息
-        # 注意：使用 `is None` 而非 `or`，避免把 0.0（平盘）误判为缺失值；
-        # 同时不混用 `change_60d`（60 日累计涨跌幅）作为日内 change_pct 的兜底。
+        # Trích xuất thông tin giá từ context_snapshot
+        # Lưu ý: dùng `is None` thay vì `or` để tránh nhầm 0.0 (giá đứng) là thiếu dữ liệu;
+        # đồng thời không dùng `change_60d` (tăng/giảm lũy kế 60 ngày) làm dự phòng cho change_pct trong ngày.
         context_snapshot = result.get("context_snapshot")
         analysis_context_pack_overview = extract_analysis_context_pack_overview(context_snapshot)
         market_phase_summary = result.get("market_phase_summary")
@@ -415,7 +415,7 @@ def get_history_detail(
             report_language,
         )
 
-        # 构建响应模型
+        # Xây dựng response model
         meta = ReportMeta(
             id=result.get("id"),
             query_id=result.get("query_id", ""),
@@ -517,7 +517,7 @@ def get_history_diagnostics(
     db_manager: DatabaseManager = Depends(get_database_manager),
 ) -> RunDiagnosticSummaryResponse:
     """
-    获取历史报告运行诊断摘要。
+    Lấy tóm tắt chẩn đoán chạy của báo cáo lịch sử.
     """
     try:
         service = HistoryService(db_manager)
@@ -560,7 +560,7 @@ def get_history_run_flow(
     db_manager: DatabaseManager = Depends(get_database_manager),
 ) -> RunFlowSnapshot:
     """
-    获取历史报告运行流。
+    Lấy luồng chạy của báo cáo lịch sử.
     """
     try:
         service = HistoryService(db_manager)
@@ -603,18 +603,18 @@ def get_history_news(
     db_manager: DatabaseManager = Depends(get_database_manager)
 ) -> NewsIntelResponse:
     """
-    获取历史报告关联新闻
+    Lấy tin tức liên quan đến báo cáo lịch sử
 
-    根据分析历史记录 ID 或 query_id 获取关联的新闻情报列表。
-    在内部完成 record_id → query_id 的解析。
+    Lấy danh sách tin tức tình báo liên quan theo ID hoặc query_id của bản ghi lịch sử phân tích.
+    Nội bộ thực hiện giải mã record_id → query_id.
 
     Args:
-        record_id: 分析历史记录主键 ID（整数）或 query_id（字符串）
-        limit: 返回数量限制
-        db_manager: 数据库管理器依赖
+        record_id: Khóa chính ID (số nguyên) hoặc query_id (chuỗi) của bản ghi lịch sử phân tích
+        limit: Giới hạn số lượng trả về
+        db_manager: Dependency quản lý cơ sở dữ liệu
 
     Returns:
-        NewsIntelResponse: 新闻情报列表
+        NewsIntelResponse: Danh sách tin tức tình báo
     """
     try:
         service = HistoryService(db_manager)
@@ -661,20 +661,20 @@ def get_history_markdown(
     db_manager: DatabaseManager = Depends(get_database_manager)
 ) -> MarkdownReportResponse:
     """
-    获取历史报告的 Markdown 格式内容
+    Lấy nội dung báo cáo lịch sử định dạng Markdown
 
-    根据分析历史记录 ID 或 query_id 生成与推送通知格式一致的 Markdown 报告。
+    Tạo báo cáo Markdown nhất quán với định dạng thông báo đẩy theo ID hoặc query_id của bản ghi lịch sử phân tích.
 
     Args:
-        record_id: 分析历史记录主键 ID（整数）或 query_id（字符串）
-        db_manager: 数据库管理器依赖
+        record_id: Khóa chính ID (số nguyên) hoặc query_id (chuỗi) của bản ghi lịch sử phân tích
+        db_manager: Dependency quản lý cơ sở dữ liệu
 
     Returns:
-        MarkdownReportResponse: Markdown 格式的完整报告
+        MarkdownReportResponse: Báo cáo đầy đủ định dạng Markdown
 
     Raises:
-        HTTPException: 404 - 报告不存在
-        HTTPException: 500 - 报告生成失败（服务器内部错误）
+        HTTPException: 404 - Báo cáo không tồn tại
+        HTTPException: 500 - Tạo báo cáo thất bại (lỗi máy chủ nội bộ)
     """
     service = HistoryService(db_manager)
 

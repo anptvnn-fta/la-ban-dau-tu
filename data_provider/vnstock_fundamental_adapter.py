@@ -164,7 +164,7 @@ class VnstockFundamentalAdapter:
         financial_report = {
             "report_date": report_year,
             "revenue": revenue_latest,            # full VND
-            "net_profit_parent": np_latest,       # full VND (归母净利润)
+            "net_profit_parent": np_latest,       # full VND (lợi nhuận thuộc về cổ đông công ty mẹ)
             "operating_cash_flow": None,
             "roe": roe,
             "currency": "VND",

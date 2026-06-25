@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
 ===================================
-分析相关模型
+Các model liên quan đến phân tích
 ===================================
 
-职责：
-1. 定义分析请求和响应模型
-2. 定义任务状态模型
-3. 定义异步任务队列相关模型
+Trách nhiệm:
+1. Định nghĩa model yêu cầu và phản hồi phân tích
+2. Định nghĩa model trạng thái tác vụ
+3. Định nghĩa các model liên quan đến hàng đợi tác vụ bất đồng bộ
 """
 
 from typing import Optional, List, Any, Literal
@@ -18,7 +18,7 @@ from src.utils.analysis_metadata import SELECTION_SOURCE_PATTERN
 
 
 class TaskStatusEnum(str, Enum):
-    """任务状态枚举"""
+    """Enum trạng thái tác vụ"""
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"
@@ -140,7 +140,7 @@ class MarketReviewAccepted(BaseModel):
 
 
 class AnalysisResultResponse(BaseModel):
-    """分析结果响应模型"""
+    """Model phản hồi kết quả phân tích"""
     
     query_id: str = Field(..., description="分析记录唯一标识")
     trace_id: Optional[str] = Field(None, description="诊断 trace ID")
@@ -167,7 +167,7 @@ class AnalysisResultResponse(BaseModel):
 
 
 class TaskAccepted(BaseModel):
-    """异步任务接受响应"""
+    """Phản hồi xác nhận nhận tác vụ bất đồng bộ"""
     
     task_id: str = Field(..., description="任务 ID，用于查询状态")
     trace_id: Optional[str] = Field(None, description="诊断 trace ID")
@@ -190,7 +190,7 @@ class TaskAccepted(BaseModel):
 
 
 class BatchTaskAcceptedItem(BaseModel):
-    """批量异步任务中的单个成功提交项。"""
+    """Mục được gửi thành công trong tác vụ bất đồng bộ hàng loạt."""
 
     task_id: str = Field(..., description="任务 ID，用于查询状态")
     trace_id: Optional[str] = Field(None, description="诊断 trace ID")
@@ -215,7 +215,7 @@ class BatchTaskAcceptedItem(BaseModel):
 
 
 class BatchDuplicateTaskItem(BaseModel):
-    """批量异步任务中的重复提交项。"""
+    """Mục gửi trùng lặp trong tác vụ bất đồng bộ hàng loạt."""
 
     stock_code: str = Field(..., description="股票代码")
     existing_task_id: str = Field(..., description="已存在的任务 ID")
@@ -231,7 +231,7 @@ class BatchDuplicateTaskItem(BaseModel):
 
 
 class BatchTaskAcceptedResponse(BaseModel):
-    """批量异步任务接受响应。"""
+    """Phản hồi xác nhận nhận tác vụ bất đồng bộ hàng loạt."""
 
     accepted: List[BatchTaskAcceptedItem] = Field(default_factory=list, description="成功提交的任务列表")
     duplicates: List[BatchDuplicateTaskItem] = Field(default_factory=list, description="重复而跳过的任务列表")
@@ -371,7 +371,7 @@ class TaskInfo(BaseModel):
 
 
 class TaskListResponse(BaseModel):
-    """任务列表响应模型"""
+    """Model phản hồi danh sách tác vụ"""
     
     total: int = Field(..., description="任务总数")
     pending: int = Field(..., description="等待中的任务数")
@@ -389,7 +389,7 @@ class TaskListResponse(BaseModel):
 
 
 class DuplicateTaskErrorResponse(BaseModel):
-    """重复任务错误响应模型"""
+    """Model phản hồi lỗi tác vụ trùng lặp"""
     
     error: str = Field("duplicate_task", description="错误类型")
     message: str = Field(..., description="错误信息")

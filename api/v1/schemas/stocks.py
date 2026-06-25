@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 ===================================
-股票数据相关模型
+Các model liên quan đến dữ liệu cổ phiếu
 ===================================
 
-职责：
-1. 定义股票实时行情模型
-2. 定义历史 K 线数据模型
+Trách nhiệm:
+1. Định nghĩa model giá thị trường thời gian thực
+2. Định nghĩa model dữ liệu nến K theo lịch sử
 """
 
 from typing import Optional, List
@@ -15,7 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class StockQuote(BaseModel):
-    """股票实时行情"""
+    """Giá thị trường thời gian thực của cổ phiếu"""
     
     stock_code: str = Field(..., description="股票代码")
     stock_name: Optional[str] = Field(None, description="股票名称")
@@ -49,7 +49,7 @@ class StockQuote(BaseModel):
 
 
 class KLineData(BaseModel):
-    """K 线数据点"""
+    """Điểm dữ liệu nến K"""
     
     date: str = Field(..., description="日期")
     open: float = Field(..., description="开盘价")
@@ -75,7 +75,7 @@ class KLineData(BaseModel):
 
 
 class ExtractItem(BaseModel):
-    """单条提取结果（代码、名称、置信度）"""
+    """Một kết quả trích xuất (mã, tên, độ tin cậy)"""
 
     code: Optional[str] = Field(None, description="股票代码，None 表示解析失败")
     name: Optional[str] = Field(None, description="股票名称（如有）")
@@ -83,7 +83,7 @@ class ExtractItem(BaseModel):
 
 
 class ExtractFromImageResponse(BaseModel):
-    """图片股票代码提取响应"""
+    """Phản hồi trích xuất mã cổ phiếu từ ảnh"""
 
     codes: List[str] = Field(..., description="提取的股票代码（已去重，向后兼容）")
     items: List[ExtractItem] = Field(default_factory=list, description="提取结果明细（代码+名称+置信度）")
@@ -91,7 +91,7 @@ class ExtractFromImageResponse(BaseModel):
 
 
 class StockHistoryResponse(BaseModel):
-    """股票历史行情响应"""
+    """Phản hồi lịch sử giá cổ phiếu"""
     
     stock_code: str = Field(..., description="股票代码")
     stock_name: Optional[str] = Field(None, description="股票名称")

@@ -1,25 +1,25 @@
 # -*- coding: utf-8 -*-
 """
 ===================================
-A股自选股智能分析系统 - 主调度程序
+Hệ thống phân tích cổ phiếu thông minh - Chương trình điều phối chính
 ===================================
 
-职责：
-1. 协调各模块完成股票分析流程
-2. 实现低并发的线程池调度
-3. 全局异常处理，确保单股失败不影响整体
-4. 提供命令行入口
+Trách nhiệm:
+1. Điều phối các module để hoàn thành quy trình phân tích cổ phiếu
+2. Thực thi thread pool với mức concurrency thấp
+3. Xử lý ngoại lệ toàn cục, đảm bảo lỗi một mã không ảnh hưởng toàn hệ thống
+4. Cung cấp điểm vào dòng lệnh (CLI)
 
-使用方式：
-    python main.py              # 正常运行
-    python main.py --debug      # 调试模式
-    python main.py --dry-run    # 仅获取数据不分析
+Cách sử dụng:
+    python main.py              # Chạy bình thường
+    python main.py --debug      # Chế độ debug
+    python main.py --dry-run    # Chỉ lấy dữ liệu, không phân tích
 
-交易理念（已融入分析）：
-- 严进策略：不追高，乖离率 > 5% 不买入
-- 趋势交易：只做 MA5>MA10>MA20 多头排列
-- 效率优先：关注筹码集中度好的股票
-- 买点偏好：缩量回踩 MA5/MA10 支撑
+Triết lý giao dịch (đã tích hợp vào phân tích):
+- Chiến lược vào hàng chặt: không đuổi giá, không mua khi độ lệch MA > 5%
+- Giao dịch theo xu hướng: chỉ giao dịch khi MA5>MA10>MA20 (xếp tăng)
+- Ưu tiên hiệu quả: tập trung vào cổ phiếu có cấu trúc vốn tốt
+- Ưu tiên điểm mua: pullback co thanh khoản về MA5/MA10
 """
 from __future__ import annotations
 
@@ -35,10 +35,10 @@ from src.config import setup_env
 _INITIAL_PROCESS_ENV = dict(os.environ)
 setup_env()
 
-# 代理配置 - 通过 USE_PROXY 环境变量控制，默认关闭
-# GitHub Actions 环境自动跳过代理配置
+# Cấu hình proxy - kiểm soát qua biến môi trường USE_PROXY, mặc định tắt
+# Môi trường GitHub Actions tự động bỏ qua cấu hình proxy
 if os.getenv("GITHUB_ACTIONS") != "true" and os.getenv("USE_PROXY", "false").lower() == "true":
-    # 本地开发环境，启用代理（可在 .env 中配置 PROXY_HOST 和 PROXY_PORT）
+    # Môi trường phát triển cục bộ, bật proxy (có thể cấu hình PROXY_HOST và PROXY_PORT trong .env)
     proxy_host = os.getenv("PROXY_HOST", "127.0.0.1")
     proxy_port = os.getenv("PROXY_PORT", "10809")
     proxy_url = f"http://{proxy_host}:{proxy_port}"
@@ -255,7 +255,7 @@ def _reload_env_file_values_preserving_overrides() -> None:
 
 
 def parse_arguments() -> argparse.Namespace:
-    """解析命令行参数"""
+    """Phân tích tham số dòng lệnh"""
     parser = argparse.ArgumentParser(
         description='A股自选股智能分析系统',
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -390,7 +390,7 @@ def parse_arguments() -> argparse.Namespace:
         help='不保存分析上下文快照'
     )
 
-    # === Backtest ===
+    # === Kiểm thử lại (Backtest) ===
     parser.add_argument(
         '--backtest',
         action='store_true',
@@ -644,9 +644,9 @@ def run_full_analysis(
     raise_errors: bool = False,
 ) -> bool:
     """
-    执行完整的分析流程（个股 + 大盘复盘）
+    Thực hiện quy trình phân tích đầy đủ (cổ phiếu đơn lẻ + tổng kết thị trường)
 
-    这是定时任务调用的主函数
+    Đây là hàm chính được gọi bởi tác vụ lên lịch
     """
     # Import pipeline modules outside the broad try/except so that import-time
     # failures propagate to the caller instead of being silently swallowed.
@@ -656,11 +656,11 @@ def run_full_analysis(
     try:
         _refresh_stock_index_cache_for_analysis(config)
 
-        # Issue #529: Hot-reload STOCK_LIST from .env on each scheduled run
+        # Issue #529: Tải lại nóng STOCK_LIST từ .env trong mỗi lần chạy theo lịch
         if stock_codes is None:
             config.refresh_stock_list()
 
-        # Issue #373: Trading day filter (per-stock, per-market)
+        # Issue #373: Lọc ngày giao dịch (theo từng mã, theo từng thị trường)
         effective_codes = stock_codes if stock_codes is not None else config.stock_list
         filtered_codes, effective_region, should_skip = _compute_trading_day_filter(
             config, args, effective_codes
@@ -675,11 +675,11 @@ def run_full_analysis(
             logger.info("今日休市股票已跳过: %s", skipped)
         stock_codes = filtered_codes
 
-        # 命令行参数 --single-notify 覆盖配置（#55）
+        # Tham số dòng lệnh --single-notify ghi đè cấu hình (#55)
         if getattr(args, 'single_notify', False):
             config.single_stock_notify = True
 
-        # Issue #190: 个股与大盘复盘合并推送
+        # Issue #190: Gộp thông báo cổ phiếu đơn lẻ và tổng kết thị trường
         merge_notification = (
             getattr(config, 'merge_email_notification', False)
             and config.market_review_enabled
@@ -687,7 +687,7 @@ def run_full_analysis(
             and not config.single_stock_notify
         )
 
-        # 创建调度器
+        # Tạo bộ điều phối
         save_context_snapshot = None
         if getattr(args, 'no_context_snapshot', False):
             save_context_snapshot = False
@@ -752,7 +752,7 @@ def run_full_analysis(
                 require_current_query_match=True,
             )
 
-        # 1. 运行个股分析
+        # 1. Chạy phân tích cổ phiếu đơn lẻ
         results = pipeline.run(
             stock_codes=stock_codes,
             dry_run=args.dry_run,
@@ -777,10 +777,10 @@ def run_full_analysis(
             )
             market_context_generated_during_stock = bool(market_context_summary)
 
-        # Issue #128: 分析间隔 - 在个股分析和大盘分析之间添加延迟
+        # Issue #128: Khoảng nghỉ phân tích - thêm độ trễ giữa phân tích cổ phiếu và phân tích thị trường
         analysis_delay = getattr(config, 'analysis_delay', 0)
 
-        # 2. 运行大盘复盘（如果启用且不是仅个股模式）
+        # 2. Chạy tổng kết thị trường (nếu được bật và không phải chế độ chỉ cổ phiếu đơn)
         if should_run_market_review:
             schedule_mode = bool(
                 getattr(args, 'schedule', False)
@@ -846,7 +846,7 @@ def run_full_analysis(
                     query_id=query_id,
                     trigger_source=review_trigger_source,
                 )
-                # 如果复盘仍未执行成功，再做一次复用历史/缓存读取（防止与并发运行竞态）。
+                # Nếu tổng kết thị trường vẫn chưa chạy thành công, thử đọc lại từ lịch sử/cache (phòng tránh race condition với luồng song song).
                 if not review_result and should_use_daily_market_context:
                     (
                         market_context_summary,
@@ -868,13 +868,13 @@ def run_full_analysis(
                 elif not review_result:
                     can_reuse_market_context = False
 
-            # 如果有结果，赋值给 market_report 用于后续飞书文档生成
+            # Nếu có kết quả, gán vào market_report để tạo tài liệu Feishu sau đó
             if review_result:
                 market_report = _market_review_report_text(review_result)
             elif can_reuse_market_context:
                 market_report = market_context_full_report or market_context_summary
 
-        # Issue #190: 合并推送（个股+大盘复盘）
+        # Issue #190: Thông báo gộp (cổ phiếu đơn lẻ + tổng kết thị trường)
         if merge_notification and (results or market_report) and not args.no_notify:
             parts = []
             if market_report:
@@ -893,7 +893,7 @@ def run_full_analysis(
                     else:
                         logger.warning("合并推送失败")
 
-        # 输出摘要
+        # Xuất tóm tắt
         if results:
             logger.info("\n===== 分析结果摘要 =====")
             for r in sorted(results, key=lambda x: x.sentiment_score, reverse=True):
@@ -905,7 +905,7 @@ def run_full_analysis(
 
         logger.info("\n任务执行完成")
 
-        # === 新增：生成飞书云文档 ===
+        # === Mới thêm: Tạo tài liệu Feishu trên cloud ===
         try:
             from src.feishu_doc import FeishuDocManager
 
@@ -913,19 +913,19 @@ def run_full_analysis(
             if feishu_doc.is_configured() and (results or market_report):
                 logger.info("正在创建飞书云文档...")
 
-                # 1. 准备标题 "01-01 13:01大盘复盘"
+                # 1. Chuẩn bị tiêu đề "01-01 13:01 Tổng kết thị trường"
                 tz_cn = timezone(timedelta(hours=8))
                 now = datetime.now(tz_cn)
                 doc_title = f"{now.strftime('%Y-%m-%d %H:%M')} 大盘复盘"
 
-                # 2. 准备内容 (拼接个股分析和大盘复盘)
+                # 2. Chuẩn bị nội dung (ghép phân tích cổ phiếu đơn lẻ và tổng kết thị trường)
                 full_content = ""
 
-                # 添加大盘复盘内容（如果有）
+                # Thêm nội dung tổng kết thị trường (nếu có)
                 if market_report:
                     full_content += f"# 📈 大盘复盘\n\n{market_report}\n\n---\n\n"
 
-                # 添加个股决策仪表盘（使用 NotificationService 生成，按 report_type 分支）
+                # Thêm bảng quyết định cổ phiếu đơn lẻ (dùng NotificationService tạo, phân nhánh theo report_type)
                 if results:
                     dashboard_content = pipeline.notifier.generate_aggregate_report(
                         results,
@@ -933,11 +933,11 @@ def run_full_analysis(
                     )
                     full_content += f"# 🚀 个股决策仪表盘\n\n{dashboard_content}"
 
-                # 3. 创建文档
+                # 3. Tạo tài liệu
                 doc_url = feishu_doc.create_daily_doc(doc_title, full_content)
                 if doc_url:
                     logger.info(f"飞书云文档创建成功: {doc_url}")
-                    # 可选：将文档链接也推送到群里
+                    # Tùy chọn: cũng đẩy link tài liệu vào nhóm chat
                     if not args.no_notify:
                         pipeline.notifier.send(
                             f"[{now.strftime('%Y-%m-%d %H:%M')}] 复盘文档创建成功: {doc_url}",
@@ -947,7 +947,7 @@ def run_full_analysis(
         except Exception as e:
             logger.error(f"飞书文档生成失败: {e}")
 
-        # === Auto backtest ===
+        # === Kiểm thử lại tự động ===
         try:
             if getattr(config, 'backtest_enabled', False):
                 from src.services.backtest_service import BacktestService
@@ -1006,12 +1006,12 @@ def _run_analysis_with_runtime_scheduler_lock(
 
 def start_api_server(host: str, port: int, config: Config) -> None:
     """
-    在后台线程启动 FastAPI 服务
+    Khởi động dịch vụ FastAPI trong luồng nền
 
     Args:
-        host: 监听地址
-        port: 监听端口
-        config: 配置对象
+        host: Địa chỉ lắng nghe
+        port: Cổng lắng nghe
+        config: Đối tượng cấu hình
     """
     import socket
     import threading
@@ -1107,7 +1107,7 @@ def _is_truthy_env(var_name: str, default: str = "true") -> bool:
 
 def start_bot_stream_clients(config: Config) -> None:
     """Start bot stream clients when enabled in config."""
-    # 启动钉钉 Stream 客户端
+    # Khởi động client Dingtalk Stream
     if config.dingtalk_stream_enabled:
         try:
             from bot.platforms import start_dingtalk_stream_background, DINGTALK_STREAM_AVAILABLE
@@ -1122,7 +1122,7 @@ def start_bot_stream_clients(config: Config) -> None:
         except Exception as exc:
             logger.error(f"[Main] Failed to start Dingtalk Stream client: {exc}")
 
-    # 启动飞书 Stream 客户端
+    # Khởi động client Feishu Stream
     if getattr(config, 'feishu_stream_enabled', False):
         try:
             from bot.platforms import start_feishu_stream_background, FEISHU_SDK_AVAILABLE
@@ -1213,15 +1213,15 @@ def _build_schedule_times_provider(default_schedule_time: str):
 
 def main() -> int:
     """
-    主入口函数
+    Hàm điểm vào chính
 
     Returns:
-        退出码（0 表示成功）
+        Mã thoát (0 là thành công)
     """
-    # 解析命令行参数
+    # Phân tích tham số dòng lệnh
     args = parse_arguments()
 
-    # 在配置加载前先初始化 bootstrap 日志，确保早期失败也能落盘
+    # Khởi tạo bootstrap log trước khi tải cấu hình, đảm bảo lỗi sớm cũng được ghi lại
     try:
         _setup_bootstrap_logging(debug=args.debug)
     except Exception as exc:
@@ -1232,14 +1232,14 @@ def main() -> int:
         )
         logger.warning("Bootstrap 日志初始化失败，已回退到 stderr: %s", exc)
 
-    # 加载配置（在 bootstrap logging 之后执行，确保异常有日志）
+    # Tải cấu hình (chạy sau bootstrap logging, đảm bảo ngoại lệ có log)
     try:
         config = get_config()
     except Exception as exc:
         logger.exception("加载配置失败: %s", exc)
         return 1
 
-    # 配置日志（输出到控制台和文件）
+    # Cấu hình log (xuất ra console và file)
     try:
         _setup_runtime_logging(config.log_dir, debug=args.debug)
     except Exception as exc:
@@ -1251,7 +1251,7 @@ def main() -> int:
     logger.info(f"运行时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     logger.info("=" * 60)
 
-    # 验证配置
+    # Kiểm tra cấu hình
     warnings = config.validate()
     for warning in warnings:
         logger.warning(warning)
@@ -1266,7 +1266,7 @@ def main() -> int:
         print(format_notification_diagnostics(result))
         return 0 if result.ok else 1
 
-    # 解析股票列表（统一为大写 Issue #355）
+    # Phân tích danh sách mã cổ phiếu (chuẩn hóa thành chữ hoa, Issue #355)
     stock_codes = None
     if args.stocks:
         stock_codes = [
@@ -1276,20 +1276,20 @@ def main() -> int:
         ]
         logger.info(f"使用命令行指定的股票列表: {stock_codes}")
 
-    # === 处理 --webui / --webui-only 参数，映射到 --serve / --serve-only ===
+    # === Xử lý tham số --webui / --webui-only, ánh xạ sang --serve / --serve-only ===
     if args.webui:
         args.serve = True
     if args.webui_only:
         args.serve_only = True
 
-    # 兼容旧版 WEBUI_ENABLED 环境变量
+    # Tương thích biến môi trường WEBUI_ENABLED của phiên bản cũ
     if config.webui_enabled and not (args.serve or args.serve_only):
         args.serve = True
 
-    # === 启动 Web 服务 (如果启用) ===
+    # === Khởi động Web service (nếu được bật) ===
     start_serve = (args.serve or args.serve_only) and os.getenv("GITHUB_ACTIONS") != "true"
 
-    # 兼容旧版 WEBUI_HOST/WEBUI_PORT：如果用户未通过 --host/--port 指定，则使用旧变量
+    # Tương thích WEBUI_HOST/WEBUI_PORT phiên bản cũ: nếu người dùng không chỉ định --host/--port thì dùng biến cũ
     if start_serve:
         if args.host == '0.0.0.0' and os.getenv('WEBUI_HOST'):
             args.host = os.getenv('WEBUI_HOST')
@@ -1354,7 +1354,7 @@ def main() -> int:
     if bot_clients_started:
         start_bot_stream_clients(config)
 
-    # === 仅 Web 服务模式：不自动执行分析 ===
+    # === Chế độ chỉ Web service: không tự động chạy phân tích ===
     if args.serve_only:
         logger.info("模式: 仅 Web 服务")
         logger.info(f"Web 服务运行中: http://{args.host}:{args.port}")
@@ -1369,7 +1369,7 @@ def main() -> int:
         return 0
 
     try:
-        # 模式0: 回测
+        # Chế độ 0: Kiểm thử lại (Backtest)
         if getattr(args, 'backtest', False):
             logger.info("模式: 回测")
             from src.services.backtest_service import BacktestService
@@ -1386,7 +1386,7 @@ def main() -> int:
             )
             return 0
 
-        # 模式1: 仅大盘复盘
+        # Chế độ 1: Chỉ tổng kết thị trường
         if args.market_review:
             from src.core.market_review import run_market_review
             from src.core.market_review_runtime import build_market_review_runtime
@@ -1421,7 +1421,7 @@ def main() -> int:
             )
             return 0
 
-        # 模式2: 定时任务模式
+        # Chế độ 2: Chế độ tác vụ theo lịch
         if args.schedule or config.schedule_enabled:
             if start_serve:
                 logger.info("模式: Web/API runtime scheduler")
@@ -1489,7 +1489,7 @@ def main() -> int:
             run_with_schedule(**schedule_kwargs)
             return 0
 
-        # 模式3: 正常单次运行
+        # Chế độ 3: Chạy một lần bình thường
         if config.run_immediately:
             _run_analysis_with_runtime_scheduler_lock(config, args, stock_codes)
         else:
@@ -1497,7 +1497,7 @@ def main() -> int:
 
         logger.info("\n程序执行完成")
 
-        # 如果启用了服务且是非定时任务模式，保持程序运行
+        # Nếu service được bật và không phải chế độ tác vụ lên lịch, giữ chương trình chạy
         keep_running = start_serve and not (args.schedule or config.schedule_enabled)
         if keep_running:
             logger.info("API 服务运行中 (按 Ctrl+C 退出)...")

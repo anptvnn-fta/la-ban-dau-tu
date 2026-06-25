@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 ===================================
-API v1 Endpoints 模块初始化
+Khởi tạo module API v1 Endpoints
 ===================================
 
-职责：
-1. 声明所有 endpoint 路由模块
+Trách nhiệm:
+1. Khai báo tất cả các module định tuyến endpoint
 """
 
 from api.v1.endpoints import (

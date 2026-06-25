@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-大盘复盘市场区域配置
+Cấu hình vùng thị trường cho tổng kết thị trường
 
-定义各市场区域的指数、新闻搜索词、Prompt 提示等元数据，
-供 MarketAnalyzer 按 region 切换 A 股/美股复盘行为。
+Định nghĩa metadata của từng vùng thị trường: mã chỉ số, từ khóa tìm kiếm tin tức,
+gợi ý Prompt, v.v. — dùng cho MarketAnalyzer chuyển đổi hành vi tổng kết
+giữa A-share / Mỹ / Hồng Kông / Việt Nam.
 """
 
 from dataclasses import dataclass
@@ -12,18 +13,18 @@ from typing import List
 
 @dataclass
 class MarketProfile:
-    """大盘复盘市场区域配置"""
+    """Cấu hình vùng thị trường cho tổng kết thị trường"""
 
     region: str  # "cn" | "us"
-    # 用于判断整体走势的指数代码，cn 用上证 000001，us 用标普 SPX
+    # Mã chỉ số dùng để đánh giá xu hướng tổng thể: cn dùng 000001 (Thượng Hải), us dùng SPX
     mood_index_code: str
-    # 新闻搜索关键词
+    # Từ khóa tìm kiếm tin tức
     news_queries: List[str]
-    # 指数点评 Prompt 提示语
+    # Gợi ý Prompt bình luận chỉ số
     prompt_index_hint: str
-    # 市场概况是否包含涨跌家数、涨停跌停（A 股有，美股无）
+    # Tổng quan thị trường có chứa số mã tăng/giảm, trần/sàn không (A-share có, Mỹ không)
     has_market_stats: bool
-    # 市场概况是否包含板块涨跌（A 股有，美股暂无）
+    # Tổng quan thị trường có chứa bảng xếp hạng ngành không (A-share có, Mỹ chưa có)
     has_sector_rankings: bool
 
 
@@ -81,7 +82,7 @@ VN_PROFILE = MarketProfile(
 
 
 def get_profile(region: str) -> MarketProfile:
-    """根据 region 返回对应的 MarketProfile"""
+    """Trả về MarketProfile tương ứng theo region"""
     if region == "us":
         return US_PROFILE
     if region == "hk":

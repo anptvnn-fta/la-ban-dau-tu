@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 """
 ===================================
-股票分析接口
+API phân tích cổ phiếu
 ===================================
 
-职责：
-1. 提供 POST /api/v1/analysis/analyze 触发分析接口
-2. 提供 GET /api/v1/analysis/status/{task_id} 查询任务状态接口
-3. 提供 GET /api/v1/analysis/tasks 获取任务列表接口
-4. 提供 GET /api/v1/analysis/tasks/stream SSE 实时推送接口
+Trách nhiệm:
+1. Cung cấp POST /api/v1/analysis/analyze để kích hoạt phân tích
+2. Cung cấp GET /api/v1/analysis/status/{task_id} để truy vấn trạng thái tác vụ
+3. Cung cấp GET /api/v1/analysis/tasks để lấy danh sách tác vụ
+4. Cung cấp GET /api/v1/analysis/tasks/stream để đẩy dữ liệu thời gian thực qua SSE
 
-特性：
-- 异步任务队列：分析任务异步执行，不阻塞请求
-- 防重复提交：相同股票代码正在分析时返回 409
-- SSE 实时推送：任务状态变化实时通知前端
+Tính năng:
+- Hàng đợi tác vụ bất đồng bộ: tác vụ phân tích chạy bất đồng bộ, không chặn request
+- Chống trùng lặp: trả về 409 khi mã cổ phiếu đang được phân tích
+- Đẩy SSE thời gian thực: thông báo thay đổi trạng thái tác vụ tới frontend ngay lập tức
 """
 
 import asyncio
@@ -216,7 +216,7 @@ def _resolve_and_normalize_input(raw_value: str) -> str:
 
 
 # ============================================================
-# POST /analyze - 触发股票分析
+# POST /analyze - Kích hoạt phân tích cổ phiếu
 # ============================================================
 
 @router.post(
@@ -240,29 +240,29 @@ def trigger_analysis(
         config: Config = Depends(get_config_dep)
 ) -> Union[AnalysisResultResponse, JSONResponse]:
     """
-    触发股票分析
-    
-    启动 AI 智能分析任务，支持单只或多只股票批量分析
-    
-    流程：
-    1. 校验请求参数
-    2. 异步模式：检查重复 -> 提交任务队列 -> 返回 202
-    3. 同步模式：直接执行分析 -> 返回 200
-    
+    Kích hoạt phân tích cổ phiếu
+
+    Khởi động tác vụ phân tích AI thông minh, hỗ trợ phân tích đơn lẻ hoặc hàng loạt cổ phiếu
+
+    Luồng xử lý:
+    1. Kiểm tra tham số request
+    2. Chế độ bất đồng bộ: kiểm tra trùng lặp -> gửi vào hàng đợi -> trả về 202
+    3. Chế độ đồng bộ: thực thi phân tích trực tiếp -> trả về 200
+
     Args:
-        request: 分析请求参数
-        config: 配置依赖
-        
+        request: Tham số yêu cầu phân tích
+        config: Dependency cấu hình
+
     Returns:
-        AnalysisResultResponse: 分析结果（同步模式）
-        TaskAccepted | BatchTaskAcceptedResponse: 任务已接受（异步模式，返回 202）
-        
+        AnalysisResultResponse: Kết quả phân tích (chế độ đồng bộ)
+        TaskAccepted | BatchTaskAcceptedResponse: Tác vụ đã được chấp nhận (chế độ bất đồng bộ, trả về 202)
+
     Raises:
-        HTTPException: 400 - 请求参数错误
-        HTTPException: 409 - 股票正在分析中
-        HTTPException: 500 - 分析失败
+        HTTPException: 400 - Tham số request không hợp lệ
+        HTTPException: 409 - Cổ phiếu đang được phân tích
+        HTTPException: 500 - Phân tích thất bại
     """
-    # 校验请求参数
+    # Kiểm tra tham số request
     stock_codes = []
     if request.stock_code:
         stock_codes.append(request.stock_code)
@@ -370,7 +370,7 @@ def _handle_async_analysis_batch(
         for dup in duplicate_errors
     ]
     
-    # 单只股票且被拒绝：保持 409 兼容性
+    # Một cổ phiếu bị từ chối: giữ nguyên tương thích 409
     if len(stock_codes) == 1 and duplicates:
         dup = duplicates[0]
         error_response = DuplicateTaskErrorResponse(
@@ -384,7 +384,7 @@ def _handle_async_analysis_batch(
             content=error_response.model_dump()
         )
     
-    # 单只股票成功：保持原有响应格式兼容性
+    # Một cổ phiếu thành công: giữ nguyên định dạng response gốc
     if len(stock_codes) == 1 and accepted:
         task_accepted = TaskAccepted(
             task_id=accepted[0].task_id,
@@ -398,7 +398,7 @@ def _handle_async_analysis_batch(
             content=task_accepted.model_dump()
         )
     
-    # 批量：返回汇总结果
+    # Hàng loạt: trả về kết quả tổng hợp
     batch_response = BatchTaskAcceptedResponse(
         accepted=accepted,
         duplicates=duplicates,
@@ -415,9 +415,9 @@ def _handle_sync_analysis(
     request: AnalyzeRequest
 ) -> AnalysisResultResponse:
     """
-    处理同步分析请求
-    
-    直接执行分析，等待完成后返回结果
+    Xử lý yêu cầu phân tích đồng bộ
+
+    Thực thi phân tích trực tiếp và trả về kết quả sau khi hoàn thành
     """
     import uuid
     from src.services.analysis_service import AnalysisService
@@ -441,7 +441,7 @@ def _handle_sync_analysis(
             error_message = service.last_error or f"Phân tích cổ phiếu {stock_code} thất bại"
             raise api_error(500, "analysis_failed", error_message)
 
-        # 构建报告结构
+        # Xây dựng cấu trúc báo cáo
         report_data = result.get("report", {})
         context_snapshot, fundamental_snapshot = _load_sync_fundamental_sources(
             query_id=query_id,
@@ -474,7 +474,7 @@ def _handle_sync_analysis(
 
 
 # ============================================================
-# POST /market-review - 触发大盘复盘
+# POST /market-review - Kích hoạt tổng kết thị trường
 # ============================================================
 
 @router.post(
@@ -547,7 +547,7 @@ def trigger_market_review(
 
 
 # ============================================================
-# GET /tasks - 获取任务列表
+# GET /tasks - Lấy danh sách tác vụ
 # ============================================================
 
 @router.get(
@@ -567,29 +567,29 @@ def get_task_list(
     limit: int = Query(20, description="返回数量限制", ge=1, le=100),
 ) -> TaskListResponse:
     """
-    获取分析任务列表
-    
+    Lấy danh sách tác vụ phân tích
+
     Args:
-        status: 状态筛选（可选）
-        limit: 返回数量限制
-        
+        status: Lọc theo trạng thái (tùy chọn)
+        limit: Giới hạn số lượng trả về
+
     Returns:
-        TaskListResponse: 任务列表响应
+        TaskListResponse: Response danh sách tác vụ
     """
     task_queue = get_task_queue()
-    
-    # 获取所有任务
+
+    # Lấy tất cả các tác vụ
     all_tasks = task_queue.list_all_tasks(limit=limit)
-    
-    # 状态筛选
+
+    # Lọc theo trạng thái
     if status:
         status_list = [s.strip().lower() for s in status.split(",")]
         all_tasks = [t for t in all_tasks if t.status.value in status_list]
-    
-    # 统计信息
+
+    # Thống kê
     stats = task_queue.get_task_stats()
-    
-    # 转换为 Schema
+
+    # Chuyển đổi sang Schema
     task_infos = [
         TaskInfo(
             task_id=t.task_id,
@@ -621,7 +621,7 @@ def get_task_list(
 
 
 # ============================================================
-# GET /tasks/stream - SSE 实时推送
+# GET /tasks/stream - Đẩy dữ liệu thời gian thực qua SSE
 # ============================================================
 
 @router.get(
@@ -634,43 +634,43 @@ def get_task_list(
 )
 async def task_stream():
     """
-    SSE 任务状态流
-    
-    事件类型：
-    - connected: 连接成功
-    - task_created: 新任务创建
-    - task_started: 任务开始执行
-    - task_progress: 任务阶段进度更新
-    - task_completed: 任务完成
-    - task_failed: 任务失败
-    - heartbeat: 心跳（每 30 秒）
-    
+    Luồng SSE trạng thái tác vụ
+
+    Loại sự kiện:
+    - connected: Kết nối thành công
+    - task_created: Tác vụ mới được tạo
+    - task_started: Tác vụ bắt đầu thực thi
+    - task_progress: Cập nhật tiến độ theo giai đoạn
+    - task_completed: Tác vụ hoàn thành
+    - task_failed: Tác vụ thất bại
+    - heartbeat: Nhịp tim (mỗi 30 giây)
+
     Returns:
-        StreamingResponse: SSE 事件流
+        StreamingResponse: Luồng sự kiện SSE
     """
     async def event_generator():
         task_queue = get_task_queue()
         event_queue: asyncio.Queue = asyncio.Queue()
-        
-        # 发送连接成功事件
+
+        # Gửi sự kiện kết nối thành công
         yield _format_sse_event("connected", {"message": "Connected to task stream"})
-        
-        # 发送当前进行中的任务
+
+        # Gửi các tác vụ đang chờ xử lý hiện tại
         pending_tasks = task_queue.list_pending_tasks()
         for task in pending_tasks:
             yield _format_sse_event("task_created", task.to_dict())
-        
-        # 订阅任务事件
+
+        # Đăng ký nhận sự kiện tác vụ
         task_queue.subscribe(event_queue)
-        
+
         try:
             while True:
                 try:
-                    # 等待事件，超时发送心跳
+                    # Chờ sự kiện, gửi nhịp tim khi hết thời gian
                     event = await asyncio.wait_for(event_queue.get(), timeout=30)
                     yield _format_sse_event(event["type"], event["data"])
                 except asyncio.TimeoutError:
-                    # 心跳
+                    # Nhịp tim
                     yield _format_sse_event("heartbeat", {
                         "timestamp": datetime.now().isoformat()
                     })
@@ -686,21 +686,21 @@ async def task_stream():
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
-            "X-Accel-Buffering": "no",  # 禁用 Nginx 缓冲
+            "X-Accel-Buffering": "no",  # Tắt bộ đệm Nginx
         }
     )
 
 
 def _format_sse_event(event_type: str, data: Dict[str, Any]) -> str:
     """
-    格式化 SSE 事件
-    
+    Định dạng sự kiện SSE
+
     Args:
-        event_type: 事件类型
-        data: 事件数据
-        
+        event_type: Loại sự kiện
+        data: Dữ liệu sự kiện
+
     Returns:
-        SSE 格式字符串
+        Chuỗi định dạng SSE
     """
     return f"event: {event_type}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
 
@@ -952,7 +952,7 @@ def _build_task_analysis_result(task: Any) -> AnalysisResultResponse:
 
 
 # ============================================================
-# GET /status/{task_id} - 查询单个任务状态
+# GET /status/{task_id} - Truy vấn trạng thái một tác vụ
 # ============================================================
 
 @router.get(
@@ -967,20 +967,20 @@ def _build_task_analysis_result(task: Any) -> AnalysisResultResponse:
 )
 def get_analysis_status(task_id: str) -> TaskStatus:
     """
-    查询分析任务状态
-    
-    优先从任务队列查询，如果不存在则从数据库查询历史记录
-    
+    Truy vấn trạng thái tác vụ phân tích
+
+    Ưu tiên truy vấn từ hàng đợi tác vụ, nếu không tìm thấy sẽ truy vấn lịch sử từ cơ sở dữ liệu
+
     Args:
-        task_id: 任务 ID
-        
+        task_id: ID tác vụ
+
     Returns:
-        TaskStatus: 任务状态信息
-        
+        TaskStatus: Thông tin trạng thái tác vụ
+
     Raises:
-        HTTPException: 404 - 任务不存在
+        HTTPException: 404 - Tác vụ không tồn tại
     """
-    # 1. 先从任务队列查询
+    # 1. Truy vấn từ hàng đợi tác vụ trước
     task_queue = get_task_queue()
     task = task_queue.get_task(task_id)
     
@@ -1022,7 +1022,7 @@ def get_analysis_status(task_id: str) -> TaskStatus:
             skills=getattr(task, "skills", None),
         )
     
-    # 2. 从数据库查询已完成的记录
+    # 2. Truy vấn bản ghi đã hoàn thành từ cơ sở dữ liệu
     try:
         from src.storage import DatabaseManager
         db = DatabaseManager.get_instance()
@@ -1173,12 +1173,12 @@ def get_analysis_status(task_id: str) -> TaskStatus:
         logger.error(f"Truy vấn trạng thái tác vụ thất bại: {e}", exc_info=True)
         raise api_error(500, "internal_error", f"Truy vấn trạng thái tác vụ thất bại: {str(e)}")
 
-    # 3. 任务不存在
+    # 3. Tác vụ không tồn tại
     raise api_error(404, "not_found", f"Tác vụ {task_id} không tồn tại hoặc đã hết hạn")
 
 
 # ============================================================
-# 辅助函数
+# Hàm hỗ trợ
 # ============================================================
 
 def _load_sync_fundamental_sources(
@@ -1229,18 +1229,18 @@ def _build_analysis_report(
         fallback_fundamental_payload: Optional[Dict[str, Any]] = None,
 ) -> AnalysisReport:
     """
-    构建符合 API 规范的分析报告
-    
+    Xây dựng báo cáo phân tích theo đúng quy chuẩn API
+
     Args:
-        report_data: 原始报告数据
-        query_id: 查询 ID
-        stock_code: 股票代码
-        stock_name: 股票名称
-        context_snapshot: 上下文快照（可选）
-        fallback_fundamental_payload: 基本面快照 payload（可选）
-        
+        report_data: Dữ liệu báo cáo thô
+        query_id: ID truy vấn
+        stock_code: Mã cổ phiếu
+        stock_name: Tên cổ phiếu
+        context_snapshot: Ảnh chụp ngữ cảnh (tùy chọn)
+        fallback_fundamental_payload: Payload ảnh chụp cơ bản (tùy chọn)
+
     Returns:
-        AnalysisReport: 结构化的分析报告
+        AnalysisReport: Báo cáo phân tích có cấu trúc
     """
     meta_data = report_data.get("meta", {})
     summary_data = report_data.get("summary", {})

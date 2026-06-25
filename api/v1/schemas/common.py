@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 ===================================
-通用响应模型
+Các model phản hồi chung
 ===================================
 
-职责：
-1. 定义通用的响应模型（HealthResponse, ErrorResponse 等）
-2. 提供统一的响应格式
+Trách nhiệm:
+1. Định nghĩa các model phản hồi chung (HealthResponse, ErrorResponse, ...)
+2. Cung cấp định dạng phản hồi thống nhất
 """
 
 from typing import Optional, Any
@@ -15,7 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class RootResponse(BaseModel):
-    """API 根路由响应"""
+    """Phản hồi của route gốc API"""
     
     message: str = Field(..., description="API 运行状态消息", json_schema_extra={"example": "Daily Stock Analysis API is running"})
     version: Optional[str] = Field(None, description="API 版本", json_schema_extra={"example": "1.0.0"})
@@ -29,7 +29,7 @@ class RootResponse(BaseModel):
 
 
 class HealthResponse(BaseModel):
-    """健康检查响应"""
+    """Phản hồi kiểm tra sức khỏe dịch vụ"""
     
     status: str = Field(..., description="服务状态", json_schema_extra={"example": "ok"})
     timestamp: Optional[str] = Field(None, description="时间戳")
@@ -43,7 +43,7 @@ class HealthResponse(BaseModel):
 
 
 class ErrorResponse(BaseModel):
-    """错误响应"""
+    """Phản hồi lỗi"""
     
     error: str = Field(..., description="错误类型", json_schema_extra={"example": "validation_error"})
     message: str = Field(..., description="错误详情", json_schema_extra={"example": "请求参数错误"})
@@ -59,7 +59,7 @@ class ErrorResponse(BaseModel):
 
 
 class SuccessResponse(BaseModel):
-    """通用成功响应"""
+    """Phản hồi thành công chung"""
     
     success: bool = Field(True, description="是否成功")
     message: Optional[str] = Field(None, description="成功消息")

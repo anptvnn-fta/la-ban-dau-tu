@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
 """
 ===================================
-交易日历模块 (Issue #373 / Issue #1386 P0)
+Mô-đun lịch giao dịch (Issue #373 / Issue #1386 P0)
 ===================================
 
-职责：
-1. 按市场（A股/港股/美股）判断当日是否为交易日
-2. 按市场时区取“今日”日期，避免服务器 UTC 导致日期错误
-3. 支持 per-stock 过滤：只分析当日开市市场的股票
-4. 提供 regular-session 市场阶段推断基线，不改变现有分析入口行为
+Trách nhiệm:
+1. Xác định ngày giao dịch theo từng thị trường (A-share / Hồng Kông / Mỹ / Việt Nam)
+2. Lấy ngày "hôm nay" theo múi giờ của thị trường, tránh lỗi ngày do máy chủ UTC
+3. Hỗ trợ lọc per-stock: chỉ phân tích cổ phiếu thuộc thị trường đang mở cửa trong ngày
+4. Cung cấp baseline suy luận giai đoạn thị trường phiên thông thường, không thay đổi hành vi
+   phân tích hiện có
 
-依赖：exchange-calendars（可选，交易日判断不可用时 fail-open，阶段推断不可用时 unknown）
+Phụ thuộc: exchange-calendars (tùy chọn; fail-open khi không xác định được ngày giao dịch,
+trả về unknown khi không suy luận được giai đoạn thị trường)
 """
 
 import logging

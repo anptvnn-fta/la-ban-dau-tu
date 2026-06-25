@@ -206,15 +206,14 @@ class SessionMessagesResponse(BaseModel):
 
 @router.get("/chat/sessions", response_model=SessionsResponse)
 async def list_chat_sessions(limit: int = 50, user_id: Optional[str] = None):
-    """获取聊天会话列表
+    """Lấy danh sách phiên trò chuyện
 
     Args:
-        limit: Maximum number of sessions to return.
-        user_id: Optional platform-prefixed user identifier for session
-            isolation.  When provided, only sessions whose session_id
-            starts with this prefix are returned.  The value must
-            include the platform prefix, e.g. ``telegram_12345``,
-            ``feishu_ou_abc``.
+        limit: Số lượng phiên tối đa cần trả về.
+        user_id: Định danh người dùng có tiền tố nền tảng (tùy chọn) để
+            cách ly phiên. Khi được cung cấp, chỉ trả về các phiên có
+            session_id bắt đầu bằng tiền tố này. Giá trị phải bao gồm
+            tiền tố nền tảng, ví dụ ``telegram_12345``, ``feishu_ou_abc``.
     """
     from src.storage import get_db
     sessions = get_db().get_chat_sessions(
@@ -227,7 +226,7 @@ async def list_chat_sessions(limit: int = 50, user_id: Optional[str] = None):
 
 @router.get("/chat/sessions/{session_id}", response_model=SessionMessagesResponse)
 async def get_chat_session_messages(session_id: str, limit: int = 100):
-    """获取单个会话的完整消息"""
+    """Lấy toàn bộ tin nhắn của một phiên trò chuyện"""
     from src.storage import get_db
     messages = get_db().get_conversation_messages(session_id, limit=limit)
     return SessionMessagesResponse(session_id=session_id, messages=messages)
@@ -235,7 +234,7 @@ async def get_chat_session_messages(session_id: str, limit: int = 100):
 
 @router.delete("/chat/sessions/{session_id}")
 async def delete_chat_session(session_id: str):
-    """删除指定会话"""
+    """Xóa phiên trò chuyện được chỉ định"""
     from src.storage import get_db
     count = get_db().delete_conversation_session(session_id)
     return {"deleted": count}

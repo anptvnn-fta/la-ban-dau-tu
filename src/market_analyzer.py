@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
 ===================================
-大盘复盘分析模块
+Module phân tích tổng kết thị trường
 ===================================
 
-职责：
-1. 获取大盘指数数据（上证、深证、创业板）
-2. 搜索市场新闻形成复盘情报
-3. 使用大模型生成每日大盘复盘报告
+Trách nhiệm:
+1. Lấy dữ liệu chỉ số thị trường (Thượng Hải, Thâm Quyến, ChiNext / VN-Index, v.v.)
+2. Tìm kiếm tin tức thị trường để tổng hợp thông tin tổng kết
+3. Dùng LLM tạo báo cáo tổng kết thị trường hàng ngày
 """
 
 import logging
@@ -55,19 +55,19 @@ _CHINESE_SECTION_PATTERNS = {
 
 @dataclass
 class MarketIndex:
-    """大盘指数数据"""
-    code: str                    # 指数代码
-    name: str                    # 指数名称
-    current: float = 0.0         # 当前点位
-    change: float = 0.0          # 涨跌点数
-    change_pct: float = 0.0      # 涨跌幅(%)
-    open: float = 0.0            # 开盘点位
-    high: float = 0.0            # 最高点位
-    low: float = 0.0             # 最低点位
-    prev_close: float = 0.0      # 昨收点位
-    volume: float = 0.0          # 成交量（手）
-    amount: float = 0.0          # 成交额（元）
-    amplitude: float = 0.0       # 振幅(%)
+    """Dữ liệu chỉ số thị trường"""
+    code: str                    # Mã chỉ số
+    name: str                    # Tên chỉ số
+    current: float = 0.0         # Điểm hiện tại
+    change: float = 0.0          # Thay đổi điểm
+    change_pct: float = 0.0      # % Thay đổi
+    open: float = 0.0            # Điểm mở cửa
+    high: float = 0.0            # Điểm cao nhất
+    low: float = 0.0             # Điểm thấp nhất
+    prev_close: float = 0.0      # Điểm đóng cửa hôm trước
+    volume: float = 0.0          # Khối lượng giao dịch (lô)
+    amount: float = 0.0          # Giá trị giao dịch (đơn vị tiền tệ)
+    amplitude: float = 0.0       # Biên độ (%)
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -87,20 +87,20 @@ class MarketIndex:
 
 @dataclass
 class MarketOverview:
-    """市场概览数据"""
-    date: str                           # 日期
-    indices: List[MarketIndex] = field(default_factory=list)  # 主要指数
-    up_count: int = 0                   # 上涨家数
-    down_count: int = 0                 # 下跌家数
-    flat_count: int = 0                 # 平盘家数
-    limit_up_count: int = 0             # 涨停家数
-    limit_down_count: int = 0           # 跌停家数
-    total_amount: float = 0.0           # 两市成交额（亿元）
-    # north_flow: float = 0.0           # 北向资金净流入（亿元）- 已废弃，接口不可用
-    
-    # 板块涨幅榜
-    top_sectors: List[Dict] = field(default_factory=list)     # 涨幅前5板块
-    bottom_sectors: List[Dict] = field(default_factory=list)  # 跌幅前5板块
+    """Dữ liệu tổng quan thị trường"""
+    date: str                           # Ngày
+    indices: List[MarketIndex] = field(default_factory=list)  # Các chỉ số chính
+    up_count: int = 0                   # Số mã tăng
+    down_count: int = 0                 # Số mã giảm
+    flat_count: int = 0                 # Số mã đi ngang
+    limit_up_count: int = 0             # Số mã trần
+    limit_down_count: int = 0           # Số mã sàn
+    total_amount: float = 0.0           # Tổng giá trị giao dịch hai sàn (đơn vị 100 triệu CNY)
+    # north_flow: float = 0.0           # Dòng tiền ròng từ phía Bắc (đơn vị 100 triệu CNY) - đã bỏ, API không còn khả dụng
+
+    # Bảng xếp hạng nhóm ngành
+    top_sectors: List[Dict] = field(default_factory=list)     # Top 5 nhóm ngành tăng mạnh nhất
+    bottom_sectors: List[Dict] = field(default_factory=list)  # Top 5 nhóm ngành giảm mạnh nhất
 
 
 @dataclass
@@ -115,14 +115,14 @@ class MarketLightReviewResult:
 
 class MarketAnalyzer:
     """
-    大盘复盘分析器
-    
-    功能：
-    1. 获取大盘指数实时行情
-    2. 获取市场涨跌统计
-    3. 获取板块涨跌榜
-    4. 搜索市场新闻
-    5. 生成大盘复盘报告
+    Bộ phân tích tổng kết thị trường
+
+    Chức năng:
+    1. Lấy dữ liệu thị trường chỉ số theo thời gian thực
+    2. Lấy thống kê tăng/giảm thị trường
+    3. Lấy bảng xếp hạng nhóm ngành
+    4. Tìm kiếm tin tức thị trường
+    5. Tạo báo cáo tổng kết thị trường
     """
     
     def __init__(
@@ -133,13 +133,13 @@ class MarketAnalyzer:
         config: Optional[Any] = None,
     ):
         """
-        初始化大盘分析器
+        Khởi tạo bộ phân tích thị trường
 
         Args:
-            search_service: 搜索服务实例
-            analyzer: AI分析器实例（用于调用LLM）
-            region: 市场区域 cn=A股 us=美股
-            config: 本次复盘使用的配置；未传时读取全局配置
+            search_service: Instance dịch vụ tìm kiếm
+            analyzer: Instance bộ phân tích AI (dùng để gọi LLM)
+            region: Khu vực thị trường: cn=A-share, us=US stock
+            config: Cấu hình dùng cho lần tổng kết này; nếu không truyền thì đọc cấu hình toàn cục
         """
         self.config = config or get_config()
         self.search_service = search_service
@@ -355,39 +355,39 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
 
     def get_market_overview(self) -> MarketOverview:
         """
-        获取市场概览数据
-        
+        Lấy dữ liệu tổng quan thị trường
+
         Returns:
-            MarketOverview: 市场概览数据对象
+            MarketOverview: Đối tượng dữ liệu tổng quan thị trường
         """
         today = datetime.now().strftime('%Y-%m-%d')
         overview = MarketOverview(date=today)
-        
-        # 1. 获取主要指数行情（按 region 切换 A 股/美股）
+
+        # 1. Lấy dữ liệu chỉ số chính (chuyển đổi giữa A-share/US stock theo region)
         overview.indices = self._get_main_indices()
 
-        # 2. 获取涨跌统计（A 股有，美股无等效数据）
+        # 2. Lấy thống kê tăng/giảm (A-share có, US stock không có dữ liệu tương đương)
         if self.profile.has_market_stats:
             self._get_market_statistics(overview)
 
-        # 3. 获取板块涨跌榜（A 股有，美股暂无）
+        # 3. Lấy bảng xếp hạng nhóm ngành (A-share có, US stock tạm thời chưa có)
         if self.profile.has_sector_rankings:
             self._get_sector_rankings(overview)
         
-        # 4. 获取北向资金（可选）
+        # 4. Lấy dòng tiền phía Bắc (tùy chọn)
         # self._get_north_flow(overview)
         
         return overview
 
     
     def _get_main_indices(self) -> List[MarketIndex]:
-        """获取主要指数实时行情"""
+        """Lấy dữ liệu thị trường chỉ số chính theo thời gian thực"""
         indices = []
 
         try:
             logger.info("[大盘] %s action=get_main_indices status=start", self._log_context())
 
-            # 使用 DataFetcherManager 获取指数行情（按 region 切换）
+            # Dùng DataFetcherManager lấy dữ liệu chỉ số (chuyển đổi theo region)
             data_list = self.data_manager.get_main_indices(region=self.region)
 
             if data_list:
@@ -431,7 +431,7 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
         return indices
 
     def _get_market_statistics(self, overview: MarketOverview):
-        """获取市场涨跌统计"""
+        """Lấy thống kê tăng/giảm thị trường"""
         try:
             logger.info("[大盘] %s action=get_market_stats status=start", self._log_context())
 
@@ -463,7 +463,7 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
             logger.error("[大盘] %s action=get_market_stats status=failed error=%s", self._log_context(), e)
 
     def _get_sector_rankings(self, overview: MarketOverview):
-        """获取板块涨跌榜"""
+        """Lấy bảng xếp hạng tăng/giảm nhóm ngành"""
         try:
             logger.info("[大盘] %s action=get_sector_rankings status=start", self._log_context())
 
@@ -486,32 +486,32 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
             logger.error("[大盘] %s action=get_sector_rankings status=failed error=%s", self._log_context(), e)
     
     # def _get_north_flow(self, overview: MarketOverview):
-    #     """获取北向资金流入"""
+    #     """Lấy dòng tiền ròng vào từ phía Bắc"""
     #     try:
-    #         logger.info("[大盘] 获取北向资金...")
-    #         
-    #         # 获取北向资金数据
+    #         logger.info("[大盘] Đang lấy dòng tiền phía Bắc...")
+    #
+    #         # Lấy dữ liệu dòng tiền phía Bắc
     #         df = ak.stock_hsgt_north_net_flow_in_em(symbol="北上")
-    #         
+    #
     #         if df is not None and not df.empty:
-    #             # 取最新一条数据
+    #             # Lấy bản ghi mới nhất
     #             latest = df.iloc[-1]
     #             if '当日净流入' in df.columns:
-    #                 overview.north_flow = float(latest['当日净流入']) / 1e8  # 转为亿元
+    #                 overview.north_flow = float(latest['当日净流入']) / 1e8  # Chuyển sang đơn vị 100 triệu
     #             elif '净流入' in df.columns:
     #                 overview.north_flow = float(latest['净流入']) / 1e8
-    #                 
-    #             logger.info(f"[大盘] 北向资金净流入: {overview.north_flow:.2f}亿")
-    #             
+    #
+    #             logger.info(f"[大盘] Dòng tiền ròng vào từ phía Bắc: {overview.north_flow:.2f} trăm triệu")
+    #
     #     except Exception as e:
-    #         logger.warning(f"[大盘] 获取北向资金失败: {e}")
+    #         logger.warning(f"[大盘] Lấy dòng tiền phía Bắc thất bại: {e}")
     
     def search_market_news(self) -> List[Dict]:
         """
-        搜索市场新闻
-        
+        Tìm kiếm tin tức thị trường
+
         Returns:
-            新闻列表
+            Danh sách tin tức
         """
         if not self.search_service:
             logger.warning(
@@ -522,7 +522,7 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
         
         all_news = []
 
-        # 按 region 使用不同的新闻搜索词
+        # Dùng từ khóa tìm kiếm tin tức khác nhau theo region
         search_queries = self.profile.news_queries
         review_language = self._get_review_language()
         market_names = {
@@ -535,7 +535,7 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
         try:
             logger.info("[大盘] %s action=search_market_news status=start", self._log_context())
             
-            # 根据 region 设置搜索上下文名称，避免美股搜索被解读为 A 股语境
+            # Thiết lập tên ngữ cảnh tìm kiếm theo region, tránh tìm kiếm US stock bị hiểu là ngữ cảnh A-share
             market_name = market_names.get(self.region, "大盘")
             for query in search_queries:
                 response = self.search_service.search_stock_news(
@@ -565,14 +565,14 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
     
     def generate_market_review(self, overview: MarketOverview, news: List) -> str:
         """
-        使用大模型生成大盘复盘报告
-        
+        Dùng LLM tạo báo cáo tổng kết thị trường
+
         Args:
-            overview: 市场概览数据
-            news: 市场新闻列表 (SearchResult 对象列表)
-            
+            overview: Dữ liệu tổng quan thị trường
+            news: Danh sách tin tức thị trường (danh sách đối tượng SearchResult)
+
         Returns:
-            大盘复盘报告文本
+            Văn bản báo cáo tổng kết thị trường
         """
         backend_error = self._get_analyzer_generation_backend_config_error()
         if backend_error is not None:
@@ -599,7 +599,7 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
             )
             return self._generate_template_review(overview, news)
 
-        # 构建 Prompt
+        # Xây dựng Prompt
         prompt = self._build_review_prompt(overview, news)
 
         logger.info("[大盘] %s action=generate_review status=start", self._log_context())
@@ -1018,7 +1018,7 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
         return reasons[:4]
 
     def _build_indices_block(self, overview: MarketOverview) -> str:
-        """构建指数行情表格"""
+        """Xây dựng bảng dữ liệu chỉ số"""
         if not overview.indices:
             return ""
         if self._get_review_language() == "en":
@@ -1244,23 +1244,23 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
         return score, label
 
     def _build_review_prompt(self, overview: MarketOverview, news: List) -> str:
-        """构建复盘报告 Prompt"""
+        """Xây dựng Prompt tạo báo cáo tổng kết"""
         review_language = self._get_review_language()
 
-        # 指数行情信息（简洁格式，不用emoji）
+        # Thông tin chỉ số (định dạng ngắn gọn, không dùng emoji)
         indices_text = ""
         for idx in overview.indices:
             direction = "↑" if idx.change_pct > 0 else "↓" if idx.change_pct < 0 else "-"
             indices_text += f"- {idx.name}: {idx.current:.2f} ({direction}{abs(idx.change_pct):.2f}%)\n"
         
-        # 板块信息
+        # Thông tin nhóm ngành
         top_sectors_text = ", ".join([f"{s['name']}({s['change_pct']:+.2f}%)" for s in overview.top_sectors[:3]])
         bottom_sectors_text = ", ".join([f"{s['name']}({s['change_pct']:+.2f}%)" for s in overview.bottom_sectors[:3]])
         
-        # 新闻信息 - 支持 SearchResult 对象或字典
+        # Thông tin tin tức - hỗ trợ đối tượng SearchResult hoặc dict
         news_text = ""
         for i, n in enumerate(news[:6], 1):
-            # 兼容 SearchResult 对象和字典
+            # Tương thích cả đối tượng SearchResult và dict
             title = self._compact_news_text(self._get_news_field(n, "title"), limit=90)
             snippet = self._compact_news_text(self._get_news_field(n, "snippet"), limit=220)
             source = self._compact_news_text(self._get_news_field(n, "source"), limit=60)
@@ -1271,7 +1271,7 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
             url_line = f"\n   URL: {url}" if url else ""
             news_text += f"{i}. {title}{meta}\n   {snippet or '-'}{url_line}\n"
         
-        # 按 region 组装市场概况与板块区块（美股无涨跌家数、板块数据）
+        # Lắp ráp khối tổng quan thị trường và nhóm ngành theo region (US stock không có dữ liệu tăng/giảm và nhóm ngành)
         stats_block = ""
         sector_block = ""
         if review_language == "en":
@@ -1457,7 +1457,7 @@ Hãy xuất trực tiếp nội dung báo cáo, không thêm lời giải thích
 Output the report content directly, no extra commentary.
 """
 
-        # A 股场景使用中文提示语
+        # Trường hợp A-share dùng prompt tiếng Trung
         return f"""你是一位专业的A/H/美股市场分析师，请根据以下数据生成一份结构化的{self._get_market_scope_name('zh')}大盘复盘报告。
 
 【重要】输出要求：
@@ -1524,12 +1524,12 @@ Output the report content directly, no extra commentary.
 """
     
     def _generate_template_review(self, overview: MarketOverview, news: List) -> str:
-        """使用模板生成复盘报告（无大模型时的备选方案）"""
+        """Dùng mẫu tạo báo cáo tổng kết (phương án dự phòng khi không có LLM)"""
         template_language = self._get_template_review_language()
         mood_code = self.profile.mood_index_code
-        # 根据 mood_index_code 查找对应指数
-        # cn: mood_code="000001"，idx.code 可能为 "sh000001"（以 mood_code 结尾）
-        # us: mood_code="SPX"，idx.code 直接为 "SPX"
+        # Tìm chỉ số tương ứng theo mood_index_code
+        # cn: mood_code="000001", idx.code có thể là "sh000001" (kết thúc bằng mood_code)
+        # us: mood_code="SPX", idx.code trực tiếp là "SPX"
         mood_index = next(
             (
                 idx
@@ -1550,13 +1550,13 @@ Output the report content directly, no extra commentary.
         else:
             market_mood = self._get_market_mood_text("range", template_language)
         
-        # 指数行情（简洁格式）
+        # Dữ liệu chỉ số (định dạng ngắn gọn)
         indices_text = ""
         for idx in overview.indices[:4]:
             direction = "↑" if idx.change_pct > 0 else "↓" if idx.change_pct < 0 else "-"
             indices_text += f"- **{idx.name}**: {idx.current:.2f} ({direction}{abs(idx.change_pct):.2f}%)\n"
         
-        # 板块信息
+        # Thông tin nhóm ngành
         separator = ", " if template_language == "en" else "、"
         top_text = separator.join([s['name'] for s in overview.top_sectors[:3]])
         bottom_text = separator.join([s['name'] for s in overview.bottom_sectors[:3]])
@@ -1665,14 +1665,14 @@ Market conditions can change quickly. The data above is for reference only and d
         """Run market review once and keep report/snapshot on the same overview."""
         logger.info("========== 开始大盘复盘分析 ==========")
 
-        # 1. 获取市场概览
+        # 1. Lấy tổng quan thị trường
         overview = self.get_market_overview()
 
-        # 2. 搜索市场新闻
+        # 2. Tìm kiếm tin tức thị trường
         news = self.search_market_news()
         news = self._merge_persisted_market_intelligence(news)
 
-        # 3. 生成复盘报告
+        # 3. Tạo báo cáo tổng kết
         report = self.generate_market_review(overview, news)
         snapshot = self.build_market_light_snapshot(overview)
         structured_payload = self.build_market_review_payload(
@@ -1739,10 +1739,10 @@ Market conditions can change quickly. The data above is for reference only and d
 
     def run_daily_review(self) -> str:
         """
-        执行每日大盘复盘流程
+        Thực thi quy trình tổng kết thị trường hàng ngày
 
         Returns:
-            复盘报告文本
+            Văn bản báo cáo tổng kết
         """
         return self.run_daily_review_with_snapshot().report
 
@@ -1751,19 +1751,19 @@ Market conditions can change quickly. The data above is for reference only and d
         return self._run_daily_review_parts()
 
 
-# 测试入口
+# Điểm vào kiểm thử
 if __name__ == "__main__":
     import sys
     sys.path.insert(0, '.')
-    
+
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s | %(levelname)-8s | %(name)-20s | %(message)s',
     )
-    
+
     analyzer = MarketAnalyzer()
-    
-    # 测试获取市场概览
+
+    # Kiểm thử lấy tổng quan thị trường
     overview = analyzer.get_market_overview()
     print(f"\n=== 市场概览 ===")
     print(f"日期: {overview.date}")
@@ -1772,8 +1772,8 @@ if __name__ == "__main__":
         print(f"  {idx.name}: {idx.current:.2f} ({idx.change_pct:+.2f}%)")
     print(f"上涨: {overview.up_count} | 下跌: {overview.down_count}")
     print(f"成交额: {overview.total_amount:.0f}亿")
-    
-    # 测试生成模板报告
+
+    # Kiểm thử tạo báo cáo mẫu
     report = analyzer._generate_template_review(overview, [])
     print(f"\n=== 复盘报告 ===")
     print(report)
