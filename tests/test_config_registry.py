@@ -166,8 +166,8 @@ class TestLLMUsageHMACFieldsRegistered(unittest.TestCase):
         self.assertTrue(field["is_sensitive"])
         self.assertEqual(field["ui_control"], "password")
         self.assertEqual(field["help_key"], "settings.ai_model.LLM_USAGE_HMAC_SECRET")
-        self.assertIn("high-entropy", field["description"])
-        self.assertIn("version control", field["description"])
+        self.assertIn("entropy cao", field["description"])
+        self.assertIn("không commit", field["description"])
         self.assertIn("openssl rand -hex 32", field["examples"][0])
         self.assertIn("secret_value", field.get("warning_codes", []))
 
@@ -677,12 +677,13 @@ class TestAgentEventAlertRulesJsonField(unittest.TestCase):
         field = get_field_definition("AGENT_EVENT_ALERT_RULES_JSON")
         description = field["description"]
 
-        self.assertIn("Legacy JSON supports only price_cross, price_change_percent, and volume_spike", description)
-        self.assertIn("Technical indicator", description)
-        self.assertIn("watchlist", description)
-        self.assertIn("portfolio", description)
-        self.assertIn("market light", description)
-        self.assertIn("Alert API/Web center", description)
+        self.assertIn("price_cross, price_change_percent", description)
+        self.assertIn("volume_spike", description)
+        self.assertIn("chỉ báo kỹ thuật", description)
+        self.assertIn("danh sách theo dõi", description)
+        self.assertIn("danh mục", description)
+        self.assertIn("đèn thị trường", description)
+        self.assertIn("Trung tâm cảnh báo Web", description)
 
 
 class TestAgentContextCompressionFields(unittest.TestCase):
@@ -710,8 +711,8 @@ class TestAgentContextCompressionFields(unittest.TestCase):
         self.assertEqual(protected["default_value"], "")
         self.assertFalse(trigger["is_required"])
         self.assertFalse(protected["is_required"])
-        self.assertIn("Leave empty", trigger["description"])
-        self.assertIn("Leave empty", protected["description"])
+        self.assertIn("Để trống", trigger["description"])
+        self.assertIn("Để trống", protected["description"])
 
 
 class TestNotificationNoiseFieldsRegistered(unittest.TestCase):

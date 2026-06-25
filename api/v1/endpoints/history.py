@@ -153,12 +153,12 @@ def get_history_list(
         )
         
     except Exception as e:
-        logger.error(f"查询历史列表失败: {e}", exc_info=True)
+        logger.error(f"Truy vấn danh sách lịch sử thất bại: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail={
                 "error": "internal_error",
-                "message": f"查询历史列表失败: {str(e)}"
+                "message": f"Truy vấn danh sách lịch sử thất bại: {str(e)}"
             }
         )
 
@@ -187,10 +187,10 @@ def delete_history_by_code(
         deleted = db_manager.delete_analysis_history_records(record_ids)
         return DeleteHistoryResponse(deleted=deleted)
     except Exception as e:
-        logger.error(f"按股票代码删除历史记录失败: {e}", exc_info=True)
+        logger.error(f"Xóa lịch sử theo mã cổ phiếu thất bại: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
-            detail={"error": "internal_error", "message": f"删除失败: {str(e)}"},
+            detail={"error": "internal_error", "message": f"Xóa thất bại: {str(e)}"},
         )
 
 
@@ -218,7 +218,7 @@ def delete_history_records(
             status_code=400,
             detail={
                 "error": "invalid_request",
-                "message": "record_ids 不能为空"
+                "message": "record_ids không được để trống"
             }
         )
 
@@ -229,12 +229,12 @@ def delete_history_records(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"删除历史记录失败: {e}", exc_info=True)
+        logger.error(f"Xóa lịch sử phân tích thất bại: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail={
                 "error": "internal_error",
-                "message": f"删除历史记录失败: {str(e)}"
+                "message": f"Xóa lịch sử phân tích thất bại: {str(e)}"
             }
         )
 
@@ -328,12 +328,12 @@ def get_stock_bar(
         return StockBarResponse(total=len(items), items=items)
 
     except Exception as e:
-        logger.error(f"查询个股栏失败: {e}", exc_info=True)
+        logger.error(f"Truy vấn danh sách cổ phiếu thất bại: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail={
                 "error": "internal_error",
-                "message": f"查询个股栏失败: {str(e)}",
+                "message": f"Truy vấn danh sách cổ phiếu thất bại: {str(e)}",
             },
         )
 
@@ -380,10 +380,10 @@ def get_history_detail(
                 status_code=404,
                 detail={
                     "error": "not_found",
-                    "message": f"未找到 id/query_id={record_id} 的分析记录"
+                    "message": f"Không tìm thấy bản ghi phân tích id/query_id={record_id}"
                 }
             )
-        
+
         # 从 context_snapshot 中提取价格信息
         # 注意：使用 `is None` 而非 `or`，避免把 0.0（平盘）误判为缺失值；
         # 同时不混用 `change_60d`（60 日累计涨跌幅）作为日内 change_pct 的兜底。
@@ -491,12 +491,12 @@ def get_history_detail(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"查询历史详情失败: {e}", exc_info=True)
+        logger.error(f"Truy vấn chi tiết lịch sử thất bại: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail={
                 "error": "internal_error",
-                "message": f"查询历史详情失败: {str(e)}"
+                "message": f"Truy vấn chi tiết lịch sử thất bại: {str(e)}"
             }
         )
 
@@ -527,19 +527,19 @@ def get_history_diagnostics(
                 status_code=404,
                 detail={
                     "error": "not_found",
-                    "message": f"未找到 id/query_id={record_id} 的分析记录",
+                    "message": f"Không tìm thấy bản ghi phân tích id/query_id={record_id}",
                 },
             )
         return RunDiagnosticSummaryResponse.model_validate(summary)
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"查询运行诊断摘要失败: {e}", exc_info=True)
+        logger.error(f"Truy vấn tóm tắt chẩn đoán thất bại: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail={
                 "error": "internal_error",
-                "message": f"查询运行诊断摘要失败: {str(e)}",
+                "message": f"Truy vấn tóm tắt chẩn đoán thất bại: {str(e)}",
             },
         )
 
@@ -570,19 +570,19 @@ def get_history_run_flow(
                 status_code=404,
                 detail={
                     "error": "not_found",
-                    "message": f"未找到 id/query_id={record_id} 的分析记录",
+                    "message": f"Không tìm thấy bản ghi phân tích id/query_id={record_id}",
                 },
             )
         return snapshot
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"查询运行流快照失败: {e}", exc_info=True)
+        logger.error(f"Truy vấn ảnh chụp luồng chạy thất bại: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail={
                 "error": "internal_error",
-                "message": f"查询运行流快照失败: {str(e)}",
+                "message": f"Truy vấn ảnh chụp luồng chạy thất bại: {str(e)}",
             },
         )
 
@@ -635,12 +635,12 @@ def get_history_news(
         )
 
     except Exception as e:
-        logger.error(f"查询新闻情报失败: {e}", exc_info=True)
+        logger.error(f"Truy vấn tin tức thất bại: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail={
                 "error": "internal_error",
-                "message": f"查询新闻情报失败: {str(e)}"
+                "message": f"Truy vấn tin tức thất bại: {str(e)}"
             }
         )
 
@@ -686,16 +686,16 @@ def get_history_markdown(
             status_code=500,
             detail={
                 "error": "generation_failed",
-                "message": f"生成 Markdown 报告失败: {e.message}"
+                "message": f"Tạo báo cáo Markdown thất bại: {e.message}"
             }
         )
     except Exception as e:
-        logger.error(f"获取 Markdown 报告失败: {e}", exc_info=True)
+        logger.error(f"Lấy báo cáo Markdown thất bại: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail={
                 "error": "internal_error",
-                "message": f"获取 Markdown 报告失败: {str(e)}"
+                "message": f"Lấy báo cáo Markdown thất bại: {str(e)}"
             }
         )
 
@@ -704,7 +704,7 @@ def get_history_markdown(
             status_code=404,
             detail={
                 "error": "not_found",
-                "message": f"未找到 id/query_id={record_id} 的分析记录"
+                "message": f"Không tìm thấy bản ghi phân tích id/query_id={record_id}"
             }
         )
 

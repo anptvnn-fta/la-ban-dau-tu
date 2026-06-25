@@ -801,7 +801,14 @@ class HistoryService:
 
         # Generate Markdown report
         try:
-            return self._generate_single_stock_markdown(result, record)
+            markdown = self._generate_single_stock_markdown(result, record)
+            # Vietnam reports: run the VN glossary so any residual Chinese scaffold
+            # labels/number-units in the rebuilt markdown render in Vietnamese.
+            code = str(getattr(record, "code", "") or getattr(record, "stock_code", "") or "")
+            if code.upper().endswith(".VN"):
+                from src.vn_report_glossary import apply_vn_report_glossary
+                markdown = apply_vn_report_glossary(markdown)
+            return markdown
         except Exception as e:
             logger.error(f"get_markdown_report: failed to generate markdown for {record_id}: {e}", exc_info=True)
             raise MarkdownReportGenerationError(

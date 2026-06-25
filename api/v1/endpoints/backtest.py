@@ -78,10 +78,10 @@ def run_backtest(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error(f"回测执行失败: {exc}", exc_info=True)
+        logger.error(f"Chạy kiểm tra ngược thất bại: {exc}", exc_info=True)
         raise HTTPException(
             status_code=500,
-            detail={"error": "internal_error", "message": f"回测执行失败: {str(exc)}"},
+            detail={"error": "internal_error", "message": f"Chạy kiểm tra ngược thất bại: {str(exc)}"},
         )
 
 
@@ -133,10 +133,10 @@ def get_backtest_results(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error(f"查询回测结果失败: {exc}", exc_info=True)
+        logger.error(f"Truy vấn kết quả kiểm tra ngược thất bại: {exc}", exc_info=True)
         raise HTTPException(
             status_code=500,
-            detail={"error": "internal_error", "message": f"查询回测结果失败: {str(exc)}"},
+            detail={"error": "internal_error", "message": f"Truy vấn kết quả kiểm tra ngược thất bại: {str(exc)}"},
         )
 
 
@@ -172,7 +172,7 @@ def get_overall_performance(
         if summary is None:
             raise HTTPException(
                 status_code=404,
-                detail={"error": "not_found", "message": "未找到整体回测汇总"},
+                detail={"error": "not_found", "message": "Không tìm thấy tóm tắt kiểm tra ngược tổng thể"},
             )
         return PerformanceMetrics(**summary)
     except ValueError as exc:
@@ -183,10 +183,10 @@ def get_overall_performance(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error(f"查询整体表现失败: {exc}", exc_info=True)
+        logger.error(f"Truy vấn hiệu suất tổng thể thất bại: {exc}", exc_info=True)
         raise HTTPException(
             status_code=500,
-            detail={"error": "internal_error", "message": f"查询整体表现失败: {str(exc)}"},
+            detail={"error": "internal_error", "message": f"Truy vấn hiệu suất tổng thể thất bại: {str(exc)}"},
         )
 
 
@@ -223,7 +223,7 @@ def get_stock_performance(
         if summary is None:
             raise HTTPException(
                 status_code=404,
-                detail={"error": "not_found", "message": f"未找到 {code} 的回测汇总"},
+                detail={"error": "not_found", "message": f"Không tìm thấy tóm tắt kiểm tra ngược cho {code}"},
             )
         return PerformanceMetrics(**summary)
     except ValueError as exc:
@@ -234,8 +234,8 @@ def get_stock_performance(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error(f"查询单股表现失败: {exc}", exc_info=True)
+        logger.error(f"Truy vấn hiệu suất cổ phiếu thất bại: {exc}", exc_info=True)
         raise HTTPException(
             status_code=500,
-            detail={"error": "internal_error", "message": f"查询单股表现失败: {str(exc)}"},
+            detail={"error": "internal_error", "message": f"Truy vấn hiệu suất cổ phiếu thất bại: {str(exc)}"},
         )

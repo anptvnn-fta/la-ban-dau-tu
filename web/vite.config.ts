@@ -21,5 +21,21 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, '../static'),
     emptyOutDir: true,
+    chunkSizeWarningLimit: 900,
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (!id.includes('node_modules')) return undefined
+          if (id.includes('react-dom') || id.includes('/react/') || id.includes('react-router') || id.includes('scheduler'))
+            return 'vendor-react'
+          if (id.includes('lightweight-charts')) return 'vendor-charts'
+          if (id.includes('recharts') || id.includes('/d3-') || id.includes('victory')) return 'vendor-recharts'
+          if (id.includes('react-markdown') || id.includes('remark') || id.includes('micromark') || id.includes('mdast') || id.includes('hast'))
+            return 'vendor-markdown'
+          if (id.includes('@tanstack')) return 'vendor-table'
+          return undefined
+        },
+      },
+    },
   },
 })

@@ -48,6 +48,7 @@ export function useAnalysisTask() {
           reportType: 'detailed',
           asyncMode: true,
           selectionSource: 'autocomplete',
+          reportLanguage: 'vi',
         })
         const taskId = 'taskId' in res ? res.taskId : res.accepted?.[0]?.taskId
         if (!taskId) throw new Error('no task id')
@@ -63,7 +64,7 @@ export function useAnalysisTask() {
     window.clearTimeout(timer.current)
     setState({ status: 'running', kind: 'market', label: VI.home.marketReviewBtn })
     try {
-      const res = await analysisApi.triggerMarketReview({ sendNotification: false })
+      const res = await analysisApi.triggerMarketReview({ sendNotification: false, reportLanguage: 'vi' })
       if (!res.taskId) throw new Error('no task id')
       poll(res.taskId, 'market', VI.home.marketReviewBtn)
     } catch (e) {

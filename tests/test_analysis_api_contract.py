@@ -147,8 +147,8 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         args, kwargs = task_queue.submit_background_task.call_args
         self.assertTrue(callable(args[0]))
         self.assertEqual(kwargs["stock_code"], "market_review")
-        self.assertEqual(kwargs["stock_name"], "大盘复盘")
-        self.assertEqual(kwargs["message"], "大盘复盘任务已提交")
+        self.assertEqual(kwargs["stock_name"], "Diễn biến thị trường")
+        self.assertEqual(kwargs["message"], "Đã gửi tác vụ diễn biến thị trường")
 
     def test_trigger_market_review_accepts_request_level_report_language(self) -> None:
         if trigger_market_review is None or analysis_endpoint_module is None:
@@ -686,7 +686,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
             "_build_market_review_runtime",
             return_value=(runtime_notifier, runtime_analyzer, runtime_search),
         ), patch("src.core.market_review.run_market_review", return_value=None):
-            with self.assertRaisesRegex(RuntimeError, "大盘复盘未返回可持久化报告"):
+            with self.assertRaisesRegex(RuntimeError, "Diễn biến thị trường không trả về báo cáo có thể lưu"):
                 analysis_endpoint_module._run_market_review_background(
                     send_notification=False,
                     override_region="cn",
@@ -2176,7 +2176,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         self.assertEqual(ctx.exception.status_code, 400)
         self.assertEqual(
             ctx.exception.detail["message"],
-            "股票代码不能为空或仅包含空白字符",
+            "Mã cổ phiếu không được để trống hoặc chỉ chứa khoảng trắng",
         )
 
     def test_trigger_analysis_rejects_obviously_invalid_mixed_input_before_resolution(self) -> None:
@@ -2198,7 +2198,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
                 )
 
         self.assertEqual(ctx.exception.status_code, 400)
-        self.assertEqual(ctx.exception.detail["message"], "请输入有效的股票代码或股票名称")
+        self.assertEqual(ctx.exception.detail["message"], "Vui lòng nhập mã hoặc tên cổ phiếu hợp lệ")
         resolve_mock.assert_not_called()
 
     def test_trigger_analysis_rejects_unresolvable_alpha_garbage(self) -> None:
@@ -2221,7 +2221,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
                 )
 
         self.assertEqual(ctx.exception.status_code, 400)
-        self.assertEqual(ctx.exception.detail["message"], "请输入有效的股票代码或股票名称")
+        self.assertEqual(ctx.exception.detail["message"], "Vui lòng nhập mã hoặc tên cổ phiếu hợp lệ")
         queue_mock.assert_not_called()
 
     def test_trigger_analysis_accepts_us_suffix_code(self) -> None:

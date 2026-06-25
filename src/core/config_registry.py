@@ -23,50 +23,50 @@ SCHEMA_VERSION = "2026-06-23-local-cli-backend"
 _CATEGORY_DEFINITIONS: List[Dict[str, Any]] = [
     {
         "category": "base",
-        "title": "Base Settings",
-        "description": "Watchlist and foundational application settings.",
+        "title": "Cài đặt cơ bản",
+        "description": "Danh sách theo dõi và các cài đặt nền tảng của ứng dụng.",
         "display_order": 10,
     },
     {
         "category": "ai_model",
-        "title": "AI Model",
-        "description": "Model providers, model names, and inference parameters.",
+        "title": "Mô hình AI",
+        "description": "Nhà cung cấp mô hình, tên mô hình và các tham số suy luận.",
         "display_order": 20,
     },
     {
         "category": "data_source",
-        "title": "Data Source",
-        "description": "Market data provider credentials and priority settings.",
+        "title": "Nguồn dữ liệu",
+        "description": "Thông tin xác thực nhà cung cấp dữ liệu thị trường và cài đặt độ ưu tiên.",
         "display_order": 30,
     },
     {
         "category": "notification",
-        "title": "Notification",
-        "description": "Bot, webhook, and push channel related settings.",
+        "title": "Thông báo",
+        "description": "Cài đặt bot, webhook và kênh đẩy thông báo.",
         "display_order": 40,
     },
     {
         "category": "system",
-        "title": "System",
-        "description": "Runtime and scheduling controls.",
+        "title": "Hệ thống",
+        "description": "Điều khiển vận hành và lịch chạy.",
         "display_order": 50,
     },
     {
         "category": "agent",
         "title": "Agent",
-        "description": "Agent mode and strategy-skill settings.",
+        "description": "Chế độ Agent và cài đặt chiến lược giao dịch.",
         "display_order": 55,
     },
     {
         "category": "backtest",
-        "title": "Backtest",
-        "description": "Backtest engine behavior and evaluation parameters.",
+        "title": "Kiểm thử lịch sử",
+        "description": "Hành vi bộ máy kiểm thử và các tham số đánh giá.",
         "display_order": 60,
     },
     {
         "category": "uncategorized",
-        "title": "Uncategorized",
-        "description": "Keys not mapped in the field registry.",
+        "title": "Chưa phân loại",
+        "description": "Các khóa chưa được ánh xạ trong bộ đăng ký trường.",
         "display_order": 99,
     },
 ]
@@ -84,8 +84,8 @@ WEB_SETTINGS_HIDDEN_FROM_UI = {
 
 _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
     "STOCK_LIST": {
-        "title": "Stock List",
-        "description": "Comma-separated watchlist stock codes.",
+        "title": "Danh sách cổ phiếu",
+        "description": "Danh sách mã cổ phiếu theo dõi, phân tách bằng dấu phẩy.",
         "category": "base",
         "data_type": "array",
         "ui_control": "textarea",
@@ -117,8 +117,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
     # AI Model – LiteLLM unified config
     # ------------------------------------------------------------------
     "GENERATION_BACKEND": {
-        "title": "Analysis Generation Method",
-        "description": "Generation method used by stock analysis, market reviews, and regular text generation.",
+        "title": "Phương thức sinh phân tích",
+        "description": "Phương thức sinh nội dung dùng cho phân tích cổ phiếu, điểm tin thị trường và các tác vụ sinh văn bản thông thường.",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "select",
@@ -143,8 +143,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "GENERATION_FALLBACK_BACKEND": {
-        "title": "Fallback Generation Method",
-        "description": "Backend-level fallback method. Empty disables backend fallback; litellm can be used as fallback for Codex CLI.",
+        "title": "Phương thức dự phòng",
+        "description": "Phương thức dự phòng ở cấp backend. Để trống để tắt dự phòng; litellm có thể dùng làm dự phòng cho Codex CLI.",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "select",
@@ -169,8 +169,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "GENERATION_BACKEND_TIMEOUT_SECONDS": {
-        "title": "Generation Backend Timeout",
-        "description": "Maximum seconds allowed for one generation backend call. Applies to local CLI backends; LiteLLM behavior is unchanged.",
+        "title": "Thời gian chờ backend sinh nội dung",
+        "description": "Số giây tối đa cho một lần gọi backend sinh nội dung. Áp dụng cho backend CLI cục bộ; hành vi LiteLLM không thay đổi.",
         "category": "ai_model",
         "data_type": "integer",
         "ui_control": "number",
@@ -192,10 +192,10 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "GENERATION_BACKEND_MAX_OUTPUT_BYTES": {
-        "title": "Generation Backend Max Output Bytes",
+        "title": "Kích thước đầu ra tối đa (byte)",
         "description": (
-            "Maximum captured diagnostic stdout/stderr and final-response bytes "
-            "for one local CLI backend call."
+            "Số byte tối đa cho stdout/stderr chẩn đoán và phản hồi cuối cùng "
+            "trong một lần gọi backend CLI cục bộ."
         ),
         "category": "ai_model",
         "data_type": "integer",
@@ -218,8 +218,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "GENERATION_BACKEND_MAX_CONCURRENCY": {
-        "title": "Generation Backend Max Concurrency",
-        "description": "Global generation backend concurrency cap. Local CLI effective concurrency also respects LOCAL_CLI_BACKEND_MAX_CONCURRENCY.",
+        "title": "Số luồng sinh tối đa",
+        "description": "Giới hạn đồng thời toàn cục cho backend sinh nội dung. Số luồng thực tế của CLI cục bộ còn phụ thuộc LOCAL_CLI_BACKEND_MAX_CONCURRENCY.",
         "category": "ai_model",
         "data_type": "integer",
         "ui_control": "number",
@@ -241,8 +241,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "LOCAL_CLI_BACKEND_MAX_CONCURRENCY": {
-        "title": "Local CLI Backend Max Concurrency",
-        "description": "Local CLI backend concurrency cap. Effective local CLI concurrency is the minimum of this value and GENERATION_BACKEND_MAX_CONCURRENCY.",
+        "title": "Số luồng CLI cục bộ tối đa",
+        "description": "Giới hạn đồng thời backend CLI cục bộ. Số luồng thực tế là giá trị nhỏ hơn giữa giá trị này và GENERATION_BACKEND_MAX_CONCURRENCY.",
         "category": "ai_model",
         "data_type": "integer",
         "ui_control": "number",
@@ -264,8 +264,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "LITELLM_MODEL": {
-        "title": "Primary Model",
-        "description": "Primary model in provider/model format (e.g. gemini/gemini-3.1-pro-preview, deepseek/deepseek-v4-flash, anthropic/claude-sonnet-4-6). If empty, it is auto-inferred from available API keys or channel declarations.",
+        "title": "Mô hình chính",
+        "description": "Mô hình chính theo định dạng nhà_cung_cấp/tên_mô_hình (ví dụ: gemini/gemini-3.1-pro-preview, deepseek/deepseek-v4-flash, anthropic/claude-sonnet-4-6). Nếu để trống, hệ thống tự suy luận từ API key hoặc khai báo kênh.",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "text",
@@ -307,8 +307,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["provider_prefix_required"],
     },
     "AGENT_LITELLM_MODEL": {
-        "title": "Agent Primary Model",
-        "description": "Optional Agent-only primary model in provider/model format. When empty, Agent inherits the primary model. Bare model names are normalized to openai/<model>.",
+        "title": "Mô hình chính của Agent",
+        "description": "Mô hình chính riêng cho Agent theo định dạng nhà_cung_cấp/tên_mô_hình (tùy chọn). Khi để trống, Agent kế thừa mô hình chính. Tên mô hình không có tiền tố sẽ được chuẩn hóa thành openai/<model>.",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "text",
@@ -337,8 +337,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["inherits_primary_when_empty"],
     },
     "LITELLM_FALLBACK_MODELS": {
-        "title": "Fallback Models",
-        "description": "Comma-separated fallback models tried when the primary model fails (e.g. anthropic/claude-sonnet-4-6,openai/gpt-5.4-mini). Useful for cross-provider redundancy.",
+        "title": "Mô hình dự phòng",
+        "description": "Danh sách mô hình dự phòng phân tách bằng dấu phẩy, thử lần lượt khi mô hình chính lỗi (ví dụ: anthropic/claude-sonnet-4-6,openai/gpt-5.4-mini). Hữu ích để dự phòng chéo giữa các nhà cung cấp.",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "text",
@@ -378,8 +378,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
     # AI Model – Multi-channel LLM configuration
     # ------------------------------------------------------------------
     "LITELLM_CONFIG": {
-        "title": "Advanced Model Routing Config",
-        "description": "Path to an advanced model routing YAML file (expert use). When valid/parseable and yields a model_list, it takes priority over channels and legacy keys; otherwise channels/legacy are used as fallback.",
+        "title": "Cấu hình định tuyến mô hình nâng cao",
+        "description": "Đường dẫn tới file YAML định tuyến mô hình nâng cao (dành cho chuyên gia). Khi hợp lệ và có model_list, ưu tiên cao hơn kênh và các khóa cũ; ngược lại, kênh/khóa cũ được dùng làm dự phòng.",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "text",
@@ -407,8 +407,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["yaml_config_overrides_channel_editor"],
     },
     "LLM_CHANNELS": {
-        "title": "LLM Channels",
-        "description": "Channel names (comma-separated). Managed by the channel editor above.",
+        "title": "Kênh LLM",
+        "description": "Tên kênh (phân tách bằng dấu phẩy). Được quản lý bởi trình chỉnh sửa kênh ở trên.",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "text",
@@ -443,8 +443,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["channels_override_legacy_keys"],
     },
     "LLM_TEMPERATURE": {
-        "title": "Temperature",
-        "description": "Unified sampling temperature for all LLM calls. Range [0.0, 2.0], default 0.7.",
+        "title": "Nhiệt độ lấy mẫu (Temperature)",
+        "description": "Nhiệt độ lấy mẫu thống nhất cho tất cả lời gọi LLM. Phạm vi [0.0, 2.0], mặc định 0.7.",
         "category": "ai_model",
         "data_type": "number",
         "ui_control": "number",
@@ -469,8 +469,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "LLM_PROMPT_CACHE_TELEMETRY_ENABLED": {
-        "title": "Prompt Cache Telemetry",
-        "description": "Records provider prompt-cache usage telemetry and normalized cache diagnostics when providers return cache usage fields. This does not enable or disable provider implicit cache.",
+        "title": "Giám sát bộ nhớ đệm prompt",
+        "description": "Ghi lại telemetry sử dụng bộ nhớ đệm prompt của nhà cung cấp khi họ trả về các trường cache. Không bật/tắt bộ nhớ đệm ngầm định của nhà cung cấp.",
         "category": "ai_model",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -495,8 +495,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "LLM_PROMPT_CACHE_HINTS_ENABLED": {
-        "title": "Prompt Cache Hints",
-        "description": "Allows the project to send verified provider-specific prompt-cache hints such as prompt_cache_key or cache_control. Unknown providers and unverified routes remain telemetry-only.",
+        "title": "Gợi ý bộ nhớ đệm prompt",
+        "description": "Cho phép dự án gửi các gợi ý bộ nhớ đệm đã xác minh như prompt_cache_key hoặc cache_control. Nhà cung cấp chưa được xác minh chỉ ở chế độ telemetry.",
         "category": "ai_model",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -520,8 +520,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "LLM_PROMPT_CACHE_DIAGNOSTICS_LEVEL": {
-        "title": "Prompt Cache Diagnostics",
-        "description": "Controls non-sensitive prompt-cache capability and hint decision diagnostics. Values: off, basic, debug.",
+        "title": "Mức chẩn đoán bộ nhớ đệm prompt",
+        "description": "Kiểm soát chẩn đoán năng lực bộ nhớ đệm và quyết định gợi ý. Giá trị: off, basic, debug.",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "select",
@@ -550,8 +550,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "LLM_USAGE_HMAC_SECRET": {
-        "title": "LLM Usage HMAC Secret",
-        "description": "Optional deployment-scoped secret for LLM usage telemetry prompt/message HMAC. Leave empty to use a local generated secret file. If set, use a high-entropy random value and do not commit it to version control.",
+        "title": "Bí mật HMAC sử dụng LLM",
+        "description": "Bí mật phạm vi triển khai tùy chọn cho HMAC telemetry sử dụng LLM. Để trống để dùng file bí mật được tạo cục bộ. Nếu đặt, dùng giá trị ngẫu nhiên entropy cao và không commit vào mã nguồn.",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "password",
@@ -575,8 +575,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["secret_value"],
     },
     "LLM_USAGE_HMAC_KEY_VERSION": {
-        "title": "LLM Usage HMAC Key Version",
-        "description": "Version label for the LLM usage telemetry HMAC key. Change it when rotating LLM_USAGE_HMAC_SECRET.",
+        "title": "Phiên bản khóa HMAC sử dụng LLM",
+        "description": "Nhãn phiên bản cho khóa HMAC telemetry sử dụng LLM. Thay đổi khi xoay vòng LLM_USAGE_HMAC_SECRET.",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "text",
@@ -600,8 +600,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AIHUBMIX_KEY": {
-        "title": "AIHubmix Key",
-        "description": "AIHubmix one-stop API key – access all mainstream models with a single key, no VPN required. Auto-sets base URL to aihubmix.com/v1. Get key: https://aihubmix.com/?aff=CfMq",
+        "title": "Khóa API AIHubmix",
+        "description": "Khóa API tổng hợp AIHubmix – truy cập tất cả mô hình phổ biến bằng một khóa, không cần VPN. Tự động đặt base URL thành aihubmix.com/v1. Lấy khóa: https://aihubmix.com/?aff=CfMq",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "password",
@@ -629,8 +629,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["secret_value"],
     },
     "ANSPIRE_LLM_ENABLED": {
-        "title": "Anspire LLM Enabled",
-        "description": "Use ANSPIRE_API_KEYS as an OpenAI-compatible Anspire LLM key when no higher-priority LLM channel or OpenAI-compatible key is configured.",
+        "title": "Bật Anspire LLM",
+        "description": "Dùng ANSPIRE_API_KEYS làm khóa LLM tương thích OpenAI của Anspire khi chưa có kênh LLM hoặc khóa tương thích OpenAI ưu tiên cao hơn.",
         "category": "ai_model",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -643,8 +643,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 6,
     },
     "ANSPIRE_LLM_BASE_URL": {
-        "title": "Anspire LLM Base URL",
-        "description": "Anspire OpenAI-compatible gateway. Default: https://open-gateway.anspire.cn/v6; global endpoint: https://open-gateway.anspire.ai/v6.",
+        "title": "URL cổng Anspire LLM",
+        "description": "Cổng tương thích OpenAI của Anspire. Mặc định: https://open-gateway.anspire.cn/v6; endpoint quốc tế: https://open-gateway.anspire.ai/v6.",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "text",
@@ -657,8 +657,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 7,
     },
     "ANSPIRE_LLM_MODEL": {
-        "title": "Anspire LLM Model",
-        "description": "Default model used when ANSPIRE_API_KEYS enables the Anspire LLM gateway without an explicit LITELLM_MODEL.",
+        "title": "Mô hình Anspire LLM",
+        "description": "Mô hình mặc định dùng khi ANSPIRE_API_KEYS kích hoạt cổng LLM Anspire mà không có LITELLM_MODEL tường minh.",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "text",
@@ -674,8 +674,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
     # AI Model – DeepSeek official (independent from OpenAI-compatible)
     # ------------------------------------------------------------------
     "DEEPSEEK_API_KEY": {
-        "title": "DeepSeek API Key",
-        "description": "Official DeepSeek API key (from https://platform.deepseek.com). For compatibility, a key set alone still auto-infers deepseek/deepseek-chat and logs a deprecation warning; new configs should migrate to deepseek/deepseek-v4-flash. Also works in multi-channel mode.",
+        "title": "Khóa API DeepSeek",
+        "description": "Khóa API DeepSeek chính thức (từ https://platform.deepseek.com). Để tương thích, khóa đặt một mình vẫn tự suy luận deepseek/deepseek-chat và ghi cảnh báo lỗi thời; cấu hình mới nên chuyển sang deepseek/deepseek-v4-flash. Cũng hoạt động ở chế độ đa kênh.",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "password",
@@ -704,8 +704,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["secret_value"],
     },
     "DEEPSEEK_API_KEYS": {
-        "title": "DeepSeek API Keys (Multi)",
-        "description": "Comma-separated DeepSeek API keys for load balancing. Takes priority over DEEPSEEK_API_KEY.",
+        "title": "Khóa API DeepSeek (nhiều khóa)",
+        "description": "Danh sách khóa API DeepSeek phân tách bằng dấu phẩy để cân bằng tải. Ưu tiên cao hơn DEEPSEEK_API_KEY.",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "password",
@@ -718,8 +718,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 7,
     },
     "TUSHARE_TOKEN": {
-        "title": "Tushare Token",
-        "description": "Token for Tushare Pro API.",
+        "title": "Token Tushare",
+        "description": "Token truy cập API Tushare Pro.",
         "category": "data_source",
         "data_type": "string",
         "ui_control": "password",
@@ -747,8 +747,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["secret_value"],
     },
     "TICKFLOW_API_KEY": {
-        "title": "TickFlow API Key",
-        "description": "API key for TickFlow market review enhancement (A-share indices, plus market stats when universe queries are enabled).",
+        "title": "Khóa API TickFlow",
+        "description": "Khóa API TickFlow để nâng cao điểm tin thị trường (chỉ số thị trường và thống kê khi bật truy vấn toàn thị trường).",
         "category": "data_source",
         "data_type": "string",
         "ui_control": "password",
@@ -761,8 +761,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 15,
     },
     "STOCK_INDEX_REMOTE_UPDATE_ENABLED": {
-        "title": "Remote Stock Index Updates",
-        "description": "Automatically refresh the local stock autocomplete index from the built-in GitHub main source.",
+        "title": "Cập nhật chỉ số cổ phiếu từ xa",
+        "description": "Tự động làm mới chỉ số gợi ý cổ phiếu cục bộ từ nguồn GitHub tích hợp.",
         "category": "data_source",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -787,8 +787,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "ALPHASIFT_ENABLED": {
-        "title": "AlphaSift Screening",
-        "description": "Enable the built-in AlphaSift stock screening tab. Disabled by default. This switch only affects the AlphaSift screening path; it does not migrate, sanitize, or clear existing LLM/runtime fields in `.env`.",
+        "title": "Bật lọc cổ phiếu AlphaSift",
+        "description": "Bật tab lọc cổ phiếu AlphaSift tích hợp. Mặc định tắt. Công tắc này chỉ ảnh hưởng đến đường dẫn lọc AlphaSift; không di chuyển, làm sạch hay xóa các trường LLM/runtime hiện có trong `.env`.",
         "category": "data_source",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -824,8 +824,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         ],
     },
     "ALPHASIFT_INSTALL_SPEC": {
-        "title": "AlphaSift Install Spec",
-        "description": "Pinned AlphaSift pip source used for explicit repair installs and source verification. It is not used for normal runtime calls after startup dependency installation; runtime compatibility is built from DSA's resolved LLM/runtime context.",
+        "title": "Đặc tả cài đặt AlphaSift",
+        "description": "Nguồn pip AlphaSift cố định dùng cho cài đặt sửa chữa và xác minh nguồn tường minh. Không dùng cho lời gọi runtime thông thường sau khi cài phụ thuộc khởi động.",
         "category": "data_source",
         "data_type": "string",
         "ui_control": "password",
@@ -852,8 +852,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         ],
     },
     "REALTIME_SOURCE_PRIORITY": {
-        "title": "Realtime Source Priority",
-        "description": "Comma-separated priority for realtime quote providers.",
+        "title": "Độ ưu tiên nguồn dữ liệu thực",
+        "description": "Danh sách nhà cung cấp giá thực theo độ ưu tiên, phân tách bằng dấu phẩy.",
         "category": "data_source",
         "data_type": "string",
         "ui_control": "text",
@@ -877,8 +877,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["provider_priority_order"],
     },
     "ENABLE_REALTIME_TECHNICAL_INDICATORS": {
-        "title": "Realtime Technical Indicators",
-        "description": "Use intraday realtime price for MA5/MA10/MA20 and trend analysis (Issue #234). Disable to use yesterday close.",
+        "title": "Chỉ báo kỹ thuật theo thời gian thực",
+        "description": "Dùng giá thực trong phiên cho MA5/MA10/MA20 và phân tích xu hướng. Tắt để dùng giá đóng cửa tham chiếu.",
         "category": "data_source",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -903,8 +903,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "ANSPIRE_API_KEYS": {
-        "title": "Anspire API Keys",
-        "description": "Comma-separated Anspire Open API keys. Used by Anspire Search and, by default, the Anspire OpenAI-compatible LLM gateway.",
+        "title": "Khóa API Anspire",
+        "description": "Danh sách khóa Open API Anspire phân tách bằng dấu phẩy. Dùng cho Anspire Search và mặc định là cổng LLM tương thích OpenAI của Anspire.",
         "category": "data_source",
         "data_type": "string",
         "ui_control": "password",
@@ -928,8 +928,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["secret_value", "comma_separated_keys"],
     },
     "TAVILY_API_KEYS": {
-        "title": "Tavily API Keys",
-        "description": "Comma-separated Tavily API keys.",
+        "title": "Khóa API Tavily",
+        "description": "Danh sách khóa API Tavily phân tách bằng dấu phẩy.",
         "category": "data_source",
         "data_type": "string",
         "ui_control": "password",
@@ -954,8 +954,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["secret_value", "comma_separated_keys"],
     },
     "SERPAPI_API_KEYS": {
-        "title": "SerpAPI Keys",
-        "description": "Comma-separated SerpAPI keys.",
+        "title": "Khóa API SerpAPI",
+        "description": "Danh sách khóa SerpAPI phân tách bằng dấu phẩy.",
         "category": "data_source",
         "data_type": "string",
         "ui_control": "password",
@@ -968,8 +968,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 40,
     },
     "BRAVE_API_KEYS": {
-        "title": "Brave API Keys",
-        "description": "Comma-separated Brave Search API keys.",
+        "title": "Khóa API Brave Search",
+        "description": "Danh sách khóa API Brave Search phân tách bằng dấu phẩy.",
         "category": "data_source",
         "data_type": "string",
         "ui_control": "password",
@@ -982,8 +982,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 50,
     },
     "BOCHA_API_KEYS": {
-        "title": "Bocha API Keys",
-        "description": "Comma-separated Bocha Search API keys.",
+        "title": "Khóa API Bocha Search",
+        "description": "Danh sách khóa API Bocha Search phân tách bằng dấu phẩy.",
         "category": "data_source",
         "data_type": "string",
         "ui_control": "password",
@@ -996,8 +996,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 51,
     },
     "MINIMAX_API_KEYS": {
-        "title": "MiniMax API Key",
-        "description": "MiniMax API key (search priority: Bocha > Tavily > Brave > SerpAPI > MiniMax > SearXNG).",
+        "title": "Khóa API MiniMax",
+        "description": "Khóa API MiniMax (độ ưu tiên tìm kiếm: Bocha > Tavily > Brave > SerpAPI > MiniMax > SearXNG).",
         "category": "data_source",
         "data_type": "string",
         "ui_control": "password",
@@ -1010,8 +1010,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 53,
     },
     "SEARXNG_BASE_URLS": {
-        "title": "SearXNG Base URLs",
-        "description": "Comma-separated SearXNG instance URLs (self-hosted, no quota). Enable format: json in settings.yml.",
+        "title": "URL cơ sở SearXNG",
+        "description": "Danh sách URL instance SearXNG phân tách bằng dấu phẩy (tự lưu trữ, không giới hạn quota). Bật format: json trong settings.yml.",
         "category": "data_source",
         "data_type": "string",
         "ui_control": "text",
@@ -1041,8 +1041,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["requires_json_format"],
     },
     "SEARXNG_PUBLIC_INSTANCES_ENABLED": {
-        "title": "SearXNG Public Instances",
-        "description": "Auto-discover public SearXNG instances from searx.space when SEARXNG_BASE_URLS is empty. Default: true; set false to disable.",
+        "title": "SearXNG instance công cộng",
+        "description": "Tự động tìm kiếm instance SearXNG công cộng từ searx.space khi SEARXNG_BASE_URLS trống. Mặc định: true; đặt false để tắt.",
         "category": "data_source",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -1055,8 +1055,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 53,
     },
     "ENABLE_REALTIME_QUOTE": {
-        "title": "Enable Realtime Quote",
-        "description": "Enable realtime market quotes. Disable to only use historical close prices.",
+        "title": "Bật giá thực theo thời gian thực",
+        "description": "Bật giá thị trường theo thời gian thực. Tắt để chỉ dùng giá đóng cửa lịch sử.",
         "category": "data_source",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -1081,8 +1081,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "ENABLE_CHIP_DISTRIBUTION": {
-        "title": "Enable Chip Distribution",
-        "description": "Enable chip distribution analysis. May be unstable; recommended to disable on cloud deployments.",
+        "title": "Bật phân tích phân phối chi phí vốn",
+        "description": "Bật phân tích phân phối chi phí vốn (chip distribution). Có thể không ổn định; khuyến nghị tắt trên môi trường đám mây.",
         "category": "data_source",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -1107,8 +1107,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["cloud_deployments_may_disable"],
     },
     "NEWS_MAX_AGE_DAYS": {
-        "title": "News Max Age (Days)",
-        "description": "Maximum age of news in days. Older articles are excluded from analysis context.",
+        "title": "Tuổi tối đa của tin tức (ngày)",
+        "description": "Số ngày tối đa của tin tức. Bài viết cũ hơn sẽ bị loại khỏi ngữ cảnh phân tích.",
         "category": "data_source",
         "data_type": "integer",
         "ui_control": "number",
@@ -1133,8 +1133,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "NEWS_STRATEGY_PROFILE": {
-        "title": "News Strategy Profile",
-        "description": "News window profile: ultra_short(1d), short(3d), medium(7d), long(30d). Effective window = min(profile, NEWS_MAX_AGE_DAYS).",
+        "title": "Hồ sơ chiến lược tin tức",
+        "description": "Hồ sơ cửa sổ tin tức: ultra_short(1 ngày), short(3 ngày), medium(7 ngày), long(30 ngày). Cửa sổ hiệu quả = min(hồ sơ, NEWS_MAX_AGE_DAYS).",
         "category": "data_source",
         "data_type": "string",
         "ui_control": "select",
@@ -1159,8 +1159,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "BIAS_THRESHOLD": {
-        "title": "Bias Threshold (%)",
-        "description": "Deviation threshold from MA5 (%). Exceeding this triggers 'do not chase' warning. Strong trend stocks auto-widen to 1.5x.",
+        "title": "Ngưỡng độ lệch MA (%)",
+        "description": "Ngưỡng độ lệch so với MA5 (%). Vượt ngưỡng sẽ kích hoạt cảnh báo 'không đuổi giá'. Cổ phiếu xu hướng mạnh tự động nới rộng lên 1.5 lần.",
         "category": "data_source",
         "data_type": "number",
         "ui_control": "number",
@@ -1173,8 +1173,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 62,
     },
     "PYTDX_HOST": {
-        "title": "Pytdx Host",
-        "description": "Tongdaxin data server IP. Used with PYTDX_PORT. Overrides built-in defaults.",
+        "title": "Host máy chủ Pytdx",
+        "description": "Địa chỉ IP máy chủ dữ liệu Tongdaxin. Dùng với PYTDX_PORT. Ghi đè giá trị mặc định tích hợp.",
         "category": "data_source",
         "data_type": "string",
         "ui_control": "text",
@@ -1187,8 +1187,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 55,
     },
     "PYTDX_PORT": {
-        "title": "Pytdx Port",
-        "description": "Tongdaxin data server port (e.g. 7709). Used with PYTDX_HOST.",
+        "title": "Cổng máy chủ Pytdx",
+        "description": "Cổng máy chủ dữ liệu Tongdaxin (ví dụ: 7709). Dùng với PYTDX_HOST.",
         "category": "data_source",
         "data_type": "string",
         "ui_control": "text",
@@ -1201,8 +1201,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 56,
     },
     "PYTDX_SERVERS": {
-        "title": "Pytdx Servers",
-        "description": "Comma-separated ip:port (e.g. 192.168.1.1:7709,10.0.0.1:7709). Overrides PYTDX_HOST+PYTDX_PORT.",
+        "title": "Danh sách máy chủ Pytdx",
+        "description": "Danh sách ip:port phân tách bằng dấu phẩy (ví dụ: 192.168.1.1:7709,10.0.0.1:7709). Ghi đè PYTDX_HOST+PYTDX_PORT.",
         "category": "data_source",
         "data_type": "string",
         "ui_control": "text",
@@ -1215,8 +1215,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 57,
     },
     "GEMINI_API_KEY": {
-        "title": "Gemini API Key",
-        "description": "Single API key for Gemini service (from https://aistudio.google.com).",
+        "title": "Khóa API Gemini",
+        "description": "Khóa API đơn lẻ cho dịch vụ Gemini (từ https://aistudio.google.com).",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "password",
@@ -1245,8 +1245,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["secret_value"],
     },
     "GEMINI_API_KEYS": {
-        "title": "Gemini API Keys (Multi)",
-        "description": "Comma-separated Gemini API keys for load balancing. Takes priority over GEMINI_API_KEY.",
+        "title": "Khóa API Gemini (nhiều khóa)",
+        "description": "Danh sách khóa API Gemini phân tách bằng dấu phẩy để cân bằng tải. Ưu tiên cao hơn GEMINI_API_KEY.",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "password",
@@ -1259,8 +1259,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 11,
     },
     "GEMINI_MODEL": {
-        "title": "Gemini Model",
-        "description": "Gemini model name.",
+        "title": "Mô hình Gemini",
+        "description": "Tên mô hình Gemini.",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "text",
@@ -1273,8 +1273,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 20,
     },
     "GEMINI_MODEL_FALLBACK": {
-        "title": "Gemini Fallback Model",
-        "description": "Fallback Gemini model name (used when LITELLM_FALLBACK_MODELS is not set and primary is Gemini).",
+        "title": "Mô hình Gemini dự phòng",
+        "description": "Tên mô hình Gemini dự phòng (dùng khi LITELLM_FALLBACK_MODELS chưa đặt và mô hình chính là Gemini).",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "text",
@@ -1287,8 +1287,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 21,
     },
     "GEMINI_TEMPERATURE": {
-        "title": "Gemini Temperature",
-        "description": "Temperature in range [0.0, 2.0].",
+        "title": "Nhiệt độ Gemini",
+        "description": "Nhiệt độ lấy mẫu trong phạm vi [0.0, 2.0].",
         "category": "ai_model",
         "data_type": "number",
         "ui_control": "number",
@@ -1301,8 +1301,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 30,
     },
     "OPENAI_API_KEY": {
-        "title": "OpenAI API Key",
-        "description": "API key for OpenAI-compatible service.",
+        "title": "Khóa API OpenAI",
+        "description": "Khóa API cho dịch vụ tương thích OpenAI.",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "password",
@@ -1332,8 +1332,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["secret_value"],
     },
     "OPENAI_API_KEYS": {
-        "title": "OpenAI API Keys (Multi)",
-        "description": "Comma-separated OpenAI-compatible API keys for load balancing. Takes priority over AIHUBMIX_KEY and OPENAI_API_KEY.",
+        "title": "Khóa API OpenAI (nhiều khóa)",
+        "description": "Danh sách khóa API tương thích OpenAI phân tách bằng dấu phẩy để cân bằng tải. Ưu tiên cao hơn AIHUBMIX_KEY và OPENAI_API_KEY.",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "password",
@@ -1346,8 +1346,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 41,
     },
     "OPENAI_BASE_URL": {
-        "title": "OpenAI Base URL",
-        "description": "Base URL for OpenAI-compatible endpoint.",
+        "title": "URL cơ sở OpenAI",
+        "description": "URL cơ sở cho endpoint tương thích OpenAI.",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "text",
@@ -1376,8 +1376,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["base_url_must_match_provider"],
     },
     "OPENAI_MODEL": {
-        "title": "OpenAI Model",
-        "description": "Model name for OpenAI-compatible endpoint.",
+        "title": "Mô hình OpenAI",
+        "description": "Tên mô hình cho endpoint tương thích OpenAI.",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "text",
@@ -1390,8 +1390,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 60,
     },
     "OPENAI_VISION_MODEL": {
-        "title": "OpenAI Vision Model",
-        "description": "Model for image extraction (some APIs e.g. DeepSeek lack vision). Leave empty to use OPENAI_MODEL.",
+        "title": "Mô hình nhận dạng ảnh OpenAI",
+        "description": "Mô hình trích xuất hình ảnh (một số API như DeepSeek không hỗ trợ vision). Để trống để dùng OPENAI_MODEL.",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "text",
@@ -1404,8 +1404,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 61,
     },
     "OPENAI_TEMPERATURE": {
-        "title": "OpenAI Temperature",
-        "description": "Temperature for OpenAI-compatible models in range [0.0, 2.0].",
+        "title": "Nhiệt độ OpenAI",
+        "description": "Nhiệt độ lấy mẫu cho mô hình tương thích OpenAI trong phạm vi [0.0, 2.0].",
         "category": "ai_model",
         "data_type": "number",
         "ui_control": "number",
@@ -1418,8 +1418,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 62,
     },
     "ANTHROPIC_API_KEY": {
-        "title": "Anthropic API Key",
-        "description": "Anthropic Claude API key (from https://console.anthropic.com).",
+        "title": "Khóa API Anthropic",
+        "description": "Khóa API Claude của Anthropic (từ https://console.anthropic.com).",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "password",
@@ -1448,8 +1448,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["secret_value"],
     },
     "ANTHROPIC_API_KEYS": {
-        "title": "Anthropic API Keys (Multi)",
-        "description": "Comma-separated Anthropic API keys for load balancing. Takes priority over ANTHROPIC_API_KEY.",
+        "title": "Khóa API Anthropic (nhiều khóa)",
+        "description": "Danh sách khóa API Anthropic phân tách bằng dấu phẩy để cân bằng tải. Ưu tiên cao hơn ANTHROPIC_API_KEY.",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "password",
@@ -1462,8 +1462,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 35,
     },
     "ANTHROPIC_MODEL": {
-        "title": "Anthropic Model",
-        "description": "Claude 模型名称（如 claude-sonnet-4-6）。",
+        "title": "Mô hình Anthropic",
+        "description": "Tên mô hình Claude (ví dụ: claude-sonnet-4-6).",
         "category": "ai_model",
         "data_type": "string",
         "ui_control": "text",
@@ -1476,8 +1476,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 36,
     },
     "ANTHROPIC_TEMPERATURE": {
-        "title": "Anthropic Temperature",
-        "description": "温度参数，范围 [0.0, 1.0]。",
+        "title": "Nhiệt độ Anthropic",
+        "description": "Tham số nhiệt độ, phạm vi [0.0, 1.0].",
         "category": "ai_model",
         "data_type": "number",
         "ui_control": "number",
@@ -1490,8 +1490,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 37,
     },
     "ANTHROPIC_MAX_TOKENS": {
-        "title": "Anthropic Max Tokens",
-        "description": "Anthropic API 响应最大 token 数（默认 8192）。",
+        "title": "Token tối đa Anthropic",
+        "description": "Số token tối đa trong phản hồi API Anthropic (mặc định 8192).",
         "category": "ai_model",
         "data_type": "number",
         "ui_control": "number",
@@ -1504,8 +1504,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 38,
     },
     "WECHAT_WEBHOOK_URL": {
-        "title": "WeChat Webhook URL",
-        "description": "Webhook URL for enterprise WeChat bot.",
+        "title": "URL Webhook WeChat doanh nghiệp",
+        "description": "URL Webhook cho bot WeChat doanh nghiệp.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -1529,8 +1529,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["webhook_secret_value"],
     },
     "DINGTALK_APP_KEY": {
-        "title": "DingTalk App Key",
-        "description": "DingTalk app key.",
+        "title": "App Key DingTalk",
+        "description": "Khóa ứng dụng DingTalk.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -1543,8 +1543,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 20,
     },
     "DINGTALK_APP_SECRET": {
-        "title": "DingTalk App Secret",
-        "description": "DingTalk app secret.",
+        "title": "App Secret DingTalk",
+        "description": "Bí mật ứng dụng DingTalk.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -1557,8 +1557,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 30,
     },
     "DINGTALK_STREAM_ENABLED": {
-        "title": "DingTalk Stream Mode",
-        "description": "Enable DingTalk application bot stream/long-connection mode. This is separate from DingTalk group webhook delivery.",
+        "title": "Chế độ stream DingTalk",
+        "description": "Bật chế độ stream/kết nối dài của bot ứng dụng DingTalk. Độc lập với kênh webhook nhóm DingTalk.",
         "category": "notification",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -1585,8 +1585,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["not_webhook_delivery", "restart_required"],
     },
     "PUSHPLUS_TOKEN": {
-        "title": "PushPlus Token",
-        "description": "Token for PushPlus notifications.",
+        "title": "Token PushPlus",
+        "description": "Token để gửi thông báo qua PushPlus.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -1599,8 +1599,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 40,
     },
     "CUSTOM_WEBHOOK_URLS": {
-        "title": "Custom Webhook URLs",
-        "description": "Comma-separated webhook URLs for custom notifications (DingTalk, Bark, Discord, Slack, etc.).",
+        "title": "URL Webhook tùy chỉnh",
+        "description": "Danh sách URL webhook tùy chỉnh phân tách bằng dấu phẩy (DingTalk, Bark, Discord, Slack, v.v.).",
         "category": "notification",
         "data_type": "array",
         "ui_control": "textarea",
@@ -1626,8 +1626,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["json_template_must_render_object"],
     },
     "CUSTOM_WEBHOOK_BEARER_TOKEN": {
-        "title": "Custom Webhook Bearer Token",
-        "description": "Bearer token for authenticated custom webhooks.",
+        "title": "Bearer Token Webhook tùy chỉnh",
+        "description": "Bearer token xác thực cho các webhook tùy chỉnh.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -1640,12 +1640,12 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 51,
     },
     "CUSTOM_WEBHOOK_BODY_TEMPLATE": {
-        "title": "Custom Webhook Body Template",
+        "title": "Template nội dung Webhook tùy chỉnh",
         "description": (
-            "Optional global JSON body template for custom webhooks. It is rendered before "
-            "URL auto-detected payloads such as Bark, Slack, or Discord, and must render to a "
-            "JSON object. Prefer $content_json and $title_json; raw $content and $title are "
-            "not JSON-escaped and can make the template invalid."
+            "Template JSON nội dung toàn cục tùy chọn cho webhook tùy chỉnh. Được render trước "
+            "payload tự phát hiện qua URL như Bark, Slack hoặc Discord, và phải render thành "
+            "đối tượng JSON. Ưu tiên dùng $content_json và $title_json; $content và $title thô "
+            "không được escape JSON và có thể làm template không hợp lệ."
         ),
         "category": "notification",
         "data_type": "string",
@@ -1659,8 +1659,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 52,
     },
     "WEBHOOK_VERIFY_SSL": {
-        "title": "Webhook SSL Verify",
-        "description": "Verify HTTPS certificates for webhook requests. Set to false ONLY for self-signed certs in trusted internal networks. WARNING: Disabling allows MITM attacks—do NOT use on public networks.",
+        "title": "Xác minh SSL Webhook",
+        "description": "Xác minh chứng chỉ HTTPS cho yêu cầu webhook. Chỉ đặt false cho chứng chỉ tự ký trên mạng nội bộ tin cậy. CẢNH BÁO: Tắt tính năng này cho phép tấn công MITM — KHÔNG dùng trên mạng công cộng.",
         "category": "notification",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -1685,8 +1685,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["disabling_ssl_verify_is_risky"],
     },
     "REPORT_SUMMARY_ONLY": {
-        "title": "Report Summary Only",
-        "description": "Push only analysis summary without per-stock details. Suitable for quick overview when tracking many stocks (Issue #262).",
+        "title": "Chỉ gửi tóm tắt báo cáo",
+        "description": "Chỉ đẩy tóm tắt phân tích mà không kèm chi tiết từng cổ phiếu. Phù hợp để xem nhanh khi theo dõi nhiều mã.",
         "category": "notification",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -1711,8 +1711,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "REPORT_SHOW_LLM_MODEL": {
-        "title": "Show LLM Model in Reports",
-        "description": "Show the LLM model name in notification report footers. Disable to hide runtime model metadata. This option only affects report rendering and does not change runtime provider/model/Base URL/LiteLLM routing, migration, persistence, or cleanup behavior.",
+        "title": "Hiển thị tên mô hình LLM trong báo cáo",
+        "description": "Hiển thị tên mô hình LLM ở chân trang báo cáo thông báo. Tắt để ẩn metadata mô hình runtime. Tùy chọn này chỉ ảnh hưởng đến render báo cáo, không thay đổi nhà cung cấp/mô hình/URL/định tuyến LiteLLM.",
         "category": "notification",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -1740,8 +1740,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
     # Notification – Feishu
     # ------------------------------------------------------------------
     "FEISHU_WEBHOOK_URL": {
-        "title": "Feishu Webhook URL",
-        "description": "Feishu custom bot webhook URL for group notifications. This is the webhook push channel; FEISHU_APP_ID / FEISHU_APP_SECRET do not enable webhook delivery by themselves.",
+        "title": "URL Webhook Feishu",
+        "description": "URL webhook bot tùy chỉnh Feishu để gửi thông báo nhóm. Đây là kênh đẩy webhook; FEISHU_APP_ID / FEISHU_APP_SECRET không tự bật gửi webhook.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -1774,8 +1774,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["feishu_webhook_not_app_secret"],
     },
     "FEISHU_WEBHOOK_SECRET": {
-        "title": "Feishu Webhook Secret",
-        "description": "Optional signing secret from Feishu custom bot security settings. Only used for webhook push mode.",
+        "title": "Bí mật Webhook Feishu",
+        "description": "Bí mật ký tùy chọn từ cài đặt bảo mật bot tùy chỉnh Feishu. Chỉ dùng cho chế độ đẩy webhook.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -1788,8 +1788,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 13,
     },
     "FEISHU_WEBHOOK_KEYWORD": {
-        "title": "Feishu Webhook Keyword",
-        "description": "Optional keyword required by Feishu custom bot security settings. The sender prepends it to every webhook message.",
+        "title": "Từ khóa Webhook Feishu",
+        "description": "Từ khóa tùy chọn theo yêu cầu bảo mật bot Feishu. Hệ thống thêm vào đầu mỗi tin nhắn webhook.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "text",
@@ -1802,8 +1802,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 14,
     },
     "FEISHU_APP_ID": {
-        "title": "Feishu App ID",
-        "description": "Feishu app bot App ID for app/stream bot mode or cloud documents. It does not enable group webhook push by itself.",
+        "title": "App ID Feishu",
+        "description": "App ID bot ứng dụng Feishu cho chế độ bot ứng dụng/stream hoặc tài liệu đám mây. Không tự bật gửi webhook nhóm.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "text",
@@ -1816,8 +1816,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 15,
     },
     "FEISHU_APP_SECRET": {
-        "title": "Feishu App Secret",
-        "description": "Feishu app bot App Secret for app/stream bot mode or cloud documents. It does not enable group webhook push by itself.",
+        "title": "App Secret Feishu",
+        "description": "App Secret bot ứng dụng Feishu cho chế độ bot ứng dụng/stream hoặc tài liệu đám mây. Không tự bật gửi webhook nhóm.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -1830,8 +1830,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 16,
     },
     "FEISHU_STREAM_ENABLED": {
-        "title": "Feishu Stream Mode",
-        "description": "Enable Feishu application bot stream mode. This is separate from Feishu group webhook delivery.",
+        "title": "Chế độ stream Feishu",
+        "description": "Bật chế độ stream bot ứng dụng Feishu. Độc lập với kênh webhook nhóm Feishu.",
         "category": "notification",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -1862,8 +1862,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["not_webhook_delivery", "restart_required"],
     },
     "FEISHU_CHAT_ID": {
-        "title": "Feishu Chat ID",
-        "description": "Target chat_id (group mode, oc_xxx) or open_id (P2P mode, ou_xxx) for Feishu App Bot notification delivery. Requires FEISHU_APP_ID + FEISHU_APP_SECRET.",
+        "title": "ID cuộc trò chuyện Feishu",
+        "description": "chat_id đích (chế độ nhóm, oc_xxx) hoặc open_id (chế độ P2P, ou_xxx) để bot ứng dụng Feishu gửi thông báo. Yêu cầu FEISHU_APP_ID + FEISHU_APP_SECRET.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "text",
@@ -1887,8 +1887,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         ],
     },
     "FEISHU_RECEIVE_ID_TYPE": {
-        "title": "Feishu Receive ID Type",
-        "description": "Type of FEISHU_CHAT_ID: 'chat_id' for group chat, 'open_id' for P2P private message.",
+        "title": "Loại ID nhận Feishu",
+        "description": "Loại FEISHU_CHAT_ID: 'chat_id' cho nhóm chat, 'open_id' cho tin nhắn riêng P2P.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "select",
@@ -1912,8 +1912,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         ],
     },
     "FEISHU_DOMAIN": {
-        "title": "Feishu Domain",
-        "description": "Feishu API domain: 'feishu' (feishu.cn for mainland China) or 'lark' (larksuite.com for international).",
+        "title": "Tên miền Feishu",
+        "description": "Tên miền API Feishu: 'feishu' (feishu.cn trong nước) hoặc 'lark' (larksuite.com quốc tế).",
         "category": "notification",
         "data_type": "string",
         "ui_control": "select",
@@ -1940,8 +1940,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
     # Notification – Telegram
     # ------------------------------------------------------------------
     "TELEGRAM_BOT_TOKEN": {
-        "title": "Telegram Bot Token",
-        "description": "Telegram bot token (from @BotFather).",
+        "title": "Token Bot Telegram",
+        "description": "Token bot Telegram (lấy từ @BotFather).",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -1966,8 +1966,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["secret_value"],
     },
     "TELEGRAM_CHAT_ID": {
-        "title": "Telegram Chat ID",
-        "description": "Telegram chat/group ID to send messages to.",
+        "title": "ID chat Telegram",
+        "description": "ID chat hoặc nhóm Telegram để gửi tin nhắn.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "text",
@@ -1992,8 +1992,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "TELEGRAM_MESSAGE_THREAD_ID": {
-        "title": "Telegram Thread ID",
-        "description": "Telegram topic/thread ID for group messages (optional).",
+        "title": "ID chủ đề Telegram",
+        "description": "ID chủ đề/thread Telegram cho tin nhắn nhóm (tùy chọn).",
         "category": "notification",
         "data_type": "string",
         "ui_control": "text",
@@ -2009,8 +2009,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
     # Notification – Email
     # ------------------------------------------------------------------
     "EMAIL_SENDER": {
-        "title": "Email Sender",
-        "description": "Sender email address (SMTP host auto-detected).",
+        "title": "Địa chỉ email người gửi",
+        "description": "Địa chỉ email người gửi (SMTP host được tự động phát hiện).",
         "category": "notification",
         "data_type": "string",
         "ui_control": "text",
@@ -2036,8 +2036,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "EMAIL_PASSWORD": {
-        "title": "Email Password",
-        "description": "Email password or app-specific authorization code.",
+        "title": "Mật khẩu email",
+        "description": "Mật khẩu email hoặc mã ủy quyền ứng dụng (app password).",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -2061,8 +2061,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["secret_value", "smtp_authorization_code"],
     },
     "EMAIL_RECEIVERS": {
-        "title": "Email Receivers",
-        "description": "Comma-separated recipient email addresses. Leave empty to send to yourself.",
+        "title": "Địa chỉ email người nhận",
+        "description": "Danh sách địa chỉ email người nhận phân tách bằng dấu phẩy. Để trống để gửi cho chính mình.",
         "category": "notification",
         "data_type": "array",
         "ui_control": "textarea",
@@ -2091,8 +2091,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
     # Notification – Discord
     # ------------------------------------------------------------------
     "DISCORD_WEBHOOK_URL": {
-        "title": "Discord Webhook URL",
-        "description": "Discord webhook URL for channel notifications.",
+        "title": "URL Webhook Discord",
+        "description": "URL webhook Discord để gửi thông báo kênh.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -2116,8 +2116,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["webhook_secret_value"],
     },
     "DISCORD_BOT_TOKEN": {
-        "title": "Discord Bot Token",
-        "description": "Discord bot token for interactive bot mode.",
+        "title": "Token Bot Discord",
+        "description": "Token bot Discord cho chế độ bot tương tác.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -2142,8 +2142,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["secret_value"],
     },
     "DISCORD_MAIN_CHANNEL_ID": {
-        "title": "Discord Channel ID",
-        "description": "Discord main channel ID for sending messages.",
+        "title": "ID kênh Discord",
+        "description": "ID kênh Discord chính để gửi tin nhắn.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "text",
@@ -2156,8 +2156,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 35,
     },
     "DISCORD_INTERACTIONS_PUBLIC_KEY": {
-        "title": "Discord Interactions Public Key",
-        "description": "Discord public key used to verify inbound interaction/webhook signatures.",
+        "title": "Khóa công khai Discord Interactions",
+        "description": "Khóa công khai Discord dùng để xác minh chữ ký webhook/interaction đến.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "text",
@@ -2173,8 +2173,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
     # Notification – Slack  (Bot > Webhook when both configured)
     # ------------------------------------------------------------------
     "SLACK_BOT_TOKEN": {
-        "title": "Slack Bot Token",
-        "description": "Slack Bot Token (xoxb-...). Recommended; supports image upload. Takes priority over Webhook when both are configured.",
+        "title": "Token Bot Slack",
+        "description": "Token Bot Slack (xoxb-...). Khuyến nghị dùng; hỗ trợ tải ảnh. Ưu tiên hơn Webhook khi cả hai được cấu hình.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -2199,8 +2199,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["secret_value"],
     },
     "SLACK_CHANNEL_ID": {
-        "title": "Slack Channel ID",
-        "description": "Slack channel ID (required when using Bot Token).",
+        "title": "ID kênh Slack",
+        "description": "ID kênh Slack (bắt buộc khi dùng Bot Token).",
         "category": "notification",
         "data_type": "string",
         "ui_control": "text",
@@ -2213,8 +2213,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 38,
     },
     "SLACK_WEBHOOK_URL": {
-        "title": "Slack Incoming Webhook URL",
-        "description": "Slack Incoming Webhook URL (text only, no image support).",
+        "title": "URL Incoming Webhook Slack",
+        "description": "URL Incoming Webhook Slack (chỉ văn bản, không hỗ trợ ảnh).",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -2230,8 +2230,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
     # Notification – Pushover
     # ------------------------------------------------------------------
     "PUSHOVER_USER_KEY": {
-        "title": "Pushover User Key",
-        "description": "Pushover user key (from https://pushover.net).",
+        "title": "Khóa người dùng Pushover",
+        "description": "Khóa người dùng Pushover (từ https://pushover.net).",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -2244,8 +2244,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 42,
     },
     "PUSHOVER_API_TOKEN": {
-        "title": "Pushover API Token",
-        "description": "Pushover application API token.",
+        "title": "Token API Pushover",
+        "description": "Token API ứng dụng Pushover.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -2258,8 +2258,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 43,
     },
     "NTFY_URL": {
-        "title": "ntfy URL",
-        "description": "Full ntfy publish endpoint including topic path, e.g. https://ntfy.sh/my-topic.",
+        "title": "URL ntfy",
+        "description": "URL endpoint đăng bài ntfy đầy đủ bao gồm đường dẫn chủ đề, ví dụ: https://ntfy.sh/my-topic.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -2275,8 +2275,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 44,
     },
     "NTFY_TOKEN": {
-        "title": "ntfy Token",
-        "description": "Optional ntfy bearer token for protected topics or self-hosted servers.",
+        "title": "Token ntfy",
+        "description": "Bearer token ntfy tùy chọn cho chủ đề được bảo vệ hoặc máy chủ tự lưu trữ.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -2289,8 +2289,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 45,
     },
     "GOTIFY_URL": {
-        "title": "Gotify URL",
-        "description": "Gotify server base URL. Do not include /message; the sender appends it.",
+        "title": "URL Gotify",
+        "description": "URL cơ sở máy chủ Gotify. Không thêm /message; hệ thống tự thêm.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -2306,8 +2306,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 46,
     },
     "GOTIFY_TOKEN": {
-        "title": "Gotify Token",
-        "description": "Gotify application token sent via the X-Gotify-Key header.",
+        "title": "Token Gotify",
+        "description": "Token ứng dụng Gotify gửi qua header X-Gotify-Key.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -2320,8 +2320,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 47,
     },
     "PUSHPLUS_TOPIC": {
-        "title": "PushPlus Topic",
-        "description": "PushPlus group topic code for one-to-many push.",
+        "title": "Chủ đề nhóm PushPlus",
+        "description": "Mã chủ đề nhóm PushPlus để đẩy thông báo một-nhiều.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "text",
@@ -2337,8 +2337,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
     # Notification – Server酱 / misc
     # ------------------------------------------------------------------
     "SERVERCHAN3_SENDKEY": {
-        "title": "ServerChan3 SendKey",
-        "description": "Server酱3 SendKey for push notifications.",
+        "title": "SendKey ServerChan3",
+        "description": "SendKey của Server酱3 để gửi thông báo đẩy.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -2351,8 +2351,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 46,
     },
     "ASTRBOT_URL": {
-        "title": "AstrBot URL",
-        "description": "AstrBot webhook endpoint URL.",
+        "title": "URL Webhook AstrBot",
+        "description": "URL endpoint webhook AstrBot.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -2368,8 +2368,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 47,
     },
     "ASTRBOT_TOKEN": {
-        "title": "AstrBot Token",
-        "description": "Optional AstrBot bearer token.",
+        "title": "Token AstrBot",
+        "description": "Bearer token AstrBot tùy chọn.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "password",
@@ -2382,8 +2382,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "display_order": 48,
     },
     "SINGLE_STOCK_NOTIFY": {
-        "title": "Single Stock Notify",
-        "description": "Push immediately after each single stock analysis instead of batching all results together.",
+        "title": "Thông báo từng cổ phiếu",
+        "description": "Đẩy thông báo ngay sau khi phân tích xong từng cổ phiếu thay vì gom chung tất cả kết quả.",
         "category": "notification",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -2408,8 +2408,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "REPORT_TYPE": {
-        "title": "Report Type",
-        "description": "Report format: 'simple' (concise), 'full' (detailed), or 'brief' (3-5 sentences).",
+        "title": "Kiểu báo cáo",
+        "description": "Định dạng báo cáo: 'simple' (súc tích), 'full' (chi tiết) hoặc 'brief' (3-5 câu).",
         "category": "notification",
         "data_type": "string",
         "ui_control": "select",
@@ -2435,8 +2435,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "REPORT_LANGUAGE": {
-        "title": "Report Language",
-        "description": "Default output language for reports and notification templates. Supported values: zh, en.",
+        "title": "Ngôn ngữ báo cáo",
+        "description": "Ngôn ngữ đầu ra mặc định cho báo cáo và mẫu thông báo. Giá trị hỗ trợ: zh, en, vi.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "select",
@@ -2464,8 +2464,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "REPORT_TEMPLATES_DIR": {
-        "title": "Report Templates Dir",
-        "description": "Directory for Jinja2 report templates (relative to project root).",
+        "title": "Thư mục template báo cáo",
+        "description": "Thư mục chứa template báo cáo Jinja2 (đường dẫn tương đối từ gốc dự án).",
         "category": "notification",
         "data_type": "string",
         "ui_control": "text",
@@ -2490,8 +2490,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "REPORT_RENDERER_ENABLED": {
-        "title": "Report Renderer Enabled",
-        "description": "Enable Jinja2 template rendering for reports. Default false for zero regression.",
+        "title": "Bật render template báo cáo",
+        "description": "Bật render template Jinja2 cho báo cáo. Mặc định false để không ảnh hưởng hành vi hiện tại.",
         "category": "notification",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -2516,8 +2516,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "REPORT_INTEGRITY_ENABLED": {
-        "title": "Report Integrity Enabled",
-        "description": "Validate mandatory report fields after LLM output; retry or placeholder on missing.",
+        "title": "Bật kiểm tra tính toàn vẹn báo cáo",
+        "description": "Xác thực các trường bắt buộc sau đầu ra LLM; thử lại hoặc thay thế bằng giá trị mặc định nếu thiếu.",
         "category": "notification",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -2542,8 +2542,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "REPORT_INTEGRITY_RETRY": {
-        "title": "Report Integrity Retry",
-        "description": "Retry count when mandatory fields missing (0 = placeholder only, no retry).",
+        "title": "Số lần thử lại kiểm tra tính toàn vẹn",
+        "description": "Số lần thử lại khi thiếu trường bắt buộc (0 = chỉ thay bằng giá trị mặc định, không thử lại).",
         "category": "notification",
         "data_type": "integer",
         "ui_control": "number",
@@ -2568,8 +2568,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "REPORT_HISTORY_COMPARE_N": {
-        "title": "Report History Compare N",
-        "description": "Show last N analyses signal comparison per stock (0 = disabled).",
+        "title": "So sánh N phân tích gần nhất",
+        "description": "Hiển thị so sánh tín hiệu N phân tích gần nhất cho từng cổ phiếu (0 = tắt).",
         "category": "notification",
         "data_type": "integer",
         "ui_control": "number",
@@ -2594,8 +2594,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "MERGE_EMAIL_NOTIFICATION": {
-        "title": "Merge Email Notification",
-        "description": "Merge stock analysis and market review into a single email notification.",
+        "title": "Gộp thông báo email",
+        "description": "Gộp phân tích cổ phiếu và điểm tin thị trường thành một email thông báo duy nhất.",
         "category": "notification",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -2620,8 +2620,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "NOTIFICATION_REPORT_CHANNELS": {
-        "title": "Report Notification Channels",
-        "description": "Comma-separated route for report notifications. Empty keeps all configured channels.",
+        "title": "Kênh thông báo báo cáo",
+        "description": "Danh sách kênh định tuyến thông báo báo cáo, phân tách bằng dấu phẩy. Để trống để giữ tất cả kênh đã cấu hình.",
         "category": "notification",
         "data_type": "array",
         "ui_control": "textarea",
@@ -2646,8 +2646,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "NOTIFICATION_ALERT_CHANNELS": {
-        "title": "Alert Notification Channels",
-        "description": "Comma-separated route for event alert notifications. Empty keeps all configured channels.",
+        "title": "Kênh thông báo cảnh báo",
+        "description": "Danh sách kênh định tuyến cảnh báo sự kiện, phân tách bằng dấu phẩy. Để trống để giữ tất cả kênh đã cấu hình.",
         "category": "notification",
         "data_type": "array",
         "ui_control": "textarea",
@@ -2672,8 +2672,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "NOTIFICATION_SYSTEM_ERROR_CHANNELS": {
-        "title": "System Error Notification Channels",
-        "description": "Comma-separated route reserved for system error notifications. Empty keeps all configured channels.",
+        "title": "Kênh thông báo lỗi hệ thống",
+        "description": "Danh sách kênh dự phòng cho thông báo lỗi hệ thống, phân tách bằng dấu phẩy. Để trống để giữ tất cả kênh đã cấu hình.",
         "category": "notification",
         "data_type": "array",
         "ui_control": "textarea",
@@ -2698,8 +2698,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "NOTIFICATION_DEDUP_TTL_SECONDS": {
-        "title": "Notification Dedup TTL Seconds",
-        "description": "Suppress duplicate static notifications with the same dedup key within this TTL. 0 disables deduplication.",
+        "title": "TTL loại trùng thông báo (giây)",
+        "description": "Chặn thông báo tĩnh trùng có cùng khóa dedup trong khoảng TTL này. 0 để tắt loại trùng.",
         "category": "notification",
         "data_type": "integer",
         "ui_control": "number",
@@ -2724,8 +2724,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "NOTIFICATION_COOLDOWN_SECONDS": {
-        "title": "Notification Cooldown Seconds",
-        "description": "Suppress repeated static notifications with the same cooldown key during this window. 0 disables cooldown.",
+        "title": "Thời gian hồi thông báo (giây)",
+        "description": "Chặn thông báo tĩnh lặp có cùng khóa cooldown trong cửa sổ này. 0 để tắt cooldown.",
         "category": "notification",
         "data_type": "integer",
         "ui_control": "number",
@@ -2750,8 +2750,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "NOTIFICATION_QUIET_HOURS": {
-        "title": "Notification Quiet Hours",
-        "description": "Quiet window in HH:MM-HH:MM format. Supports overnight ranges. Empty disables quiet hours.",
+        "title": "Giờ yên tĩnh thông báo",
+        "description": "Khung giờ yên tĩnh theo định dạng HH:MM-HH:MM. Hỗ trợ dải qua đêm. Để trống để tắt giờ yên tĩnh.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "text",
@@ -2776,8 +2776,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "NOTIFICATION_TIMEZONE": {
-        "title": "Notification Timezone",
-        "description": "IANA timezone for quiet hours, e.g. Asia/Shanghai. Empty follows TZ or the local system timezone.",
+        "title": "Múi giờ thông báo",
+        "description": "Múi giờ IANA cho giờ yên tĩnh, ví dụ: Asia/Ho_Chi_Minh. Để trống theo TZ hoặc múi giờ hệ thống.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "text",
@@ -2802,8 +2802,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "NOTIFICATION_MIN_SEVERITY": {
-        "title": "Notification Minimum Severity",
-        "description": "Suppress static notifications below this severity. Empty keeps current behavior.",
+        "title": "Mức độ nghiêm trọng tối thiểu",
+        "description": "Chặn thông báo tĩnh dưới mức độ nghiêm trọng này. Để trống để giữ hành vi hiện tại.",
         "category": "notification",
         "data_type": "string",
         "ui_control": "select",
@@ -2831,8 +2831,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "NOTIFICATION_DAILY_DIGEST_ENABLED": {
-        "title": "Notification Daily Digest Enabled (Reserved)",
-        "description": "Reserved P4 flag. It is visible for compatibility but does not send daily digests yet.",
+        "title": "Bật tóm tắt hàng ngày (Dự phòng)",
+        "description": "Cờ P4 dự phòng. Hiển thị để tương thích nhưng chưa gửi tóm tắt hàng ngày.",
         "category": "notification",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -2856,8 +2856,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["reserved_flag"],
     },
     "SCHEDULE_TIME": {
-        "title": "Schedule Time",
-        "description": "Daily schedule time in HH:MM format.",
+        "title": "Giờ chạy lịch",
+        "description": "Giờ chạy lịch hàng ngày theo định dạng HH:MM.",
         "category": "system",
         "data_type": "time",
         "ui_control": "time",
@@ -2883,8 +2883,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["local_timezone"],
     },
     "SCHEDULE_TIMES": {
-        "title": "Schedule Times",
-        "description": "Comma-separated daily schedule times in HH:MM format. Falls back to SCHEDULE_TIME when empty.",
+        "title": "Danh sách giờ chạy lịch",
+        "description": "Danh sách giờ chạy lịch hàng ngày phân tách bằng dấu phẩy theo định dạng HH:MM. Dùng SCHEDULE_TIME khi để trống.",
         "category": "system",
         "data_type": "string",
         "ui_control": "text",
@@ -2910,8 +2910,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["local_timezone"],
     },
     "HTTP_PROXY": {
-        "title": "HTTP Proxy",
-        "description": "Optional HTTP proxy endpoint.",
+        "title": "Proxy HTTP",
+        "description": "Endpoint proxy HTTP tùy chọn.",
         "category": "system",
         "data_type": "string",
         "ui_control": "text",
@@ -2936,8 +2936,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["network_scope"],
     },
     "LOG_LEVEL": {
-        "title": "Log Level",
-        "description": "Application log level.",
+        "title": "Mức độ ghi log",
+        "description": "Mức độ ghi log của ứng dụng.",
         "category": "system",
         "data_type": "string",
         "ui_control": "select",
@@ -2962,8 +2962,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["restart_required"],
     },
     "LOG_DIR": {
-        "title": "Log Directory",
-        "description": "Directory for application logs. The runtime user or container must be able to write to this path.",
+        "title": "Thư mục log",
+        "description": "Thư mục lưu log ứng dụng. Người dùng runtime hoặc container phải có quyền ghi vào đường dẫn này.",
         "category": "system",
         "data_type": "string",
         "ui_control": "text",
@@ -2988,8 +2988,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["restart_required", "path_must_be_writable"],
     },
     "WEBUI_ENABLED": {
-        "title": "Web UI Enabled",
-        "description": "Startup-time compatibility flag for default WebUI/API service mode. Saving this setting does not start or stop the current process.",
+        "title": "Bật giao diện Web",
+        "description": "Cờ tương thích lúc khởi động cho chế độ dịch vụ WebUI/API mặc định. Lưu cài đặt này không khởi động hay dừng tiến trình hiện tại.",
         "category": "system",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -3018,8 +3018,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["restart_required"],
     },
     "WEBUI_AUTO_BUILD": {
-        "title": "Web UI Auto Build",
-        "description": "Build or verify the Web frontend assets before backend WebUI startup. Disable only when assets are prebuilt.",
+        "title": "Tự động build giao diện Web",
+        "description": "Build hoặc kiểm tra tài nguyên frontend trước khi khởi động WebUI backend. Chỉ tắt khi tài nguyên đã được build sẵn.",
         "category": "system",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -3048,8 +3048,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["restart_required", "requires_built_web_assets"],
     },
     "WEBUI_HOST": {
-        "title": "Web UI Host",
-        "description": "Host address for Web UI service binding.",
+        "title": "Host giao diện Web",
+        "description": "Địa chỉ host để gắn kết dịch vụ giao diện Web.",
         "category": "system",
         "data_type": "string",
         "ui_control": "text",
@@ -3078,8 +3078,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["public_bind_requires_auth", "restart_required"],
     },
     "WEBUI_PORT": {
-        "title": "Web UI Port",
-        "description": "Port for Web UI service.",
+        "title": "Cổng giao diện Web",
+        "description": "Cổng kết nối dịch vụ giao diện Web.",
         "category": "system",
         "data_type": "integer",
         "ui_control": "number",
@@ -3108,8 +3108,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["port_mapping_required", "restart_required"],
     },
     "RUN_IMMEDIATELY": {
-        "title": "Run Immediately",
-        "description": "Whether to run analysis immediately on startup (non-schedule mode).",
+        "title": "Chạy ngay khi khởi động",
+        "description": "Có chạy phân tích ngay khi khởi động hay không (chế độ không lịch).",
         "category": "system",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -3134,8 +3134,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["restart_required"],
     },
     "SCHEDULE_ENABLED": {
-        "title": "Schedule Enabled",
-        "description": "Enable daily scheduled analysis run.",
+        "title": "Bật lịch chạy tự động",
+        "description": "Bật chạy phân tích theo lịch hàng ngày.",
         "category": "system",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -3161,8 +3161,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["restart_required"],
     },
     "ADMIN_AUTH_ENABLED": {
-        "title": "Admin Auth Enabled",
-        "description": "Enable password protection for Web UI. The first visit initializes the admin password.",
+        "title": "Bật xác thực quản trị",
+        "description": "Bật bảo vệ bằng mật khẩu cho giao diện Web. Lần truy cập đầu tiên sẽ khởi tạo mật khẩu quản trị.",
         "category": "system",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -3191,8 +3191,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["public_webui_requires_auth", "auth_settings_endpoint_required"],
     },
     "TRUST_X_FORWARDED_FOR": {
-        "title": "Trust X-Forwarded-For",
-        "description": "Use X-Forwarded-For as the client IP behind one trusted reverse proxy.",
+        "title": "Tin tưởng X-Forwarded-For",
+        "description": "Dùng X-Forwarded-For làm IP client khi đứng sau một reverse proxy tin cậy.",
         "category": "system",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -3221,8 +3221,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["trusted_proxy_only"],
     },
     "SCHEDULE_RUN_IMMEDIATELY": {
-        "title": "Schedule Run Immediately",
-        "description": "Whether to run one analysis immediately on startup in schedule mode.",
+        "title": "Chạy ngay khi bật lịch",
+        "description": "Có chạy một phân tích ngay khi khởi động ở chế độ lịch hay không.",
         "category": "system",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -3247,8 +3247,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["restart_required"],
     },
     "TRADING_DAY_CHECK_ENABLED": {
-        "title": "Trading Day Check",
-        "description": "Skip analysis on non-trading days. Set to false or use --force-run to override.",
+        "title": "Kiểm tra ngày giao dịch",
+        "description": "Bỏ qua phân tích vào ngày không giao dịch. Đặt false hoặc dùng --force-run để bỏ qua.",
         "category": "system",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -3273,8 +3273,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": ["force_run_override"],
     },
     "MARKET_REVIEW_ENABLED": {
-        "title": "Market Review Enabled",
-        "description": "Enable market overview/review in analysis reports.",
+        "title": "Bật điểm tin thị trường",
+        "description": "Bật tổng quan/điểm tin thị trường trong báo cáo phân tích.",
         "category": "system",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -3299,8 +3299,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "DAILY_MARKET_CONTEXT_ENABLED": {
-        "title": "Daily Market Context Enabled",
-        "description": "Inject daily market context into stock-analysis prompts and apply conservative decision guardrails.",
+        "title": "Bật ngữ cảnh thị trường hàng ngày",
+        "description": "Đưa ngữ cảnh thị trường hàng ngày vào prompt phân tích cổ phiếu và áp dụng giới hạn quyết định thận trọng.",
         "category": "system",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -3325,8 +3325,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "MARKET_REVIEW_REGION": {
-        "title": "Market Review Region",
-        "description": "Market region for review: cn (A-shares), hk (Hong Kong), us (US stocks), vn (Vietnam), or both (cn/hk/us).",
+        "title": "Vùng thị trường điểm tin",
+        "description": "Vùng thị trường cho điểm tin: cn (cổ phiếu A-share), hk (Hồng Kông), us (cổ phiếu Mỹ), vn (Việt Nam) hoặc both (cn/hk/us).",
         "category": "system",
         "data_type": "string",
         "ui_control": "select",
@@ -3351,8 +3351,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "MARKET_REVIEW_COLOR_SCHEME": {
-        "title": "Market Review Color Scheme",
-        "description": "Index change color style in market-review tables: green_up (green for gains, red for losses) or red_up (red for gains, green for losses).",
+        "title": "Bảng màu điểm tin thị trường",
+        "description": "Kiểu màu biến động chỉ số trong bảng điểm tin: green_up (xanh tăng, đỏ giảm) hoặc red_up (đỏ tăng, xanh giảm).",
         "category": "system",
         "data_type": "string",
         "ui_control": "select",
@@ -3380,8 +3380,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "MAX_WORKERS": {
-        "title": "Max Workers",
-        "description": "Maximum concurrent analysis threads. Keep low to avoid API rate limits.",
+        "title": "Số luồng phân tích tối đa",
+        "description": "Số luồng phân tích đồng thời tối đa. Giữ thấp để tránh vượt giới hạn tốc độ API.",
         "category": "system",
         "data_type": "integer",
         "ui_control": "number",
@@ -3406,8 +3406,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "ANALYSIS_DELAY": {
-        "title": "Analysis Delay",
-        "description": "Delay in seconds between individual stock analyses (for API rate limiting).",
+        "title": "Độ trễ giữa các phân tích (giây)",
+        "description": "Thời gian chờ giữa các lần phân tích từng cổ phiếu (để tránh vượt giới hạn tốc độ API).",
         "category": "system",
         "data_type": "number",
         "ui_control": "number",
@@ -3432,8 +3432,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "SAVE_CONTEXT_SNAPSHOT": {
-        "title": "Save Context Snapshot",
-        "description": "Persist the full analysis_history.context_snapshot for history/API/Web transparency. Disable only to stop storing snapshots; it does not disable AnalysisContextPack prompt summaries during the current run.",
+        "title": "Lưu snapshot ngữ cảnh",
+        "description": "Lưu trữ analysis_history.context_snapshot đầy đủ cho lịch sử/API/Web. Chỉ tắt để dừng lưu snapshot; không tắt tóm tắt prompt AnalysisContextPack trong lần chạy hiện tại.",
         "category": "system",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -3463,8 +3463,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "DEBUG": {
-        "title": "Debug Mode",
-        "description": "Enable debug mode with verbose logging.",
+        "title": "Chế độ gỡ lỗi",
+        "description": "Bật chế độ gỡ lỗi với ghi log chi tiết.",
         "category": "system",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -3489,8 +3489,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "BACKTEST_ENABLED": {
-        "title": "Backtest Enabled",
-        "description": "Whether backtest is enabled.",
+        "title": "Bật kiểm thử lịch sử",
+        "description": "Có bật chức năng kiểm thử lịch sử hay không.",
         "category": "backtest",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -3515,8 +3515,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "BACKTEST_EVAL_WINDOW_DAYS": {
-        "title": "Backtest Eval Window Days",
-        "description": "Backtest evaluation window in trading days.",
+        "title": "Cửa sổ đánh giá kiểm thử (ngày)",
+        "description": "Cửa sổ đánh giá kiểm thử tính bằng ngày giao dịch.",
         "category": "backtest",
         "data_type": "integer",
         "ui_control": "number",
@@ -3542,8 +3542,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "BACKTEST_MIN_AGE_DAYS": {
-        "title": "Backtest Min Age Days",
-        "description": "Only evaluate analysis records older than this threshold.",
+        "title": "Tuổi tối thiểu để đánh giá (ngày)",
+        "description": "Chỉ đánh giá các bản ghi phân tích cũ hơn ngưỡng này.",
         "category": "backtest",
         "data_type": "integer",
         "ui_control": "number",
@@ -3568,8 +3568,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "BACKTEST_ENGINE_VERSION": {
-        "title": "Backtest Engine Version",
-        "description": "Backtest engine version label.",
+        "title": "Phiên bản bộ máy kiểm thử",
+        "description": "Nhãn phiên bản bộ máy kiểm thử lịch sử.",
         "category": "backtest",
         "data_type": "string",
         "ui_control": "text",
@@ -3593,8 +3593,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "BACKTEST_NEUTRAL_BAND_PCT": {
-        "title": "Backtest Neutral Band Pct",
-        "description": "Neutral return band percentage for outcome labeling.",
+        "title": "Biên trung tính kiểm thử (%)",
+        "description": "Phần trăm biên lợi nhuận trung tính để phân loại kết quả.",
         "category": "backtest",
         "data_type": "number",
         "ui_control": "number",
@@ -3619,8 +3619,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AGENT_MODE": {
-        "title": "Agent Mode",
-        "description": "Enable ReAct Agent for stock analysis.",
+        "title": "Chế độ Agent",
+        "description": "Bật Agent ReAct để phân tích cổ phiếu.",
         "category": "agent",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -3645,8 +3645,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AGENT_GENERATION_BACKEND": {
-        "title": "Ask-Stock Generation Method",
-        "description": "Generation method used by the ask-stock assistant to generate replies and use tools.",
+        "title": "Phương thức sinh của Trợ lý Cổ phiếu",
+        "description": "Phương thức sinh nội dung dùng cho trợ lý hỏi đáp cổ phiếu khi tạo phản hồi và gọi công cụ.",
         "category": "agent",
         "data_type": "string",
         "ui_control": "select",
@@ -3674,8 +3674,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AGENT_MAX_STEPS": {
-        "title": "Agent Max Steps",
-        "description": f"Maximum reasoning-step limit for Agent mode. At the default ({AGENT_MAX_STEPS_DEFAULT}), each sub-agent keeps its own preset. When raised above {AGENT_MAX_STEPS_DEFAULT}, all sub-agents adopt this value. When lowered below a sub-agent's preset, that sub-agent is capped at this value.",
+        "title": "Số bước suy luận tối đa của Agent",
+        "description": f"Giới hạn số bước suy luận tối đa cho chế độ Agent. Ở mặc định ({AGENT_MAX_STEPS_DEFAULT}), mỗi sub-agent giữ preset riêng. Khi tăng trên {AGENT_MAX_STEPS_DEFAULT}, tất cả sub-agent áp dụng giá trị này. Khi giảm dưới preset của sub-agent, sub-agent đó bị giới hạn ở giá trị này.",
         "category": "agent",
         "data_type": "integer",
         "ui_control": "number",
@@ -3700,8 +3700,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AGENT_SKILLS": {
-        "title": "Agent Strategies",
-        "description": "Comma-separated list of active agent strategy skills. Leave empty to use the primary default strategy skill declared in metadata (built-in default: bull_trend). When set to specific skills (not 'all'), scheduled tasks will automatically use the Agent pipeline.",
+        "title": "Chiến lược Agent",
+        "description": "Danh sách chiến lược Agent đang hoạt động, phân tách bằng dấu phẩy. Để trống để dùng chiến lược mặc định chính khai báo trong metadata (mặc định tích hợp: bull_trend). Khi đặt thành các chiến lược cụ thể (không phải 'all'), tác vụ lịch tự động dùng pipeline Agent.",
         "category": "agent",
         "data_type": "string",
         "ui_control": "text",
@@ -3727,8 +3727,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AGENT_SKILL_DIR": {
-        "title": "Agent Strategy Dir",
-        "description": "Directory containing agent strategy-skill definition files (YAML or SKILL.md bundles).",
+        "title": "Thư mục chiến lược Agent",
+        "description": "Thư mục chứa file định nghĩa chiến lược Agent (bundle YAML hoặc SKILL.md).",
         "category": "agent",
         "data_type": "string",
         "ui_control": "text",
@@ -3753,8 +3753,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AGENT_NL_ROUTING": {
-        "title": "Agent NL Routing",
-        "description": "Enable natural-language routing in bot dispatcher. When on, high-confidence stock queries in private chat (or @mentions) are routed to the agent even without an explicit command.",
+        "title": "Định tuyến ngôn ngữ tự nhiên Agent",
+        "description": "Bật định tuyến ngôn ngữ tự nhiên trong bot dispatcher. Khi bật, các câu hỏi về cổ phiếu có độ tin cậy cao trong chat riêng (hoặc @đề cập) được chuyển đến agent mà không cần lệnh tường minh.",
         "category": "agent",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -3779,8 +3779,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AGENT_ARCH": {
-        "title": "Agent Architecture",
-        "description": "Agent execution architecture. 'single' uses the classic ReAct executor; 'multi' uses the orchestrator pipeline with specialised sub-agents.",
+        "title": "Kiến trúc Agent",
+        "description": "Kiến trúc thực thi Agent. 'single' dùng executor ReAct cổ điển; 'multi' dùng pipeline điều phối với các sub-agent chuyên biệt.",
         "category": "agent",
         "data_type": "string",
         "ui_control": "select",
@@ -3808,8 +3808,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AGENT_ORCHESTRATOR_MODE": {
-        "title": "Orchestrator Mode",
-        "description": "Pipeline mode when AGENT_ARCH=multi. 'quick' (tech→decision), 'standard' (tech→intel→decision), 'full' (tech→intel→risk→decision), 'specialist' (full + per-strategy specialist agents).",
+        "title": "Chế độ điều phối (Orchestrator)",
+        "description": "Chế độ pipeline khi AGENT_ARCH=multi. 'quick' (kỹ thuật→quyết định), 'standard' (kỹ thuật→thông tin→quyết định), 'full' (kỹ thuật→thông tin→rủi ro→quyết định), 'specialist' (full + agent chuyên gia theo từng chiến lược).",
         "category": "agent",
         "data_type": "string",
         "ui_control": "select",
@@ -3839,8 +3839,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AGENT_ORCHESTRATOR_TIMEOUT_S": {
-        "title": "Agent Timeout",
-        "description": "Shared timeout budget in seconds for Agent execution. Single-agent runs use it as the overall ReAct loop budget; multi-agent mode uses it as the cooperative pipeline budget. Set to 0 to disable.",
+        "title": "Thời gian chờ Agent (giây)",
+        "description": "Ngân sách thời gian chờ dùng chung cho thực thi Agent. Chế độ đơn Agent dùng làm giới hạn vòng lặp ReAct; chế độ đa Agent dùng làm giới hạn pipeline hợp tác. Đặt 0 để tắt.",
         "category": "agent",
         "data_type": "integer",
         "ui_control": "number",
@@ -3865,8 +3865,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AGENT_RISK_OVERRIDE": {
-        "title": "Risk Agent Override",
-        "description": "Allow the risk agent to veto buy signals when critical risk flags are detected.",
+        "title": "Agent rủi ro phủ quyết",
+        "description": "Cho phép agent rủi ro phủ quyết tín hiệu Mua khi phát hiện cờ rủi ro nghiêm trọng.",
         "category": "agent",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -3891,8 +3891,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AGENT_DEEP_RESEARCH_BUDGET": {
-        "title": "Deep Research Token Budget",
-        "description": "Maximum token budget for Deep Research planning, follow-up research, and final synthesis.",
+        "title": "Ngân sách token Nghiên cứu Chuyên sâu",
+        "description": "Ngân sách token tối đa cho lập kế hoạch, nghiên cứu tiếp theo và tổng hợp cuối cùng trong Nghiên cứu Chuyên sâu.",
         "category": "agent",
         "data_type": "integer",
         "ui_control": "number",
@@ -3917,8 +3917,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AGENT_DEEP_RESEARCH_TIMEOUT": {
-        "title": "Deep Research Timeout",
-        "description": "Maximum seconds allowed for a Deep Research request before returning a timeout response.",
+        "title": "Thời gian chờ Nghiên cứu Chuyên sâu",
+        "description": "Số giây tối đa cho yêu cầu Nghiên cứu Chuyên sâu trước khi trả về phản hồi hết thời gian.",
         "category": "agent",
         "data_type": "integer",
         "ui_control": "number",
@@ -3943,8 +3943,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AGENT_MEMORY_ENABLED": {
-        "title": "Agent Memory",
-        "description": "Enable the memory & calibration system. Tracks prediction accuracy and adjusts agent confidence over time.",
+        "title": "Bộ nhớ Agent",
+        "description": "Bật hệ thống bộ nhớ và hiệu chỉnh. Theo dõi độ chính xác dự đoán và điều chỉnh độ tin cậy Agent theo thời gian.",
         "category": "agent",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -3969,8 +3969,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AGENT_SKILL_AUTOWEIGHT": {
-        "title": "Auto-Weight Strategies",
-        "description": "Automatically weight strategy-skill opinions by their historical backtest performance.",
+        "title": "Tự động cân trọng chiến lược",
+        "description": "Tự động cân trọng ý kiến chiến lược dựa trên hiệu quả kiểm thử lịch sử.",
         "category": "agent",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -3995,8 +3995,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AGENT_SKILL_ROUTING": {
-        "title": "Strategy Routing",
-        "description": "Strategy-skill selection mode. 'auto' detects market regime and picks relevant skills; 'manual' uses AGENT_SKILLS list only.",
+        "title": "Định tuyến chiến lược",
+        "description": "Chế độ lựa chọn chiến lược. 'auto' phát hiện chế độ thị trường và chọn chiến lược phù hợp; 'manual' chỉ dùng danh sách AGENT_SKILLS.",
         "category": "agent",
         "data_type": "string",
         "ui_control": "select",
@@ -4024,8 +4024,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AGENT_CONTEXT_COMPRESSION_ENABLED": {
-        "title": "Agent Context Compression",
-        "description": "Enable rolling compression of visible Agent chat history. Default is off to preserve existing behavior.",
+        "title": "Nén ngữ cảnh Agent",
+        "description": "Bật nén cuộn lịch sử chat hiển thị của Agent. Mặc định tắt để giữ nguyên hành vi hiện tại.",
         "category": "agent",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -4054,8 +4054,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AGENT_CONTEXT_COMPRESSION_PROFILE": {
-        "title": "Context Compression Profile",
-        "description": "Preset for visible chat history compression. Trigger/protected-turn fields can be left empty to follow the selected profile.",
+        "title": "Hồ sơ nén ngữ cảnh",
+        "description": "Preset nén lịch sử chat hiển thị. Các trường trigger/lượt được bảo vệ có thể để trống để theo hồ sơ đã chọn.",
         "category": "agent",
         "data_type": "string",
         "ui_control": "select",
@@ -4089,8 +4089,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AGENT_CONTEXT_COMPRESSION_TRIGGER_TOKENS": {
-        "title": "Context Compression Trigger Tokens",
-        "description": "Token threshold for visible chat history compression. Leave empty to follow the selected compression profile preset.",
+        "title": "Ngưỡng token kích hoạt nén ngữ cảnh",
+        "description": "Ngưỡng token để kích hoạt nén lịch sử chat hiển thị. Để trống để theo preset hồ sơ nén đã chọn.",
         "category": "agent",
         "data_type": "integer",
         "ui_control": "number",
@@ -4119,8 +4119,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AGENT_CONTEXT_PROTECTED_TURNS": {
-        "title": "Context Protected Turns",
-        "description": "Recent user turns preserved verbatim during visible chat history compression. Leave empty to follow the selected compression profile preset.",
+        "title": "Lượt được bảo vệ khi nén ngữ cảnh",
+        "description": "Số lượt người dùng gần nhất được giữ nguyên trong quá trình nén lịch sử chat hiển thị. Để trống để theo preset hồ sơ nén đã chọn.",
         "category": "agent",
         "data_type": "integer",
         "ui_control": "number",
@@ -4149,8 +4149,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AGENT_EVENT_MONITOR_ENABLED": {
-        "title": "Event Monitor",
-        "description": "Enable background Event Monitor polling in schedule mode.",
+        "title": "Giám sát sự kiện",
+        "description": "Bật polling Giám sát Sự kiện nền trong chế độ lịch.",
         "category": "agent",
         "data_type": "boolean",
         "ui_control": "switch",
@@ -4175,8 +4175,8 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AGENT_EVENT_MONITOR_INTERVAL_MINUTES": {
-        "title": "Event Monitor Interval",
-        "description": "Polling interval, in minutes, for background Event Monitor checks.",
+        "title": "Chu kỳ kiểm tra sự kiện (phút)",
+        "description": "Chu kỳ polling, tính bằng phút, cho kiểm tra Giám sát Sự kiện nền.",
         "category": "agent",
         "data_type": "integer",
         "ui_control": "number",
@@ -4201,12 +4201,12 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "warning_codes": [],
     },
     "AGENT_EVENT_ALERT_RULES_JSON": {
-        "title": "Event Alert Rules",
+        "title": "Quy tắc cảnh báo sự kiện (JSON)",
         "description": (
-            "JSON array of Event Monitor rules loaded by schedule mode. "
-            "Legacy JSON supports only price_cross, price_change_percent, and volume_spike. "
-            "Technical indicator, watchlist, portfolio, and market light alert rules "
-            "are available through the Alert API/Web center."
+            "Mảng JSON quy tắc Giám sát Sự kiện được tải bởi chế độ lịch. "
+            "JSON cũ chỉ hỗ trợ price_cross, price_change_percent và volume_spike. "
+            "Quy tắc cảnh báo chỉ báo kỹ thuật, danh sách theo dõi, danh mục và đèn thị trường "
+            "có sẵn qua API/Trung tâm cảnh báo Web."
         ),
         "category": "agent",
         "data_type": "json",

@@ -162,7 +162,7 @@ def _run_market_review_background(
         )
         report = run_market_review(**review_kwargs)
         if not report:
-            raise RuntimeError("大盘复盘未返回可持久化报告")
+            raise RuntimeError("Diễn biến thị trường không trả về báo cáo có thể lưu")
         if hasattr(report, "report"):
             return {
                 "result": report.report,
@@ -174,7 +174,7 @@ def _run_market_review_background(
 
 
 def _invalid_analysis_input_error() -> HTTPException:
-    return api_error(400, "validation_error", "请输入有效的股票代码或股票名称")
+    return api_error(400, "validation_error", "Vui lòng nhập mã hoặc tên cổ phiếu hợp lệ")
 
 
 def _is_obviously_invalid_analysis_input(text: str) -> bool:
@@ -270,7 +270,7 @@ def trigger_analysis(
         stock_codes.extend(request.stock_codes)
 
     if not stock_codes:
-        raise api_error(400, "validation_error", "必须提供 stock_code 或 stock_codes 参数")
+        raise api_error(400, "validation_error", "Phải cung cấp tham số stock_code hoặc stock_codes")
 
     # Normalize and de-duplicate inputs while preserving compatibility.
     resolved = [_resolve_and_normalize_input(c) for c in stock_codes]
@@ -291,10 +291,10 @@ def trigger_analysis(
     # Limit the number of stocks in a single request to prevent DoS
     MAX_BATCH_SIZE = 50
     if len(stock_codes) > MAX_BATCH_SIZE:
-        raise api_error(400, "validation_error", f"单次分析请求最多支持 {MAX_BATCH_SIZE} 只股票")
+        raise api_error(400, "validation_error", f"Mỗi yêu cầu phân tích tối đa {MAX_BATCH_SIZE} cổ phiếu")
 
     if not stock_codes:
-        raise api_error(400, "validation_error", "股票代码不能为空或仅包含空白字符")
+        raise api_error(400, "validation_error", "Mã cổ phiếu không được để trống hoặc chỉ chứa khoảng trắng")
 
     # Sync mode only supports single-stock analysis.
     if not request.async_mode:
@@ -302,7 +302,7 @@ def trigger_analysis(
             raise api_error(
                 400,
                 "validation_error",
-                "同步模式仅支持单只股票分析，请使用 async_mode=true 进行批量分析",
+                "Chế độ đồng bộ chỉ hỗ trợ phân tích một cổ phiếu, vui lòng dùng async_mode=true để phân tích hàng loạt",
             )
         return _handle_sync_analysis(stock_codes[0], request)
 
@@ -356,7 +356,7 @@ def _handle_async_analysis_batch(
             trace_id=_get_task_trace_id(task),
             stock_code=task.stock_code,
             status="pending",
-            message=f"分析任务已加入队列: {task.stock_code}",
+            message=f"Cổ phiếu {task.stock_code} đang được phân tích",
             analysis_phase=task.analysis_phase,
         )
         for task in accepted_tasks
@@ -402,7 +402,7 @@ def _handle_async_analysis_batch(
     batch_response = BatchTaskAcceptedResponse(
         accepted=accepted,
         duplicates=duplicates,
-        message=f"已提交 {len(accepted)} 个任务，{len(duplicates)} 个重复跳过",
+        message=f"Đã gửi {len(accepted)} tác vụ, bỏ qua {len(duplicates)} trùng lặp",
     )
     return JSONResponse(
         status_code=202,
@@ -438,7 +438,7 @@ def _handle_sync_analysis(
         )
 
         if result is None:
-            error_message = service.last_error or f"分析股票 {stock_code} 失败"
+            error_message = service.last_error or f"Phân tích cổ phiếu {stock_code} thất bại"
             raise api_error(500, "analysis_failed", error_message)
 
         # 构建报告结构
@@ -469,8 +469,8 @@ def _handle_sync_analysis(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"分析失败: {e}", exc_info=True)
-        raise api_error(500, "internal_error", f"分析过程发生错误: {str(e)}")
+        logger.error(f"Phân tích thất bại: {e}", exc_info=True)
+        raise api_error(500, "internal_error", f"Đã xảy ra lỗi trong quá trình phân tích: {str(e)}")
 
 
 # ============================================================
@@ -503,15 +503,15 @@ def trigger_market_review(
 
     lock_token = _try_acquire_market_review_lock(runtime_config)
     if lock_token is None:
-        raise api_error(409, "duplicate_market_review", "大盘复盘正在执行中，请稍后再试")
+        raise api_error(409, "duplicate_market_review", "Diễn biến thị trường đang chạy, vui lòng thử lại sau")
 
     try:
         task_id = uuid.uuid4().hex
         review_region = str(getattr(runtime_config, "market_review_region", "cn") or "cn").strip().lower()
         is_vn_review = review_region == "vn"
-        review_task_name = "Tổng kết thị trường" if is_vn_review else "大盘复盘"
+        review_task_name = "Tổng kết thị trường" if is_vn_review else "Diễn biến thị trường"
         review_task_message = (
-            "Đã gửi tác vụ tổng kết thị trường" if is_vn_review else "大盘复盘任务已提交"
+            "Đã gửi tác vụ tổng kết thị trường" if is_vn_review else "Đã gửi tác vụ diễn biến thị trường"
         )
         logger.info(
             "[MarketReview] component=market_review action=submit trigger_source=api "
@@ -539,7 +539,7 @@ def trigger_market_review(
 
     return MarketReviewAccepted(
         status="accepted",
-        message="大盘复盘任务已提交，完成后会保存报告并按配置推送通知",
+        message="Đã gửi tác vụ diễn biến thị trường, báo cáo sẽ được lưu và thông báo sẽ được gửi theo cấu hình",
         send_notification=request.send_notification,
         task_id=task.task_id,
         trace_id=_get_task_trace_id(task),
@@ -777,10 +777,10 @@ def get_task_run_flow(task_id: str) -> RunFlowSnapshot:
         if history_snapshot is not None:
             return history_snapshot
     except Exception as e:
-        logger.error(f"查询任务运行流失败: {e}", exc_info=True)
-        raise api_error(500, "internal_error", f"查询任务运行流失败: {str(e)}")
+        logger.error(f"Truy vấn luồng chạy tác vụ thất bại: {e}", exc_info=True)
+        raise api_error(500, "internal_error", f"Truy vấn luồng chạy tác vụ thất bại: {str(e)}")
 
-    raise api_error(404, "not_found", f"任务 {task_id} 不存在或已过期")
+    raise api_error(404, "not_found", f"Tác vụ {task_id} không tồn tại hoặc đã hết hạn")
 
 
 def _safe_task_flow_text(value: Any, *, max_length: int) -> Optional[str]:
@@ -1002,7 +1002,7 @@ def get_analysis_status(task_id: str) -> TaskStatus:
                     result = _build_task_analysis_result(task)
                 except Exception:
                     logger.warning(
-                        "解析任务结果失败，回退为空返回: task_id=%s",
+                        "Phân tích kết quả tác vụ thất bại, trả về rỗng: task_id=%s",
                         task.task_id,
                     )
 
@@ -1170,11 +1170,11 @@ def get_analysis_status(task_id: str) -> TaskStatus:
             )
 
     except Exception as e:
-        logger.error(f"查询任务状态失败: {e}", exc_info=True)
-        raise api_error(500, "internal_error", f"查询任务状态失败: {str(e)}")
+        logger.error(f"Truy vấn trạng thái tác vụ thất bại: {e}", exc_info=True)
+        raise api_error(500, "internal_error", f"Truy vấn trạng thái tác vụ thất bại: {str(e)}")
 
     # 3. 任务不存在
-    raise api_error(404, "not_found", f"任务 {task_id} 不存在或已过期")
+    raise api_error(404, "not_found", f"Tác vụ {task_id} không tồn tại hoặc đã hết hạn")
 
 
 # ============================================================
