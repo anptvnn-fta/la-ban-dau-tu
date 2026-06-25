@@ -7,6 +7,7 @@ import type { AnalysisReport, DecisionAction } from '@/types/analysis'
 import { getSentimentLabel } from '@/types/analysis'
 import { Card, CardLabel } from '@/components/ui/card'
 import { PriceChange } from './PriceChange'
+import { PriceChartCard } from './PriceChartCard'
 import { ReportMarkdown } from './ReportMarkdown'
 import { SentimentGauge } from '@/components/charts/SentimentGauge'
 import { VI } from '@/strings/vi'
@@ -63,6 +64,9 @@ export function StockReportView({ report }: { report: AnalysisReport }) {
           </div>
         </div>
       </Card>
+
+      {/* Biểu đồ giá (nến + khối lượng) */}
+      {meta.stockCode ? <PriceChartCard code={meta.stockCode} /> : null}
 
       {/* 4 thẻ nhận định */}
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">

@@ -1,4 +1,5 @@
 import apiClient from './index';
+import { toCamelCase } from './utils';
 
 export type ExtractItem = {
   code?: string | null;
@@ -12,7 +13,39 @@ export type ExtractFromImageResponse = {
   rawText?: string;
 };
 
+/** Một nến (OHLC) trong dữ liệu lịch sử. */
+export interface OhlcBar {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume?: number;
+  amount?: number;
+  changePercent?: number;
+}
+
+export interface StockHistoryResponse {
+  stockCode: string;
+  stockName?: string;
+  period: string;
+  data: OhlcBar[];
+}
+
 export const stocksApi = {
+  /** Lấy dữ liệu nến (OHLC) cho biểu đồ giá. */
+  async getHistory(
+    stockCode: string,
+    days = 120,
+    period: 'daily' | 'weekly' | 'monthly' = 'daily',
+  ): Promise<StockHistoryResponse> {
+    const response = await apiClient.get<Record<string, unknown>>(
+      `/api/v1/stocks/${encodeURIComponent(stockCode)}/history`,
+      { params: { period, days } },
+    );
+    return toCamelCase<StockHistoryResponse>(response.data);
+  },
+
   async extractFromImage(file: File): Promise<ExtractFromImageResponse> {
     const formData = new FormData();
     formData.append('file', file);
