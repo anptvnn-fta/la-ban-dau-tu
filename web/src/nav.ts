@@ -1,5 +1,5 @@
 import {
-  LineChart, MessageSquare, Briefcase, Activity, Target, Bell, Gauge, Settings,
+  LayoutDashboard, LineChart, MessageSquare, Briefcase, Activity, Target, Bell, Gauge, Settings,
   type LucideIcon,
 } from 'lucide-react'
 import { VI } from '@/strings/vi'
@@ -12,6 +12,7 @@ export interface NavItem {
 
 /** Mục điều hướng chính (sidebar). Tên trang thuần tiếng Việt. */
 export const NAV_ITEMS: NavItem[] = [
+  { path: '/tong-quan', label: VI.nav.market, icon: LayoutDashboard },
   { path: '/', label: VI.nav.home, icon: LineChart },
   { path: '/tro-ly', label: VI.nav.chat, icon: MessageSquare },
   { path: '/danh-muc', label: VI.nav.portfolio, icon: Briefcase },

@@ -124,6 +124,9 @@ def _normalize_tool_stock_code(value: Any) -> Any:
     if text.isdigit() and len(text) == 5:
         return f"HK{text}"
 
+    # Lưu ý: KHÔNG tự thêm '.VN' cho mã trần ở đây — lớp này dùng cho cache-key và
+    # bộ chặn scope (token chỉ báo như MA/KDJ, hậu tố sàn HK/SS...). Việc chuẩn hoá
+    # mã VN sang '.VN' được làm ở tầng công cụ dữ liệu (data_tools._to_vn_code).
     try:
         from data_provider.base import canonical_stock_code, normalize_stock_code
 

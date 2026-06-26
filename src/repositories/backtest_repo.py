@@ -579,6 +579,23 @@ class BacktestRepository:
         if normalized_upper != raw_code_upper:
             _add_us_variants(normalized_upper)
 
+        # Việt Nam: mã trần 2-3 chữ cái ↔ dạng '.VN' (DB lưu báo cáo dưới dạng 'VHM.VN').
+        def _add_vn_variants(code: str) -> None:
+            if not code:
+                return
+            if code.endswith(".VN"):
+                bare = code[:-3]
+                if bare.isalpha() and 2 <= len(bare) <= 3 and bare not in variants:
+                    variants.append(bare)
+            elif "." not in code and code.isalpha() and 2 <= len(code) <= 3:
+                vn_form = f"{code}.VN"
+                if vn_form not in variants:
+                    variants.append(vn_form)
+
+        _add_vn_variants(raw_code_upper)
+        if normalized_upper != raw_code_upper:
+            _add_vn_variants(normalized_upper)
+
         def _explicit_exchange() -> Optional[str]:
             if raw_code_upper.startswith(("SH", "SS")) or raw_code_upper.endswith((".SH", ".SS")):
                 return "SH"

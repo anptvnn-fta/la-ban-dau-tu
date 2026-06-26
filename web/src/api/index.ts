@@ -16,9 +16,9 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       const path = window.location.pathname + window.location.search;
-      if (!path.startsWith('/login')) {
+      if (!path.startsWith('/dang-nhap')) {
         const redirect = encodeURIComponent(path);
-        window.location.assign(`/login?redirect=${redirect}`);
+        window.location.assign(`/dang-nhap?redirect=${redirect}`);
       }
     }
     attachParsedApiError(error);

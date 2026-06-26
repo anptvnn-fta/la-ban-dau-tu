@@ -186,7 +186,7 @@ async def agent_chat(request: ChatRequest):
     except Exception as e:
         logger.error(f"Agent chat API failed: {e}")
         logger.exception("Agent chat error details:")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Lỗi xử lý yêu cầu. Vui lòng thử lại.")
 
 
 class SessionItem(BaseModel):
@@ -366,7 +366,7 @@ async def agent_research(request: ResearchRequest):
     except Exception as e:
         logger.error("Agent research API failed: %s", e)
         logger.exception("Agent research error details:")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Lỗi xử lý yêu cầu. Vui lòng thử lại.")
 
 
 @router.post("/chat/stream")
@@ -425,8 +425,9 @@ async def agent_chat_stream(request: ChatRequest):
             )
         except Exception as exc:
             logger.error(f"Agent stream error: {exc}")
+            # Không trả chi tiết exception ra client (tránh lộ thông tin nội bộ).
             asyncio.run_coroutine_threadsafe(
-                queue.put({"type": "error", "message": str(exc)}),
+                queue.put({"type": "error", "message": "Lỗi xử lý yêu cầu. Vui lòng thử lại."}),
                 loop,
             )
 

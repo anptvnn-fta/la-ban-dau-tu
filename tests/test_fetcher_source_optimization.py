@@ -129,6 +129,9 @@ class TestFetcherSourceOptimization(unittest.TestCase):
             "data_provider.baostock_fetcher.BaostockFetcher",
             return_value=_StubFetcher("BaostockFetcher", 3),
         ), patch(
+            "data_provider.vnstock_fetcher.VnstockFetcher",
+            return_value=_StubFetcher("VnstockFetcher", 6),
+        ), patch(
             "data_provider.yfinance_fetcher.YfinanceFetcher",
             return_value=_StubFetcher("YfinanceFetcher", 4),
         ), patch(
@@ -150,6 +153,8 @@ class TestFetcherSourceOptimization(unittest.TestCase):
                 "PytdxFetcher",
                 "BaostockFetcher",
                 "YfinanceFetcher",
+                # VnstockFetcher luôn được đăng ký cho thị trường VN (vnstock đã cài, không cần token)
+                "VnstockFetcher",
             ],
         )
         mock_tushare.assert_not_called()

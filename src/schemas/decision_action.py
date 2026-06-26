@@ -25,15 +25,49 @@ _ACTION_VALUES = set(get_args(DecisionAction))
 _NON_STOCK_REPORT_TYPES = {"market_review"}
 
 _ACTION_LABELS: Dict[str, Dict[str, str]] = {
-    "buy": {"zh": "买入", "en": "Buy"},
-    "add": {"zh": "加仓", "en": "Add"},
-    "hold": {"zh": "持有", "en": "Hold"},
-    "reduce": {"zh": "减仓", "en": "Reduce"},
-    "sell": {"zh": "卖出", "en": "Sell"},
-    "watch": {"zh": "观望", "en": "Watch"},
-    "avoid": {"zh": "回避", "en": "Avoid"},
-    "alert": {"zh": "预警", "en": "Alert"},
+    "buy": {"zh": "买入", "en": "Buy", "vi": "Mua"},
+    "add": {"zh": "加仓", "en": "Add", "vi": "Tăng tỷ trọng"},
+    "hold": {"zh": "持有", "en": "Hold", "vi": "Nắm giữ"},
+    "reduce": {"zh": "减仓", "en": "Reduce", "vi": "Giảm tỷ trọng"},
+    "sell": {"zh": "卖出", "en": "Sell", "vi": "Bán"},
+    "watch": {"zh": "观望", "en": "Watch", "vi": "Quan sát"},
+    "avoid": {"zh": "回避", "en": "Avoid", "vi": "Tránh mua"},
+    "alert": {"zh": "预警", "en": "Alert", "vi": "Cảnh báo"},
 }
+
+# Từ khoá tiếng Việt cho từng hành động (khớp theo chuỗi con — an toàn với dấu).
+_VI_ACTION_PHRASES: Dict[DecisionAction, tuple[str, ...]] = {
+    "sell": ("bán", "thoát hàng", "thoát vị thế", "bán ra"),
+    "buy": ("mua", "giải ngân", "mở vị thế"),
+    "reduce": ("giảm tỷ trọng", "giảm tỉ trọng", "hạ tỷ trọng", "hạ tỉ trọng", "chốt bớt", "chốt lời một phần"),
+    "add": ("tăng tỷ trọng", "tăng tỉ trọng", "gia tăng", "tích lũy", "mua thêm"),
+    "hold": ("nắm giữ", "tiếp tục giữ", "giữ nguyên"),
+    "watch": ("quan sát", "theo dõi", "đứng ngoài", "chờ", "kiên nhẫn"),
+    "avoid": ("tránh mua", "không nên mua", "chưa nên mua", "hạn chế mua"),
+    "alert": ("cảnh báo rủi ro", "rủi ro cao"),
+}
+# Ưu tiên khi một câu khớp nhiều hành động (vd "Bán / Giảm tỷ trọng" → bán).
+_VI_ACTION_PRIORITY: tuple[DecisionAction, ...] = (
+    "avoid", "sell", "buy", "reduce", "add", "alert", "hold", "watch",
+)
+
+
+def _vietnamese_action(text: str) -> Optional[DecisionAction]:
+    """Nhận diện hành động từ khuyến nghị tiếng Việt; giải nhập nhằng bằng ưu tiên."""
+    if not text:
+        return None
+    matches: set[DecisionAction] = set()
+    for action, phrases in _VI_ACTION_PHRASES.items():
+        if any(phrase in text for phrase in phrases):
+            matches.add(action)
+    if not matches:
+        return None
+    if len(matches) == 1:
+        return next(iter(matches))
+    for action in _VI_ACTION_PRIORITY:
+        if action in matches:
+            return action
+    return None
 
 _EXPLICIT_ALIASES: Dict[str, DecisionAction] = {
     "strong buy": "buy",
@@ -346,6 +380,12 @@ def normalize_decision_action(value: Any) -> Optional[DecisionAction]:
 
     if len(matches) == 1:
         return next(iter(matches))
+
+    # Khuyến nghị tiếng Việt (sản phẩm VN): chạy sau khi luật CN/EN không cho ra
+    # một hành động duy nhất, giải nhập nhằng bằng thứ tự ưu tiên.
+    vietnamese = _vietnamese_action(text)
+    if vietnamese is not None:
+        return vietnamese
     return None
 
 
@@ -355,7 +395,9 @@ def localize_action_label(action: Any, language: Optional[str] = "zh") -> Option
     normalized = _explicit_action(action)
     if not normalized:
         return None
-    return _ACTION_LABELS[normalized][normalize_report_language(language)]
+    labels = _ACTION_LABELS[normalized]
+    lang = normalize_report_language(language)
+    return labels.get(lang) or labels.get("en")
 
 
 def build_action_fields(

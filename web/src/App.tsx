@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react'
 import { Shell } from '@/components/layout/Shell'
 
 // Tách mã theo route (lazy) để giảm bundle ban đầu.
+const TongQuanPage = lazy(() => import('@/pages/TongQuanPage'))
 const PhanTichPage = lazy(() => import('@/pages/PhanTichPage'))
 const TroLyAIPage = lazy(() => import('@/pages/TroLyAIPage'))
 const DanhMucPage = lazy(() => import('@/pages/DanhMucPage'))
@@ -30,6 +31,7 @@ function ShellRoutes() {
       <Suspense fallback={<PageFallback />}>
         <Routes>
           <Route path="/" element={<PhanTichPage />} />
+          <Route path="/tong-quan" element={<TongQuanPage />} />
           <Route path="/tro-ly" element={<TroLyAIPage />} />
           <Route path="/danh-muc" element={<DanhMucPage />} />
           <Route path="/tin-hieu" element={<TinHieuPage />} />

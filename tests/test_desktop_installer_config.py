@@ -4,9 +4,19 @@
 import json
 from pathlib import Path
 
+import pytest
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DESKTOP_DIR = REPO_ROOT / "apps" / "dsa-desktop"
+
+# Bản La Bàn Đầu Tư triển khai qua Docker/web — KHÔNG có installer desktop Windows
+# (module apps/dsa-desktop/ chưa được port). Tự bỏ qua khi thư mục vắng mặt;
+# nếu sau này port module desktop, các test này sẽ tự kích hoạt lại.
+pytestmark = pytest.mark.skipif(
+    not DESKTOP_DIR.exists(),
+    reason="apps/dsa-desktop chưa được port vào vn-stock-ai (deploy qua Docker/web).",
+)
 
 
 def test_windows_nsis_build_allows_custom_install_directory() -> None:

@@ -18,6 +18,32 @@ from src.agent.tools.registry import ToolParameter, ToolDefinition
 
 logger = logging.getLogger(__name__)
 
+import re as _re
+
+_BARE_VN_TICKER_RE = _re.compile(r"^[A-Z]{2,3}$")
+
+
+def _to_vn_code(stock_code: str) -> str:
+    """Chuẩn hoá mã trần (vd 'VHM') về dạng chuẩn '.VN' ('VHM.VN').
+
+    Đây là lớp tương đương ở tầng công cụ agent với việc pipeline phân tích luôn
+    dùng mã có đuôi '.VN'. Quy tắc: nếu mã là 2-3 chữ cái in hoa, không có số,
+    không có dấu chấm → coi là mã HOSE/HNX/UPCOM và thêm '.VN'. Mã đã có '.VN',
+    có chữ số (A-share/HK), hay mã chỉ số (VNINDEX...) được giữ nguyên.
+    Đây là sản phẩm CHỈ cho thị trường Việt Nam nên mặc định mã trần là mã VN.
+    """
+    code = (stock_code or "").strip().upper()
+    try:
+        from data_provider.base import _is_vn_market
+        if _is_vn_market(code):
+            return code
+    except Exception:
+        pass
+    if _BARE_VN_TICKER_RE.match(code):
+        return f"{code}.VN"
+    return code
+
+
 _fetcher_manager_singleton = None
 _fetcher_manager_lock = Lock()
 _DAILY_HISTORY_DEFAULT_DAYS = 60
@@ -234,6 +260,7 @@ def _compact_portfolio_risk(risk: dict, top_n: int = 10) -> dict:
 
 def _handle_get_realtime_quote(stock_code: str) -> dict:
     """Get real-time stock quote."""
+    stock_code = _to_vn_code(stock_code)
     manager = _get_fetcher_manager()
     quote = manager.get_realtime_quote(stock_code)
     if quote is None:
@@ -289,6 +316,7 @@ get_realtime_quote_tool = ToolDefinition(
 
 def _handle_get_daily_history(stock_code: str, days: int = 60) -> dict:
     """Get daily OHLCV history data."""
+    stock_code = _to_vn_code(stock_code)
     effective_days, metadata = _normalize_history_days(days)
 
     from src.services.history_loader import load_history_df
@@ -414,6 +442,7 @@ get_chip_distribution_tool = ToolDefinition(
 
 def _handle_get_analysis_context(stock_code: str) -> dict:
     """Get stored analysis context from database."""
+    stock_code = _to_vn_code(stock_code)
     db = _get_db()
     context = db.get_analysis_context(stock_code)
 
@@ -455,6 +484,7 @@ get_analysis_context_tool = ToolDefinition(
 
 def _handle_get_stock_info(stock_code: str) -> dict:
     """Get stock fundamental information through unified fundamental context."""
+    stock_code = _to_vn_code(stock_code)
     manager = _get_fetcher_manager()
     try:
         fundamental_context = manager.get_fundamental_context(stock_code)

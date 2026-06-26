@@ -16,15 +16,15 @@ from src.auth import COOKIE_NAME, is_auth_enabled, verify_session
 
 logger = logging.getLogger(__name__)
 
+# Chỉ các endpoint tối thiểu để đăng nhập + kiểm tra sức khỏe mới được miễn auth.
+# Tài liệu API (/docs, /redoc, /openapi.json) KHÔNG miễn: khi bật auth, chúng cũng
+# cần đăng nhập để không lộ toàn bộ API surface ra Internet.
 EXEMPT_PATHS = frozenset({
     "/api/v1/auth/login",
     "/api/v1/auth/status",
     "/api/health",
     "/api/v1/health",
     "/health",
-    "/docs",
-    "/redoc",
-    "/openapi.json",
 })
 
 

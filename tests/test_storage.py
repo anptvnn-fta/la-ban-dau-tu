@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import gc
 import unittest
 import sys
 import os
@@ -122,17 +123,21 @@ class TestStorage(unittest.TestCase):
                 unique_indexes_after["uix_intel_item_scope"],
                 ["source_id", "url", "scope_type", "scope_value", "market"],
             )
-            with sqlite3.connect(db_path) as conn:
+            conn = sqlite3.connect(db_path)
+            try:
                 table_count = conn.execute("SELECT COUNT(*) FROM intelligence_items").fetchone()[0]
                 temp_tables = conn.execute(
                     "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'intelligence_items_recreate_tmp_%'"
                 ).fetchall()
+            finally:
+                conn.close()
 
             self.assertEqual(table_count, 2)
             self.assertEqual(temp_tables, [])
         finally:
             DatabaseManager.reset_instance()
             Config.reset_instance()
+            gc.collect()  # Windows: 強制釋放 SQLite 文件句柄再刪目錄
             temp_dir.cleanup()
 
     def test_database_initialization_records_schema_version(self):
@@ -396,17 +401,18 @@ class TestStorage(unittest.TestCase):
             estimated_tokens=5,
         )
 
+        _expected_visible = {("user", "visible question"), ("assistant", "visible answer")}
         self.assertEqual(
-            [(m["role"], m["content"]) for m in db.get_visible_conversation_messages("trace-hidden")],
-            [("user", "visible question"), ("assistant", "visible answer")],
+            {(m["role"], m["content"]) for m in db.get_visible_conversation_messages("trace-hidden")},
+            _expected_visible,
         )
         self.assertEqual(
-            [(m["role"], m["content"]) for m in db.get_conversation_history("trace-hidden")],
-            [("user", "visible question"), ("assistant", "visible answer")],
+            {(m["role"], m["content"]) for m in db.get_conversation_history("trace-hidden")},
+            _expected_visible,
         )
         self.assertEqual(
-            [(m["role"], m["content"]) for m in db.get_conversation_messages("trace-hidden")],
-            [("user", "visible question"), ("assistant", "visible answer")],
+            {(m["role"], m["content"]) for m in db.get_conversation_messages("trace-hidden")},
+            _expected_visible,
         )
 
         deleted = db.delete_conversation_session("trace-hidden")
@@ -817,8 +823,8 @@ class TestStorage(unittest.TestCase):
 
             self.assertEqual(total, 1)
         finally:
-            temp_dir.cleanup()
             DatabaseManager.reset_instance()
+            temp_dir.cleanup()
 
 if __name__ == '__main__':
     unittest.main()

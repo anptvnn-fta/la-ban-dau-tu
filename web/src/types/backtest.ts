@@ -110,3 +110,50 @@ export interface PerformanceMetrics {
   adviceBreakdown: Record<string, unknown>;
   diagnostics: Record<string, unknown>;
 }
+
+// ===== Kiểm định trượt tiến (walk-forward) =====
+
+export interface WalkForwardSummary {
+  total?: number | null;
+  completed?: number | null;
+  win?: number | null;
+  loss?: number | null;
+  neutral?: number | null;
+  directionAccuracyPct?: number | null;
+  winRatePct?: number | null;
+  avgReturnPct?: number | null;
+}
+
+export interface WalkForwardItem {
+  date: string;
+  signal: string;
+  signalLabel: string;
+  signalScore: number;
+  directionExpected?: string | null;
+  startPrice?: number | null;
+  endClose?: number | null;
+  returnPct?: number | null;
+  directionCorrect?: boolean | null;
+  outcome?: string | null;
+}
+
+export interface WalkForwardSignalStat {
+  signal: string;
+  label: string;
+  count: number;
+  correct: number;
+  accuracyPct?: number | null;
+}
+
+export interface WalkForwardResponse {
+  code: string;
+  evaluated: number;
+  evalWindowDays: number;
+  summary?: WalkForwardSummary | null;
+  actionableSummary?: WalkForwardSummary | null;
+  bySignal?: WalkForwardSignalStat[];
+  items: WalkForwardItem[];
+  signalDistribution: Record<string, number>;
+  message?: string | null;
+  savedAt?: string | null;
+}

@@ -16,6 +16,8 @@ from api.v1.schemas.backtest import (
     BacktestResultItem,
     BacktestResultsResponse,
     PerformanceMetrics,
+    WalkForwardRequest,
+    WalkForwardResponse,
 )
 from api.v1.schemas.common import ErrorResponse
 from src.services.backtest_service import BacktestService
@@ -39,6 +41,91 @@ def _validate_analysis_date_range(
                 "error": "invalid_params",
                 "message": "analysis_date_from cannot be after analysis_date_to",
             },
+        )
+
+
+def _save_walk_forward(result: dict, mode: str) -> None:
+    """Lưu kết quả walk-forward (chỉ khi có điểm đánh giá) để lần sau khỏi chạy lại."""
+    try:
+        if result and result.get("evaluated"):
+            from src.storage import get_db
+            get_db().save_walk_forward_run(
+                code=result.get("code", ""),
+                mode=mode,
+                eval_window_days=int(result.get("eval_window_days") or 10),
+                payload=result,
+            )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Lưu walk-forward thất bại: %s", exc)
+
+
+@router.get(
+    "/walk-forward/saved",
+    response_model=WalkForwardResponse,
+    summary="Lấy kết quả kiểm định trượt tiến đã lưu",
+)
+def get_saved_walk_forward(code: str, eval_window_days: int = 10, mode: str = "tech") -> WalkForwardResponse:
+    from src.services.walk_forward_backtest import _to_vn
+
+    norm = _to_vn(code)
+    safe_mode = mode if mode in ("tech", "ai") else "tech"
+    try:
+        from src.storage import get_db
+        data = get_db().get_walk_forward_run(norm, safe_mode, eval_window_days)
+        if data:
+            return WalkForwardResponse(**data)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Đọc walk-forward đã lưu lỗi: %s", exc)
+    return WalkForwardResponse(code=norm, evaluated=0, eval_window_days=eval_window_days)
+
+
+@router.post(
+    "/walk-forward",
+    response_model=WalkForwardResponse,
+    summary="Kiểm định trượt tiến",
+    description="Đánh giá tín hiệu kỹ thuật trên dữ liệu lịch sử (không cần báo cáo AI cũ, không gọi LLM).",
+)
+def run_walk_forward_backtest(request: WalkForwardRequest) -> WalkForwardResponse:
+    try:
+        from src.services.walk_forward_backtest import run_walk_forward
+
+        result = run_walk_forward(
+            request.code,
+            days=request.days,
+            eval_window_days=request.eval_window_days,
+        )
+        _save_walk_forward(result, "tech")
+        return WalkForwardResponse(**result)
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Walk-forward backtest failed: %s", exc)
+        raise HTTPException(
+            status_code=500,
+            detail={"error": "walk_forward_failed", "message": "Kiểm định trượt tiến thất bại. Vui lòng thử lại."},
+        )
+
+
+@router.post(
+    "/walk-forward-ai",
+    response_model=WalkForwardResponse,
+    summary="Kiểm định trượt tiến bằng AI",
+    description="Cho AI quyết định tại các mốc quá khứ (dữ liệu kỹ thuật point-in-time) rồi đối chiếu giá thực tế. Tốn một ít lượt LLM.",
+)
+def run_walk_forward_ai_backtest(request: WalkForwardRequest) -> WalkForwardResponse:
+    try:
+        from src.services.walk_forward_backtest import run_walk_forward_ai
+
+        result = run_walk_forward_ai(
+            request.code,
+            days=request.days,
+            eval_window_days=request.eval_window_days,
+        )
+        _save_walk_forward(result, "ai")
+        return WalkForwardResponse(**result)
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Walk-forward AI backtest failed: %s", exc)
+        raise HTTPException(
+            status_code=500,
+            detail={"error": "walk_forward_ai_failed", "message": "Kiểm định AI thất bại. Vui lòng thử lại."},
         )
 
 

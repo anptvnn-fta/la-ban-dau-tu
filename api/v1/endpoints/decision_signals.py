@@ -8,6 +8,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Query, Security
 from fastapi.security import APIKeyCookie
+from pydantic import BaseModel, Field
 
 from api.v1.schemas.common import ErrorResponse
 from api.v1.schemas.decision_signals import (
@@ -39,14 +40,45 @@ admin_session_cookie = APIKeyCookie(
     scheme_name="AdminSessionCookie",
     auto_error=False,
 )
+# Lưu ý: Security(admin_session_cookie) ở đây CHỈ để khai báo schema cookie cho
+# tài liệu OpenAPI (auto_error=False nên không tự chặn). Việc THỰC THI xác thực do
+# AuthMiddleware toàn cục đảm nhiệm cho mọi /api/v1/* khi ADMIN_AUTH_ENABLED=true.
 router = APIRouter(dependencies=[Security(admin_session_cookie)])
 
 AUTH_RESPONSE = {
     401: {
         "model": ErrorResponse,
-        "description": "未登录或管理员会话无效（ADMIN_AUTH_ENABLED=true 时）",
+        "description": "Chưa đăng nhập hoặc phiên quản trị không hợp lệ (khi ADMIN_AUTH_ENABLED=true)",
     },
 }
+
+
+class SignalScanRequest(BaseModel):
+    source: str = Field("watchlist", description="watchlist | portfolio")
+    account_id: Optional[int] = None
+
+
+class SignalScanResponse(BaseModel):
+    source: str
+    scanned: int = 0
+    created: int = 0
+    failed: List[str] = Field(default_factory=list)
+
+
+@router.post(
+    "/scan",
+    response_model=SignalScanResponse,
+    summary="Quét tín hiệu kỹ thuật cho danh mục theo dõi / cổ phiếu đang nắm giữ",
+)
+def scan_signals(request: SignalScanRequest) -> SignalScanResponse:
+    from src.services.signal_scanner import resolve_scan_codes, scan_technical_signals
+
+    source = request.source if request.source in ("watchlist", "portfolio") else "watchlist"
+    codes = resolve_scan_codes(source, account_id=request.account_id)
+    if not codes:
+        return SignalScanResponse(source=source)
+    result = scan_technical_signals(codes)
+    return SignalScanResponse(source=source, **result)
 
 
 def _bad_request(exc: Exception, *, error: str = "validation_error") -> HTTPException:

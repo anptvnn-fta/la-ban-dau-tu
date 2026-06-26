@@ -247,6 +247,24 @@ export const decisionSignalsApi = {
     return toDecisionSignalListResponse(response.data);
   },
 
+  /** Quét tín hiệu kỹ thuật hàng loạt cho danh mục theo dõi / cổ phiếu đang nắm giữ. */
+  async scan(
+    source: 'watchlist' | 'portfolio' = 'watchlist',
+    accountId?: number,
+  ): Promise<{ source: string; scanned: number; created: number; failed: string[] }> {
+    const response = await apiClient.post<Record<string, unknown>>('/api/v1/decision-signals/scan', {
+      source,
+      account_id: accountId,
+    });
+    const d = response.data as Record<string, unknown>;
+    return {
+      source: String(d.source ?? source),
+      scanned: Number(d.scanned ?? 0),
+      created: Number(d.created ?? 0),
+      failed: Array.isArray(d.failed) ? (d.failed as string[]) : [],
+    };
+  },
+
   async get(signalId: number): Promise<DecisionSignalItem> {
     const response = await apiClient.get<Record<string, unknown>>(`/api/v1/decision-signals/${signalId}`);
     return toDecisionSignalItem(response.data);

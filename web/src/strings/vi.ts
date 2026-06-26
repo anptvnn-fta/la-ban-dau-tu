@@ -1,17 +1,18 @@
 // ============================================================
-//  StockViet AI — Toàn bộ chuỗi giao diện (tiếng Việt duy nhất)
+//  La Bàn Đầu Tư — Toàn bộ chuỗi giao diện (tiếng Việt duy nhất)
 //  KHÔNG có bộ i18n zh/en. Mọi text hiển thị nằm ở đây.
 //  → Rò rỉ ngôn ngữ là bất khả thi về mặt cấu trúc.
 // ============================================================
 
 export const VI = {
   app: {
-    name: 'StockViet AI',
-    short: 'StockViet',
+    name: 'La Bàn Đầu Tư',
+    short: 'La Bàn',
     tagline: 'Phân tích cổ phiếu Việt Nam thông minh',
   },
 
   nav: {
+    market: 'Tổng Quan',
     home: 'Phân Tích',
     chat: 'Trợ Lý AI',
     portfolio: 'Danh Mục',
@@ -125,7 +126,7 @@ export const VI = {
     risk: 'Rủi ro',
     catalyst: 'Chất xúc tác',
     status: 'Trạng thái',
-    emptyState: 'Chưa có tín hiệu. Tín hiệu được trích từ các báo cáo phân tích.',
+    emptyState: 'Chưa có tín hiệu. Tín hiệu tự động xuất hiện sau khi phân tích một cổ phiếu và có khuyến nghị rõ ràng (Mua, Bán, Quan sát…). Hãy phân tích thêm cổ phiếu để tạo tín hiệu.',
   },
 
   backtest: {
@@ -150,6 +151,24 @@ export const VI = {
     emptyState: 'Chưa có quy tắc cảnh báo nào.',
   },
 
+  market: {
+    title: 'Tổng quan thị trường',
+    subtitle: 'Bức tranh toàn cảnh phiên hôm nay — chỉ số, dòng tiền, ngành',
+    indices: 'Chỉ số chính',
+    breadth: 'Độ rộng thị trường',
+    advancers: 'Tăng',
+    decliners: 'Giảm',
+    unchanged: 'Tham chiếu',
+    topGainers: 'Tăng mạnh nhất',
+    topLosers: 'Giảm mạnh nhất',
+    sectors: 'Nhóm ngành',
+    sectorsNote: 'Bình quân theo rổ VN30',
+    totalValue: 'Tổng giá trị khớp',
+    universeNote: 'Top tăng/giảm và độ rộng tính trong rổ VN30',
+    updated: 'Cập nhật',
+    empty: 'Chưa lấy được dữ liệu thị trường. Hãy thử lại sau.',
+  },
+
   usage: {
     title: 'Sử dụng AI',
     today: 'Hôm nay',
@@ -164,13 +183,44 @@ export const VI = {
 
   settings: {
     title: 'Cài đặt',
+    subtitle: 'Thiết lập La Bàn Đầu Tư theo ý bạn — gọn gàng, dễ hiểu',
     save: 'Lưu thay đổi',
+    saving: 'Đang lưu…',
     saved: 'Đã lưu',
-    llmChannels: 'Kênh LLM',
-    notification: 'Thông báo',
-    auth: 'Bảo mật',
-    scheduler: 'Lịch chạy',
-    testNotify: 'Gửi thử thông báo',
+    savedAt: 'Đã lưu lúc',
+    reload: 'Tải lại',
+    noChanges: 'Không có thay đổi nào để lưu.',
+    loadError: 'Không thể tải cấu hình. Hãy kiểm tra kết nối máy chủ và thử lại.',
+    conflict: 'Cấu hình vừa bị thay đổi ở nơi khác. Hãy tải lại trang rồi lưu lại.',
+    invalid: 'Một vài ô chưa hợp lệ, hãy kiểm tra lại.',
+    saveFailed: 'Lưu cấu hình thất bại. Hãy thử lại.',
+    changes: 'thay đổi',
+    required: 'bắt buộc',
+    advanced: 'Tùy chọn nâng cao',
+    showAdvanced: 'Hiện tùy chọn nâng cao',
+    hideAdvanced: 'Ẩn tùy chọn nâng cao',
+    version: 'Phiên bản cấu hình',
+    footerNote: 'Các cấu hình kỹ thuật khác (proxy, cơ sở dữ liệu, Docker…) có thể chỉnh trực tiếp trong file .env.',
+    // Lịch tự động
+    runNow: 'Chạy ngay',
+    running: 'Đang chạy…',
+    ranNow: 'Đã bắt đầu chạy phân tích. Kết quả sẽ tới qua kênh thông báo.',
+    runFailed: 'Không thể bắt đầu chạy. Hãy thử lại.',
+    schedStatusOn: 'Đang bật',
+    schedStatusOff: 'Đang tắt',
+    schedRunning: 'Đang chạy',
+    schedNextRun: 'Lần chạy kế',
+    schedLastRun: 'Lần chạy gần nhất',
+    schedNever: 'chưa có',
+    // Gửi thử thông báo
+    testSend: 'Gửi thử',
+    testing: 'Đang gửi…',
+    testOk: 'Đã gửi tin nhắn thử thành công!',
+    testFail: 'Gửi thử thất bại. Hãy kiểm tra lại thông tin.',
+    testMissing: 'Hãy điền thông tin Telegram/Email trước khi gửi thử.',
+    // Gợi ý liên kết
+    alertRulesHint: 'Thêm và chỉnh các quy tắc cảnh báo (giá, RSI, MACD…) tại trang',
+    alertRulesLink: 'Cảnh Báo',
   },
 
   auth: {

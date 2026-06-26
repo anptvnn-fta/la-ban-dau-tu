@@ -2424,7 +2424,7 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "examples": [
             "REPORT_TYPE=simple",
             "REPORT_TYPE=full",
-            "REPORT_LANGUAGE=zh",
+            "REPORT_LANGUAGE=vi",
         ],
         "docs": [
             {
@@ -2443,16 +2443,17 @@ _FIELD_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "is_sensitive": False,
         "is_required": False,
         "is_editable": True,
-        "default_value": "zh",
+        "default_value": "vi",
         "options": [
-            {"label": "Chinese", "value": "zh"},
+            {"label": "Tiếng Việt", "value": "vi"},
             {"label": "English", "value": "en"},
+            {"label": "中文", "value": "zh"},
         ],
-        "validation": {"enum": ["zh", "en"]},
+        "validation": {"enum": ["vi", "en", "zh"]},
         "display_order": 56,
         "help_key": "settings.notification.report_output",
         "examples": [
-            "REPORT_LANGUAGE=zh",
+            "REPORT_LANGUAGE=vi",
             "REPORT_LANGUAGE=en",
         ],
         "docs": [

@@ -58,13 +58,16 @@ class SystemConfigServiceTestCase(unittest.TestCase):
         message = SimpleNamespace(content=content, tool_calls=tool_calls or [])
         return SimpleNamespace(choices=[SimpleNamespace(message=message)])
 
-    def test_get_config_keeps_regular_sensitive_values_unmasked(self) -> None:
+    def test_get_config_masks_all_sensitive_values(self) -> None:
+        # BẢO MẬT: mọi trường nhạy cảm (API key...) phải được che trong phản hồi GET config,
+        # không chỉ riêng các khoá server-internal. Tránh lộ key khi auth tắt + server công khai.
         payload = self.service.get_config(include_schema=True)
         items = {item["key"]: item for item in payload["items"]}
 
         self.assertIn("GEMINI_API_KEY", items)
-        self.assertEqual(items["GEMINI_API_KEY"]["value"], "secret-key-value")
-        self.assertFalse(items["GEMINI_API_KEY"]["is_masked"])
+        self.assertEqual(items["GEMINI_API_KEY"]["value"], payload["mask_token"])
+        self.assertTrue(items["GEMINI_API_KEY"]["is_masked"])
+        self.assertTrue(items["GEMINI_API_KEY"]["schema"]["is_sensitive"])
         self.assertTrue(items["GEMINI_API_KEY"]["raw_value_exists"])
 
     def test_get_config_masks_alphasift_install_spec(self) -> None:
@@ -275,7 +278,10 @@ class SystemConfigServiceTestCase(unittest.TestCase):
 
             self.assertEqual(pre_save_items["OPENAI_BASE_URL"]["value"], "https://runtime-openai.v1")
             self.assertFalse(pre_save_items["OPENAI_BASE_URL"]["raw_value_exists"])
-            self.assertEqual(pre_save_items["OPENAI_API_KEY"]["value"], "runtime-openai-key")
+            # API key nhạy cảm: che giá trị (mask). is_masked=True xác nhận runtime fallback
+            # đã đưa được giá trị vào hiển thị, mà không lộ key thật.
+            self.assertEqual(pre_save_items["OPENAI_API_KEY"]["value"], pre_save["mask_token"])
+            self.assertTrue(pre_save_items["OPENAI_API_KEY"]["is_masked"])
             self.assertFalse(pre_save_items["OPENAI_API_KEY"]["raw_value_exists"])
             self.assertEqual(pre_save_items["LITELLM_MODEL"]["value"], "openai/gpt-4o-mini")
             self.assertTrue(pre_save_items["LITELLM_MODEL"]["raw_value_exists"])
@@ -379,9 +385,13 @@ class SystemConfigServiceTestCase(unittest.TestCase):
         items = {item["key"]: item for item in payload["items"]}
 
         self.assertIn("LLM_CHANNELS", items)
-        self.assertEqual(items["LLM_DEEPSEEK_API_KEY"]["value"], "sk-test-value")
+        # Key của kênh đã khai báo vẫn hiện diện nhưng được CHE giá trị (bảo mật).
+        self.assertIn("LLM_DEEPSEEK_API_KEY", items)
+        self.assertEqual(items["LLM_DEEPSEEK_API_KEY"]["value"], payload["mask_token"])
+        self.assertTrue(items["LLM_DEEPSEEK_API_KEY"]["is_masked"])
         self.assertEqual(items["LLM_DEEPSEEK_MODELS"]["value"], "deepseek-v4-flash,deepseek-v4-pro")
-        self.assertEqual(items["LLM_MY_PROXY_API_KEYS"]["value"], "sk-key-1,sk-key-2")
+        self.assertEqual(items["LLM_MY_PROXY_API_KEYS"]["value"], payload["mask_token"])
+        self.assertTrue(items["LLM_MY_PROXY_API_KEYS"]["is_masked"])
         self.assertEqual(items["LLM_MY_PROXY_MODELS"]["value"], "gpt-5.5")
         self.assertEqual(items["LLM_MY_PROXY_API_KEYS"]["schema"]["category"], "ai_model")
         self.assertNotIn("LLM_UNUSED_API_KEY", items)
@@ -1103,6 +1113,8 @@ class SystemConfigServiceTestCase(unittest.TestCase):
                 {"key": "LLM_CHANNELS", "value": "lab"},
                 {"key": "LLM_LAB_MODELS", "value": "ollama/llama3"},
                 {"key": "LLM_LAB_API_KEY", "value": ""},
+                # Cô lập khỏi LITELLM_MODEL có sẵn trong .env (gemini) để chỉ kiểm phần suy luận protocol
+                {"key": "LITELLM_MODEL", "value": ""},
             ]
         )
 
@@ -1160,6 +1172,8 @@ class SystemConfigServiceTestCase(unittest.TestCase):
                 {"key": "LLM_PRIMARY_API_KEY", "value": "sk-test-value"},
                 {"key": "LLM_PRIMARY_MODELS", "value": "gpt-4o-mini"},
                 {"key": "AGENT_LITELLM_MODEL", "value": "gpt-4o-mini"},
+                # Cô lập khỏi LITELLM_MODEL (gemini) trong .env để chỉ kiểm chuẩn hoá agent model
+                {"key": "LITELLM_MODEL", "value": ""},
             ]
         )
 
@@ -1181,6 +1195,8 @@ class SystemConfigServiceTestCase(unittest.TestCase):
             items=[
                 {"key": "LITELLM_CONFIG", "value": "/tmp/litellm.yaml"},
                 {"key": "AGENT_LITELLM_MODEL", "value": "gpt4o"},
+                # Cô lập khỏi LITELLM_MODEL (gemini) trong .env để chỉ kiểm alias từ YAML
+                {"key": "LITELLM_MODEL", "value": ""},
             ]
         )
 
@@ -1216,8 +1232,9 @@ class SystemConfigServiceTestCase(unittest.TestCase):
         self.assertEqual(agent_arch_schema["validation"]["enum"], ["single", "multi"])
 
         report_language_schema = items["REPORT_LANGUAGE"]["schema"]
-        self.assertEqual(report_language_schema["validation"]["enum"], ["zh", "en"])
-        self.assertEqual(report_language_schema["options"][1]["value"], "en")
+        # Tiếng Việt là ngôn ngữ báo cáo mặc định của sản phẩm; enum gồm vi/en/zh.
+        self.assertEqual(report_language_schema["validation"]["enum"], ["vi", "en", "zh"])
+        self.assertEqual(report_language_schema["options"][0]["value"], "vi")
 
         self.assertEqual(items["AGENT_ORCHESTRATOR_TIMEOUT_S"]["schema"]["default_value"], "600")
         self.assertTrue(items["AGENT_DEEP_RESEARCH_BUDGET"]["schema"]["is_editable"])
@@ -1571,6 +1588,8 @@ class SystemConfigServiceTestCase(unittest.TestCase):
             items=[
                 {"key": "LLM_CHANNELS", "value": "anspire"},
                 {"key": "ANSPIRE_API_KEYS", "value": "sk-anspire-test-value"},
+                # Cô lập khỏi LITELLM_MODEL (gemini) trong .env: kịch bản chỉ cấu hình kênh, chưa chọn model chính
+                {"key": "LITELLM_MODEL", "value": ""},
             ]
         )
 

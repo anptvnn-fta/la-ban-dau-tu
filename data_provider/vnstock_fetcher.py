@@ -179,6 +179,10 @@ class VnstockFetcher(BaseFetcher):
             if price is None or price <= 0:
                 price = safe_float(m("match", "avg_match_price"))
             pre_close = safe_float(m("listing", "ref_price")) or safe_float(m("match", "reference_price"))
+            # Ngoài giờ giao dịch chưa có khớp lệnh (match_price = 0) → dùng giá tham chiếu
+            # làm giá hiển thị để vẫn trả về báo giá thay vì None.
+            if (price is None or price <= 0) and pre_close not in (None, 0):
+                price = pre_close
             open_price = safe_float(m("match", "open_price"))
             high = safe_float(m("match", "highest"))
             low = safe_float(m("match", "lowest"))

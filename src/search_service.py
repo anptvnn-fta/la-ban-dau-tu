@@ -4176,18 +4176,18 @@ class SearchService:
         Returns:
             格式化的情报报告文本
         """
-        lines = [f"【{stock_name} 情报搜索结果】"]
-        
+        lines = [f"【{stock_name} — Kết quả tìm kiếm thông tin】"]
+
         # 维度展示顺序
         display_order = ['latest_news', 'announcements', 'market_analysis', 'risk_check', 'earnings', 'industry']
 
         dim_labels = {
-            'latest_news': '📰 最新消息',
-            'announcements': '📋 公司公告',
-            'market_analysis': '📈 机构分析',
-            'risk_check': '⚠️ 风险排查',
-            'earnings': '📊 业绩预期',
-            'industry': '🏭 行业分析',
+            'latest_news': '📰 Tin mới nhất',
+            'announcements': '📋 Công bố doanh nghiệp',
+            'market_analysis': '📈 Phân tích tổ chức',
+            'risk_check': '⚠️ Rà soát rủi ro',
+            'earnings': '📊 Dự báo kết quả kinh doanh',
+            'industry': '🏭 Phân tích ngành',
         }
 
         for dim_name in display_order:
@@ -4199,7 +4199,7 @@ class SearchService:
             # 获取维度描述
             dim_desc = dim_labels.get(dim_name, dim_name)
             
-            lines.append(f"\n{dim_desc} (来源: {resp.provider}):")
+            lines.append(f"\n{dim_desc} (Nguồn: {resp.provider}):")
             if resp.success and resp.results:
                 # 增加显示条数
                 for i, r in enumerate(resp.results[:4], 1):
@@ -4215,10 +4215,10 @@ class SearchService:
                         if r.relevance_score is not None:
                             relevance_parts.append(f"score={r.relevance_score}")
                         if r.relevance_reasons:
-                            relevance_parts.append(f"依据: {'；'.join(r.relevance_reasons[:3])}")
-                        lines.append(f"     关联度: {'; '.join(relevance_parts)}")
+                            relevance_parts.append(f"căn cứ: {'; '.join(r.relevance_reasons[:3])}")
+                        lines.append(f"     Độ liên quan: {'; '.join(relevance_parts)}")
             else:
-                lines.append("  未找到相关信息")
+                lines.append("  Không tìm thấy thông tin")
         
         return "\n".join(lines)
     

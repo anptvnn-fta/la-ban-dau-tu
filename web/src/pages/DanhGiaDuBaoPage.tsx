@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import {
   Loader2,
   AlertTriangle,
@@ -13,6 +13,7 @@ import {
   TrendingDown,
   Activity,
   Clock,
+  Sparkles,
 } from 'lucide-react'
 import { PageHeader } from '@/components/common/PageHeader'
 import { Card, CardLabel } from '@/components/ui/card'
@@ -20,7 +21,7 @@ import { cn } from '@/lib/utils'
 import { fmtNum, fmtPct } from '@/utils/num'
 import { VI } from '@/strings/vi'
 import { backtestApi } from '@/api/backtest'
-import type { PerformanceMetrics, BacktestResultItem, BacktestResultsResponse } from '@/types/backtest'
+import type { PerformanceMetrics, BacktestResultItem, BacktestResultsResponse, WalkForwardResponse } from '@/types/backtest'
 
 // ─────────────────────────────────────────────
 // Kiểu trạng thái
@@ -28,7 +29,7 @@ import type { PerformanceMetrics, BacktestResultItem, BacktestResultsResponse } 
 type RunState =
   | { status: 'idle' }
   | { status: 'running' }
-  | { status: 'done'; processed: number; saved: number }
+  | { status: 'done'; processed: number; saved: number; message?: string | null }
   | { status: 'error'; message: string }
 
 type PerfState =
@@ -43,6 +44,13 @@ type ResultsState =
   | { status: 'loading' }
   | { status: 'ok'; data: BacktestResultsResponse }
   | { status: 'empty' }
+  | { status: 'error'; message: string }
+
+type WfMode = 'tech' | 'ai'
+type WfState =
+  | { status: 'idle' }
+  | { status: 'running'; mode: WfMode }
+  | { status: 'done'; data: WalkForwardResponse; mode: WfMode }
   | { status: 'error'; message: string }
 
 // ─────────────────────────────────────────────
@@ -224,12 +232,49 @@ export default function DanhGiaDuBaoPage() {
   const [perfState, setPerfState] = useState<PerfState>({ status: 'idle' })
   const [resultsState, setResultsState] = useState<ResultsState>({ status: 'idle' })
   const [currentPage, setCurrentPage] = useState(1)
+  const [wfState, setWfState] = useState<WfState>({ status: 'idle' })
 
   const PAGE_SIZE = 20
 
+  // Tự nạp kết quả walk-forward ĐÃ LƯU khi đổi mã/cửa sổ (khỏi phải chạy lại).
+  useEffect(() => {
+    const raw = codeInput.trim().toUpperCase()
+    if (!raw) return
+    const code = /^[A-Z]{2,3}$/.test(raw) ? `${raw}.VN` : raw
+    let cancelled = false
+    const timer = setTimeout(async () => {
+      try {
+        const data = await backtestApi.getSavedWalkForward(code, windowDays, 'tech')
+        if (!cancelled && data.evaluated > 0) {
+          setWfState((prev) => (prev.status === 'running' ? prev : { status: 'done', data, mode: 'tech' }))
+        }
+      } catch {
+        /* im lặng */
+      }
+    }, 700)
+    return () => { cancelled = true; clearTimeout(timer) }
+  }, [codeInput, windowDays])
+
+  const handleWalkForward = async (mode: WfMode) => {
+    const raw = codeInput.trim().toUpperCase()
+    if (!raw) { setWfState({ status: 'error', message: 'Hãy nhập mã cổ phiếu trước.' }); return }
+    const code = /^[A-Z]{2,3}$/.test(raw) ? `${raw}.VN` : raw
+    setWfState({ status: 'running', mode })
+    try {
+      const data = mode === 'ai'
+        ? await backtestApi.walkForwardAi(code, windowDays)
+        : await backtestApi.walkForward(code, windowDays)
+      setWfState({ status: 'done', data, mode })
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : VI.errors.generic
+      setWfState({ status: 'error', message: msg })
+    }
+  }
+
   const loadData = useCallback(
     async (page = 1) => {
-      const code = codeInput.trim().toUpperCase() || undefined
+      const raw = codeInput.trim().toUpperCase()
+      const code = raw ? (/^[A-Z]{2,3}$/.test(raw) ? `${raw}.VN` : raw) : undefined
 
       setPerfState({ status: 'loading' })
       try {
@@ -269,11 +314,12 @@ export default function DanhGiaDuBaoPage() {
   )
 
   const handleRun = async () => {
-    const code = codeInput.trim().toUpperCase() || undefined
+    const raw = codeInput.trim().toUpperCase()
+    const code = raw ? (/^[A-Z]{2,3}$/.test(raw) ? `${raw}.VN` : raw) : undefined
     setRunState({ status: 'running' })
     try {
       const res = await backtestApi.run({ code, evalWindowDays: windowDays })
-      setRunState({ status: 'done', processed: res.processed, saved: res.saved })
+      setRunState({ status: 'done', processed: res.processed, saved: res.saved, message: res.message })
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : VI.errors.generic
       setRunState({ status: 'error', message: msg })
@@ -316,7 +362,7 @@ export default function DanhGiaDuBaoPage() {
               type="text"
               value={codeInput}
               onChange={e => setCodeInput(e.target.value.toUpperCase())}
-              placeholder="Ví dụ: VCB"
+              placeholder="Ví dụ: VCB (tự thêm .VN)"
               maxLength={10}
               className={cn(
                 'h-10 w-36 rounded-lg border border-border bg-background px-3 text-sm font-mono font-semibold uppercase',
@@ -369,14 +415,58 @@ export default function DanhGiaDuBaoPage() {
             {VI.backtest.run}
           </button>
 
+          {/* Hai phương án kiểm định lịch sử (dùng dữ liệu lịch sử — kết quả ngay) */}
+          <button
+            type="button"
+            onClick={() => void handleWalkForward('tech')}
+            disabled={wfState.status === 'running'}
+            title="Đánh giá tín hiệu kỹ thuật (RSI/MACD/MA) trên dữ liệu lịch sử — nhanh, miễn phí"
+            className={cn(
+              'inline-flex h-10 items-center justify-center gap-2 rounded-lg px-4',
+              'border border-primary/40 bg-primary/10 text-primary text-sm font-semibold',
+              'transition-colors hover:bg-primary/15 disabled:opacity-50',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            )}
+          >
+            {wfState.status === 'running' && wfState.mode === 'tech'
+              ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              : <Activity className="h-4 w-4" aria-hidden />}
+            Kiểm định kỹ thuật
+          </button>
+          <button
+            type="button"
+            onClick={() => void handleWalkForward('ai')}
+            disabled={wfState.status === 'running'}
+            title="Cho AI quyết định tại các mốc quá khứ — sâu hơn, tốn một ít lượt LLM"
+            className={cn(
+              'inline-flex h-10 items-center justify-center gap-2 rounded-lg px-4',
+              'border border-border bg-card text-foreground text-sm font-semibold',
+              'transition-colors hover:bg-secondary disabled:opacity-50',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            )}
+          >
+            {wfState.status === 'running' && wfState.mode === 'ai'
+              ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              : <Sparkles className="h-4 w-4" aria-hidden />}
+            Kiểm định AI
+          </button>
+
           {/* Thông báo sau khi chạy */}
           {runState.status === 'done' && (
-            <p className="text-sm text-muted-foreground">
-              Đã xử lý{' '}
-              <span className="font-semibold text-foreground">{runState.processed}</span> dự báo,
-              lưu{' '}
-              <span className="font-semibold text-foreground">{runState.saved}</span> kết quả mới.
-            </p>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Đã xử lý{' '}
+                <span className="font-semibold text-foreground">{runState.processed}</span> dự báo,
+                lưu{' '}
+                <span className="font-semibold text-foreground">{runState.saved}</span> kết quả mới.
+              </p>
+              {runState.processed === 0 && runState.message && (
+                <div className="flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-foreground">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden />
+                  <span>{runState.message}</span>
+                </div>
+              )}
+            </div>
           )}
           {runState.status === 'error' && (
             <p className="flex items-center gap-1 text-sm text-danger">
@@ -386,6 +476,138 @@ export default function DanhGiaDuBaoPage() {
           )}
         </div>
       </Card>
+
+      {/* ── Kết quả kiểm định trượt tiến (walk-forward) ── */}
+      {wfState.status !== 'idle' && (
+        <section aria-label="Kiểm định trượt tiến" className="mb-6">
+          <h2 className="mb-3 flex items-center gap-2 font-heading text-base font-semibold text-foreground">
+            <Activity className="h-4 w-4 text-primary" aria-hidden /> Kiểm định trượt tiến (dữ liệu lịch sử)
+          </h2>
+
+          {wfState.status === 'running' && (
+            <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" aria-hidden />
+              {wfState.mode === 'ai'
+                ? 'Đang để AI đánh giá tại các mốc quá khứ… (khoảng 30–50 giây)'
+                : 'Đang mô phỏng tín hiệu kỹ thuật trên dữ liệu lịch sử… (khoảng 15–20 giây)'}
+            </div>
+          )}
+
+          {wfState.status === 'error' && (
+            <div className="flex items-center gap-2 rounded-xl border border-danger/30 bg-danger/10 p-4 text-sm text-danger">
+              <AlertTriangle className="h-5 w-5 shrink-0" aria-hidden /> {wfState.message}
+            </div>
+          )}
+
+          {wfState.status === 'done' && !wfState.data.summary && (
+            <div className="flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-foreground">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden />
+              <span>{wfState.data.message ?? VI.common.noData}</span>
+            </div>
+          )}
+
+          {wfState.status === 'done' && wfState.data.summary && (() => {
+            const d = wfState.data
+            const s = d.summary!
+            const isAi = wfState.status === 'done' && wfState.mode === 'ai'
+            const acc = s.directionAccuracyPct ?? 0
+            const accTone = acc >= 55 ? 'text-up' : acc >= 45 ? 'text-flat' : 'text-down'
+            return (
+              <div className="space-y-4">
+                <p className="text-xs text-muted-foreground">
+                  {d.code} · {d.evaluated} điểm đánh giá · cửa sổ {d.evalWindowDays} phiên ·{' '}
+                  {isAi ? 'AI quyết định dựa trên dữ liệu kỹ thuật point-in-time.' : 'tín hiệu kỹ thuật (RSI/MACD/MA), không dùng AI.'}
+                  {d.savedAt ? ` · đã lưu lúc ${new Date(d.savedAt).toLocaleString('vi-VN')}` : ''}
+                </p>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <Card className="p-4">
+                    <CardLabel>Độ chính xác hướng</CardLabel>
+                    <p className={cn('mt-1 font-mono text-2xl font-bold tabular-nums', accTone)}>{fmtNum(s.directionAccuracyPct, 1)}%</p>
+                  </Card>
+                  <Card className="p-4">
+                    <CardLabel>Tỷ lệ thắng</CardLabel>
+                    <p className="mt-1 font-mono text-2xl font-bold tabular-nums text-foreground">{fmtNum(s.winRatePct, 1)}%</p>
+                  </Card>
+                  <Card className="p-4">
+                    <CardLabel>Lợi nhuận TB / lần</CardLabel>
+                    <p className={cn('mt-1 font-mono text-2xl font-bold tabular-nums', (s.avgReturnPct ?? 0) >= 0 ? 'text-up' : 'text-down')}>{fmtPct(s.avgReturnPct)}</p>
+                  </Card>
+                  <Card className="p-4">
+                    <CardLabel>Thắng / Thua / Trung tính</CardLabel>
+                    <p className="mt-1 font-mono text-lg font-bold tabular-nums">
+                      <span className="text-up">{s.win ?? 0}</span>
+                      <span className="text-muted-foreground"> / </span>
+                      <span className="text-down">{s.loss ?? 0}</span>
+                      <span className="text-muted-foreground"> / {s.neutral ?? 0}</span>
+                    </p>
+                  </Card>
+                </div>
+
+                {/* Độ chính xác theo từng loại tín hiệu — để thấy loại nào đáng tin */}
+                {d.bySignal && d.bySignal.length > 0 && (
+                  <Card className="p-4">
+                    <CardLabel>Độ chính xác theo loại tín hiệu</CardLabel>
+                    <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
+                      {d.bySignal.map((b) => (
+                        <div key={b.signal} className="flex items-center justify-between gap-2 text-sm">
+                          <span className="text-foreground">{b.label}</span>
+                          <span className="flex items-center gap-1.5 font-mono tabular-nums">
+                            <span className={cn(
+                              (b.accuracyPct ?? 0) >= 55 ? 'text-up' : (b.accuracyPct ?? 0) >= 45 ? 'text-flat' : 'text-down',
+                            )}>{b.accuracyPct != null ? `${fmtNum(b.accuracyPct, 0)}%` : '—'}</span>
+                            <span className="text-xs text-muted-foreground">({b.count})</span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    {d.actionableSummary && (
+                      <p className="mt-3 border-t border-border/60 pt-3 text-xs text-muted-foreground">
+                        Riêng tín hiệu định hướng (Mua/Bán): độ chính xác{' '}
+                        <span className="font-semibold text-foreground">{fmtNum(d.actionableSummary.directionAccuracyPct, 1)}%</span>{' '}
+                        trên {d.actionableSummary.total ?? 0} lần.
+                      </p>
+                    )}
+                  </Card>
+                )}
+
+                <Card className="overflow-hidden">
+                  <div className="border-b border-border px-5 py-3">
+                    <h3 className="font-heading text-sm font-semibold text-foreground">Các phiên đã đánh giá (mới nhất trước)</h3>
+                  </div>
+                  <div className="max-h-[360px] overflow-auto">
+                    <table className="w-full text-sm">
+                      <thead className="sticky top-0 bg-card">
+                        <tr className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
+                          <th className="px-4 py-2 text-left">Ngày</th>
+                          <th className="px-4 py-2 text-left">Tín hiệu</th>
+                          <th className="px-4 py-2 text-right">Biến động {d.evalWindowDays} phiên</th>
+                          <th className="px-4 py-2 text-center">Đúng hướng</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[...d.items].reverse().map((it, idx) => (
+                          <tr key={`${it.date}-${idx}`} className="border-b border-border/50 hover:bg-secondary/40">
+                            <td className="px-4 py-2 font-mono text-xs tabular-nums text-muted-foreground">{it.date}</td>
+                            <td className="px-4 py-2 text-xs font-medium text-foreground">{it.signalLabel}</td>
+                            <td className={cn('px-4 py-2 text-right font-mono tabular-nums', (it.returnPct ?? 0) >= 0 ? 'text-up' : 'text-down')}>{fmtPct(it.returnPct)}</td>
+                            <td className="px-4 py-2 text-center">
+                              {it.directionCorrect === true
+                                ? <CheckCircle2 className="mx-auto h-4 w-4 text-up" aria-label="Đúng" />
+                                : it.directionCorrect === false
+                                  ? <XCircle className="mx-auto h-4 w-4 text-down" aria-label="Sai" />
+                                  : <span className="text-xs text-muted-foreground">—</span>}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              </div>
+            )
+          })()}
+        </section>
+      )}
 
       {/* ── Chỉ số hiệu suất ── */}
       <section aria-label="Chỉ số hiệu suất tổng thể" className="mb-6">

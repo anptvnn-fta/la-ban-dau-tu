@@ -21,7 +21,10 @@ import {
   CalendarDays,
   Target,
   ArrowRightLeft,
+  Loader2,
+  Radar,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { decisionSignalsApi } from '@/api/decisionSignals'
 import type {
   DecisionSignalItem,
@@ -44,7 +47,7 @@ type FetchState =
   | { status: 'success'; data: DecisionSignalListResponse }
   | { status: 'error'; message: string }
 
-function useSignals(params: DecisionSignalListParams): FetchState {
+function useSignals(params: DecisionSignalListParams, reloadKey = 0): FetchState {
   const [state, setState] = useState<FetchState>({ status: 'loading' })
   const paramsKey = JSON.stringify(params)
   const abortRef = useRef<AbortController | null>(null)
@@ -67,7 +70,7 @@ function useSignals(params: DecisionSignalListParams): FetchState {
     return () => ctrl.abort()
     // paramsKey stringifies the whole params object so we can dep on it safely
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paramsKey])
+  }, [paramsKey, reloadKey])
 
   return state
 }
@@ -411,6 +414,9 @@ const PAGE_SIZE = 20
 export default function TinHieuPage() {
   const [filterAction, setFilterAction] = useState<DecisionAction | ''>('')
   const [filterStatus, setFilterStatus] = useState<DecisionSignalStatus | ''>('')
+  const [scope, setScope] = useState<'all' | 'holding'>('all')
+  const [scanning, setScanning] = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
   const [page, setPage] = useState(1)
   const [sorting, setSorting] = useState<SortingState>([])
   const [selectedSignal, setSelectedSignal] = useState<DecisionSignalItem | null>(null)
@@ -423,9 +429,27 @@ export default function TinHieuPage() {
     pageSize: PAGE_SIZE,
     ...(filterAction ? { action: filterAction } : {}),
     ...(filterStatus ? { status: filterStatus } : {}),
+    ...(scope === 'holding' ? { holdingOnly: true } : {}),
   }
 
-  const fetchState = useSignals(queryParams)
+  const fetchState = useSignals(queryParams, reloadKey)
+
+  const handleScan = async (source: 'watchlist' | 'portfolio') => {
+    if (scanning) return
+    setScanning(true)
+    try {
+      const res = await decisionSignalsApi.scan(source)
+      toast.success(
+        `Đã quét ${res.scanned} mã · tạo ${res.created} tín hiệu` +
+        (res.failed.length ? ` · ${res.failed.length} mã lỗi` : ''),
+      )
+      setReloadKey((k) => k + 1)
+    } catch {
+      toast.error('Quét tín hiệu thất bại. Vui lòng thử lại.')
+    } finally {
+      setScanning(false)
+    }
+  }
   const isLoading = fetchState.status === 'loading' || fetchState.status === 'idle'
   const isError = fetchState.status === 'error'
   const data = fetchState.status === 'success' ? fetchState.data : null
@@ -568,10 +592,46 @@ export default function TinHieuPage() {
       <PageHeader
         title={VI.signals.title}
         subtitle="Danh sách tín hiệu giao dịch AI cho thị trường chứng khoán Việt Nam"
+        actions={
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => void handleScan('watchlist')}
+              disabled={scanning}
+              title="Sinh tín hiệu kỹ thuật cho tất cả mã trong Danh mục theo dõi"
+              className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {scanning ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Radar className="h-4 w-4" aria-hidden />}
+              Quét mã theo dõi
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleScan('portfolio')}
+              disabled={scanning}
+              title="Sinh tín hiệu cho cổ phiếu đang nắm giữ trong danh mục"
+              className="inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <Radar className="h-4 w-4" aria-hidden /> Quét nắm giữ
+            </button>
+          </div>
+        }
       />
 
       {/* Bộ lọc */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
+        <select
+          value={scope}
+          onChange={(e) => {
+            setScope(e.target.value as 'all' | 'holding')
+            resetPage()
+          }}
+          aria-label="Phạm vi tín hiệu"
+          className={selectClass}
+        >
+          <option value="all">Tất cả tín hiệu</option>
+          <option value="holding">Đang nắm giữ</option>
+        </select>
+
         <select
           value={filterAction}
           onChange={(e) => {

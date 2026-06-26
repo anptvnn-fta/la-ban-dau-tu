@@ -166,6 +166,23 @@ class StockDaily(Base):
         }
 
 
+class WalkForwardRun(Base):
+    """Kết quả kiểm định trượt tiến gần nhất (lưu để khỏi chạy lại mỗi lần)."""
+
+    __tablename__ = 'walk_forward_runs'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    code = Column(String(16), nullable=False, index=True)
+    mode = Column(String(8), nullable=False)  # 'tech' | 'ai'
+    eval_window_days = Column(Integer, nullable=False)
+    payload = Column(Text, nullable=False)    # JSON kết quả đầy đủ
+    created_at = Column(DateTime, default=datetime.now)
+
+    __table_args__ = (
+        UniqueConstraint('code', 'mode', 'eval_window_days', name='uix_wf_code_mode_window'),
+    )
+
+
 class NewsIntel(Base):
     """
     新闻情报数据模型
@@ -2361,10 +2378,52 @@ class DatabaseManager(metaclass=_DatabaseManagerMeta):
             ).scalars().all()
             
             return list(results)
-    
+
+    def save_walk_forward_run(self, code: str, mode: str, eval_window_days: int, payload: dict) -> None:
+        """Lưu (upsert) kết quả kiểm định trượt tiến gần nhất theo (code, mode, window)."""
+        import json as _json
+        with self.get_session() as session:
+            row = session.execute(
+                select(WalkForwardRun).where(
+                    WalkForwardRun.code == code,
+                    WalkForwardRun.mode == mode,
+                    WalkForwardRun.eval_window_days == int(eval_window_days),
+                )
+            ).scalars().first()
+            data = _json.dumps(payload, ensure_ascii=False, default=str)
+            if row is None:
+                session.add(WalkForwardRun(
+                    code=code, mode=mode, eval_window_days=int(eval_window_days),
+                    payload=data, created_at=datetime.now(),
+                ))
+            else:
+                row.payload = data
+                row.created_at = datetime.now()
+            session.commit()
+
+    def get_walk_forward_run(self, code: str, mode: str, eval_window_days: int) -> Optional[dict]:
+        """Lấy kết quả walk-forward đã lưu (kèm saved_at) hoặc None."""
+        import json as _json
+        with self.get_session() as session:
+            row = session.execute(
+                select(WalkForwardRun).where(
+                    WalkForwardRun.code == code,
+                    WalkForwardRun.mode == mode,
+                    WalkForwardRun.eval_window_days == int(eval_window_days),
+                )
+            ).scalars().first()
+            if row is None:
+                return None
+            try:
+                data = _json.loads(row.payload)
+            except Exception:
+                return None
+            data['saved_at'] = row.created_at.isoformat() if row.created_at else None
+            return data
+
     def save_daily_data(
-        self, 
-        df: pd.DataFrame, 
+        self,
+        df: pd.DataFrame,
         code: str,
         data_source: str = "Unknown"
     ) -> int:

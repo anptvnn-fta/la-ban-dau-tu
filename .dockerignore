@@ -1,30 +1,45 @@
-# 忽略 Python 缓存
+# Cache Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 
-# 忽略虚拟环境
+# Môi trường ảo
 venv/
 .venv/
 env/
+.env
 .env.local
 
-# 忽略 IDE
+# IDE
 .idea/
 .vscode/
 *.swp
 *.swo
 
-# 忽略数据文件（可选，如果想持久化就注释掉）
-# data/
-# logs/
-# reports/
+# Git + frontend deps + bản build (frontend được build lại trong image)
+.git/
+.gitignore
+web/node_modules/
+web/dist/
+static/
 
-# 忽略测试文件
+# Dữ liệu runtime (mount qua volume, không nhét vào image)
+data/
+logs/
+reports/
+*.db
+*.db-wal
+*.db-shm
+*.bak
+*.snapshot-bak
+*.bak-before-cleanup
+
+# Test
 test_*.py
 *_test.py
+tests/
 
-# 忽略文档
+# Tài liệu
 *.md
 !README.md

@@ -559,19 +559,24 @@ class BacktestService:
         if processed == 0:
             if has_matching_analysis:
                 diagnostics["empty_reason"] = "no_new_results"
-                message = "历史分析记录已存在，当前筛选条件下没有新的回测任务可执行。"
+                message = "Đã có kết quả đánh giá cho điều kiện hiện tại; không có tác vụ mới để chạy."
             else:
                 diagnostics["empty_reason"] = "no_matching_analysis"
-                message = "未找到符合条件的历史分析记录，请检查股票代码、分析日期范围、最小天龄或是否已生成历史分析。"
+                message = (
+                    "Chưa tìm thấy báo cáo phân tích đủ điều kiện. Đánh giá dự báo cần báo cáo "
+                    "phân tích cũ (mặc định ≥ 14 ngày) để có đủ dữ liệu giá về sau mà đối chiếu. "
+                    "Nếu bạn vừa phân tích mã này, hãy thử lại sau ít ngày, hoặc kiểm tra lại mã "
+                    "cổ phiếu / khoảng ngày."
+                )
         elif completed == 0 and insufficient > 0 and errors == 0:
             diagnostics["empty_reason"] = "insufficient_daily_data"
-            message = "已找到历史分析记录，但可用日线行情不足，无法完成回测。"
+            message = "Đã tìm thấy báo cáo phân tích nhưng dữ liệu giá ngày chưa đủ để hoàn tất đánh giá."
         elif completed == 0 and errors > 0:
             diagnostics["empty_reason"] = "evaluation_error"
-            message = "已找到历史分析记录，但回测计算失败，请查看后端日志或放宽筛选条件。"
+            message = "Đã tìm thấy báo cáo phân tích nhưng tính toán đánh giá thất bại; hãy xem log hoặc nới lỏng điều kiện lọc."
         elif saved == 0 and completed == 0:
             diagnostics["empty_reason"] = "no_new_results"
-            message = "没有写入新的回测结果；如需覆盖已有结果，请启用强制重跑。"
+            message = "Không ghi kết quả đánh giá mới; bật chạy lại bắt buộc nếu muốn ghi đè kết quả cũ."
 
         if message:
             diagnostics["message"] = message

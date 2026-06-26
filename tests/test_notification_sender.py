@@ -18,9 +18,24 @@ from types import SimpleNamespace
 from unittest import mock
 from typing import Optional
 
+import pytest
 import requests
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+# Phát hiện Feishu App Bot SDK (lark-oapi) — nền tảng Trung Quốc, không cần cho VN.
+# Các test _app_send_raw cần CreateMessageRequest; skip khi SDK không có.
+try:
+    from lark_oapi.api.im.v1 import CreateMessageRequest as _CreateMessageRequest  # noqa: F401
+    _FEISHU_SDK_AVAILABLE = True
+except ImportError:
+    _FEISHU_SDK_AVAILABLE = False
+
+_skip_no_feishu_sdk = unittest.skipUnless(
+    _FEISHU_SDK_AVAILABLE,
+    "Feishu App Bot SDK (lark-oapi) không khả dụng — nền tảng CN, không dùng cho VN; "
+    "cài pip install lark-oapi nếu cần test lại",
+)
 
 from src.config import Config
 from src.notification_sender import (
@@ -474,6 +489,7 @@ class TestFeishuSender(unittest.TestCase):
         text_content = json.loads(second_call[0][2])
         self.assertIn("plain text", text_content["text"])
 
+    @_skip_no_feishu_sdk
     @mock.patch("src.notification_sender.feishu_sender.uuid_mod.uuid4", return_value="uuid-open-id")
     def test_app_bot_request_includes_receive_id_type(self, _mock_uuid4):
         """_app_send_raw request builder passes receive_id_type and request body fields."""
@@ -497,6 +513,7 @@ class TestFeishuSender(unittest.TestCase):
         self.assertEqual(json.loads(req.request_body.content), {"text": "hi"})
         self.assertEqual(req.request_body.uuid, "uuid-open-id")
 
+    @_skip_no_feishu_sdk
     @mock.patch("src.notification_sender.feishu_sender.uuid_mod.uuid4")
     def test_app_bot_idempotency_uuid_per_call(self, mock_uuid4):
         """Each _app_send_raw invocation gets a fresh UUID."""
@@ -518,6 +535,7 @@ class TestFeishuSender(unittest.TestCase):
         self.assertEqual(call1_req.request_body.uuid, "aaaa-bbbb-cccc")
         self.assertEqual(call2_req.request_body.uuid, "dddd-eeee-ffff")
 
+    @_skip_no_feishu_sdk
     @mock.patch("src.notification_sender.feishu_sender.time.sleep")
     def test_app_bot_retries_sdk_response_failure(self, mock_sleep):
         """_app_send_raw retries failed SDK responses and stops after success."""
@@ -538,6 +556,7 @@ class TestFeishuSender(unittest.TestCase):
         self.assertEqual(create.call_count, 2)
         mock_sleep.assert_called_once()
 
+    @_skip_no_feishu_sdk
     @mock.patch("src.notification_sender.feishu_sender.time.sleep")
     def test_app_bot_retries_sdk_exception(self, mock_sleep):
         """_app_send_raw retries exceptions raised by the SDK create call."""
@@ -555,6 +574,7 @@ class TestFeishuSender(unittest.TestCase):
         self.assertEqual(create.call_count, 2)
         mock_sleep.assert_called_once()
 
+    @_skip_no_feishu_sdk
     @mock.patch("src.notification_sender.feishu_sender.time.sleep")
     def test_app_bot_first_success_does_not_retry(self, mock_sleep):
         """_app_send_raw does not retry after the first successful SDK response."""
@@ -572,6 +592,7 @@ class TestFeishuSender(unittest.TestCase):
         create.assert_called_once()
         mock_sleep.assert_not_called()
 
+    @_skip_no_feishu_sdk
     @mock.patch("src.notification_sender.feishu_sender.time.sleep")
     @mock.patch("src.notification_sender.feishu_sender.CreateMessageRequest.builder", side_effect=RuntimeError("bad builder"))
     def test_app_bot_builder_failure_does_not_retry(self, _mock_builder, mock_sleep):

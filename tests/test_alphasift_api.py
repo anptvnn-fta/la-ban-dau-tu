@@ -1603,7 +1603,7 @@ class AlphaSiftOpportunitiesApiTestCase(unittest.TestCase):
         fake_queue.update_task_progress.assert_any_call(
             "screen-task-1",
             20,
-            "正在执行 AlphaSift 选股，外部数据源较慢时会持续后台运行",
+            "Đang chạy lọc cổ phiếu AlphaSift, sẽ tiếp tục chạy nền nếu nguồn dữ liệu chậm",
         )
 
     def test_screen_task_status_returns_alphasift_result(self) -> None:

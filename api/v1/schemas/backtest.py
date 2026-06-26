@@ -22,6 +22,59 @@ class BacktestRunRequest(BaseModel):
     limit: int = Field(200, ge=1, le=2000, description="最多处理的分析记录数")
 
 
+class WalkForwardRequest(BaseModel):
+    """Yêu cầu kiểm định trượt tiến (đánh giá tín hiệu kỹ thuật trên dữ liệu lịch sử)."""
+
+    code: str = Field(..., description="Mã cổ phiếu (vd VCB.VN)")
+    eval_window_days: int = Field(10, ge=1, le=60, description="Số phiên đối chiếu về sau")
+    days: int = Field(400, ge=120, le=1000, description="Số ngày lịch sử dùng để mô phỏng")
+
+
+class WalkForwardSummary(BaseModel):
+    total: Optional[int] = None
+    completed: Optional[int] = None
+    win: Optional[int] = None
+    loss: Optional[int] = None
+    neutral: Optional[int] = None
+    direction_accuracy_pct: Optional[float] = None
+    win_rate_pct: Optional[float] = None
+    avg_return_pct: Optional[float] = None
+
+
+class WalkForwardItem(BaseModel):
+    date: str
+    signal: str
+    signal_label: str
+    signal_score: int = 0
+    direction_expected: Optional[str] = None
+    start_price: Optional[float] = None
+    end_close: Optional[float] = None
+    return_pct: Optional[float] = None
+    direction_correct: Optional[bool] = None
+    outcome: Optional[str] = None
+
+
+class WalkForwardSignalStat(BaseModel):
+    signal: str
+    label: str
+    count: int = 0
+    correct: int = 0
+    accuracy_pct: Optional[float] = None
+
+
+class WalkForwardResponse(BaseModel):
+    code: str
+    evaluated: int = 0
+    eval_window_days: int = 10
+    summary: Optional[WalkForwardSummary] = None
+    actionable_summary: Optional[WalkForwardSummary] = None
+    by_signal: List[WalkForwardSignalStat] = Field(default_factory=list)
+    items: List[WalkForwardItem] = Field(default_factory=list)
+    signal_distribution: Dict[str, int] = Field(default_factory=dict)
+    message: Optional[str] = None
+    saved_at: Optional[str] = None
+
+
 class BacktestRunResponse(BaseModel):
     processed: int = Field(..., description="候选记录数")
     saved: int = Field(..., description="写入回测结果数")

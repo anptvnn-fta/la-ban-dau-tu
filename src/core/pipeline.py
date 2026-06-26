@@ -225,7 +225,7 @@ def get_vn_news(
             f"## VN Market News (recent general finance headlines — no direct {symbol_bare} match)"
         )
     else:
-        lines.append(f"## VN News for {symbol_bare} ({stock_name})")
+        lines.append(f"## Tin tức VN cho {symbol_bare} ({stock_name})")
 
     for _, row in matched.iterrows():
         title = str(row.get("title", "")).strip()

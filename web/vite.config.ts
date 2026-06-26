@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'node:path'
 
-// StockViet AI — frontend build.
+// La Bàn Đầu Tư — frontend build.
 // Output bundles to ../static so the FastAPI backend serves them as the SPA.
 // Dev server proxies /api to the backend on :8000.
 export default defineConfig({

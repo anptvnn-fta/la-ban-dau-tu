@@ -7,6 +7,7 @@ import type {
   BacktestResultItem,
   PerformanceMetrics,
   BacktestPhaseFilter,
+  WalkForwardResponse,
 } from '../types/backtest';
 
 // ============ API ============
@@ -15,6 +16,35 @@ export const backtestApi = {
   /**
    * Trigger backtest evaluation
    */
+  /**
+   * Kiểm định trượt tiến: đánh giá tín hiệu kỹ thuật trên dữ liệu lịch sử (kết quả ngay).
+   */
+  walkForward: async (code: string, evalWindowDays = 10): Promise<WalkForwardResponse> => {
+    const response = await apiClient.post<Record<string, unknown>>(
+      '/api/v1/backtest/walk-forward',
+      { code, eval_window_days: evalWindowDays },
+    );
+    return toCamelCase<WalkForwardResponse>(response.data);
+  },
+
+  /** Kiểm định trượt tiến bằng AI (tốn một ít lượt LLM). */
+  walkForwardAi: async (code: string, evalWindowDays = 10): Promise<WalkForwardResponse> => {
+    const response = await apiClient.post<Record<string, unknown>>(
+      '/api/v1/backtest/walk-forward-ai',
+      { code, eval_window_days: evalWindowDays },
+    );
+    return toCamelCase<WalkForwardResponse>(response.data);
+  },
+
+  /** Lấy kết quả kiểm định trượt tiến đã lưu (không chạy lại). */
+  getSavedWalkForward: async (code: string, evalWindowDays = 10, mode: 'tech' | 'ai' = 'tech'): Promise<WalkForwardResponse> => {
+    const response = await apiClient.get<Record<string, unknown>>(
+      '/api/v1/backtest/walk-forward/saved',
+      { params: { code, eval_window_days: evalWindowDays, mode } },
+    );
+    return toCamelCase<WalkForwardResponse>(response.data);
+  },
+
   run: async (params: BacktestRunRequest = {}): Promise<BacktestRunResponse> => {
     const requestData: Record<string, unknown> = {};
     if (params.code?.trim()) requestData.code = params.code.trim();

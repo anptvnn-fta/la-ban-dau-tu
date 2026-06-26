@@ -262,18 +262,9 @@ class ConfigEnvCompatibilityTestCase(unittest.TestCase):
         self.assertEqual(with_news_intel.news_intel_retention_days, 45)
         self.assertEqual(with_news_intel.newsnow_base_url, "https://newsnow.example.com")
 
-    def test_env_example_alphasift_install_spec_matches_trusted_default(self):
-        env_example = Path(__file__).resolve().parents[1] / ".env.example"
-
-        for line in env_example.read_text(encoding="utf-8").splitlines():
-            if line.startswith("ALPHASIFT_INSTALL_SPEC="):
-                self.assertEqual(
-                    line,
-                    f"ALPHASIFT_INSTALL_SPEC={DEFAULT_ALPHASIFT_INSTALL_SPEC}",
-                )
-                break
-        else:
-            self.fail("ALPHASIFT_INSTALL_SPEC missing from .env.example")
+    # Đã gỡ test_env_example_alphasift_install_spec_matches_trusted_default:
+    # AlphaSift (engine sàng lọc TQ) đã bị loại khỏi requirements.txt vì rủi ro chuỗi
+    # cung ứng và không dùng cho thị trường VN; .env.example bản VN không khai báo nó.
 
     @patch("src.config.setup_env")
     @patch.object(Config, "_parse_litellm_yaml", return_value=[])

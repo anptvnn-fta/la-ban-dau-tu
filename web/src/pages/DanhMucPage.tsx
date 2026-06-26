@@ -23,6 +23,7 @@ import {
   AlertCircle,
   Loader2,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { PageHeader } from '@/components/common/PageHeader'
 import { Card, CardLabel } from '@/components/ui/card'
 import { PriceChange } from '@/components/report/PriceChange'
@@ -122,6 +123,112 @@ function CreateAccountForm({ onCreated }: { onCreated: (acc: PortfolioAccountIte
           {error}
         </p>
       )}
+    </form>
+  )
+}
+
+// ─── Form ghi giao dịch (mua/bán) — danh mục được dựng từ các giao dịch ───────
+
+const tradeInputCls =
+  'h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50'
+
+function CreateTradeForm({ accountId, onCreated }: { accountId: number; onCreated: () => void }) {
+  const [symbol, setSymbol] = useState('')
+  const [side, setSide] = useState<'buy' | 'sell'>('buy')
+  const [tradeDate, setTradeDate] = useState(() => new Date().toLocaleDateString('en-CA'))
+  const [quantity, setQuantity] = useState('')
+  const [price, setPrice] = useState('')
+  const [fee, setFee] = useState('')
+  const [note, setNote] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const sym = symbol.trim().toUpperCase()
+    const q = parseFloat(quantity)
+    const p = parseFloat(price)
+    if (!sym || !(q > 0) || !(p > 0)) {
+      setError('Vui lòng nhập mã, số lượng và giá hợp lệ.')
+      return
+    }
+    const code = /^[A-Z]{2,3}$/.test(sym) ? `${sym}.VN` : sym
+    setSubmitting(true)
+    setError(null)
+    try {
+      await portfolioApi.createTrade({
+        accountId,
+        symbol: code,
+        tradeDate,
+        side,
+        quantity: q,
+        price: p,
+        fee: parseFloat(fee) || 0,
+        tax: 0,
+        market: 'vn',
+        currency: 'VND',
+        note: note.trim() || undefined,
+      })
+      toast.success('Đã ghi giao dịch')
+      setSymbol(''); setQuantity(''); setPrice(''); setFee(''); setNote('')
+      onCreated()
+    } catch {
+      setError('Không thể ghi giao dịch. Hãy kiểm tra lại thông tin.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const field = (label: string, node: React.ReactNode, span = 1) => (
+    <div className={span === 2 ? 'col-span-2' : undefined}>
+      <label className="mb-1 block text-xs font-medium text-muted-foreground">{label}</label>
+      {node}
+    </div>
+  )
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3" aria-label="Thêm giao dịch">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {field('Mã cổ phiếu', (
+          <input value={symbol} onChange={e => setSymbol(e.target.value.toUpperCase())} placeholder="VHM" className={cn(tradeInputCls, 'font-mono')} required disabled={submitting} />
+        ))}
+        {field('Loại lệnh', (
+          <select value={side} onChange={e => setSide(e.target.value as 'buy' | 'sell')} className={cn(tradeInputCls, 'cursor-pointer')} disabled={submitting}>
+            <option value="buy">Mua</option>
+            <option value="sell">Bán</option>
+          </select>
+        ))}
+        {field('Ngày giao dịch', (
+          <input type="date" value={tradeDate} onChange={e => setTradeDate(e.target.value)} className={tradeInputCls} disabled={submitting} />
+        ))}
+        {field('Số lượng', (
+          <input type="number" value={quantity} onChange={e => setQuantity(e.target.value)} placeholder="1000" className={cn(tradeInputCls, 'font-mono')} required disabled={submitting} min="0" step="any" />
+        ))}
+        {field('Giá (VND)', (
+          <input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="45000" className={cn(tradeInputCls, 'font-mono')} required disabled={submitting} min="0" step="any" />
+        ))}
+        {field('Phí + Thuế (VND)', (
+          <input type="number" value={fee} onChange={e => setFee(e.target.value)} placeholder="0" className={cn(tradeInputCls, 'font-mono')} disabled={submitting} min="0" step="any" />
+        ))}
+        {field('Ghi chú', (
+          <input value={note} onChange={e => setNote(e.target.value)} placeholder="(tuỳ chọn)" className={tradeInputCls} disabled={submitting} />
+        ), 2)}
+      </div>
+      <div className="flex items-center gap-3">
+        <button
+          type="submit"
+          disabled={submitting}
+          className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {submitting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Plus className="h-4 w-4" aria-hidden />}
+          Ghi giao dịch
+        </button>
+        {error && (
+          <p className="flex items-center gap-1 text-xs text-danger">
+            <AlertCircle className="h-3.5 w-3.5" aria-hidden />{error}
+          </p>
+        )}
+      </div>
     </form>
   )
 }
@@ -333,7 +440,7 @@ function HoldingsTable({
 
 // ─── Giao dịch gần đây ────────────────────────────────────────────────────────
 
-function TradesSection({ accountId }: { accountId: number }) {
+function TradesSection({ accountId, refreshTick = 0 }: { accountId: number; refreshTick?: number }) {
   const [trades, setTrades] = useState<PortfolioTradeListItem[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -358,7 +465,7 @@ function TradesSection({ accountId }: { accountId: number }) {
   useEffect(() => {
     setPage(1)
     fetchTrades(1)
-  }, [fetchTrades])
+  }, [fetchTrades, refreshTick])
 
   const totalPages = Math.ceil(total / pageSize)
 
@@ -502,6 +609,8 @@ export default function DanhMucPage() {
   const [snapError, setSnapError] = useState<string | null>(null)
 
   const [showCreateForm, setShowCreateForm] = useState(false)
+  const [showTradeForm, setShowTradeForm] = useState(false)
+  const [tradesRefresh, setTradesRefresh] = useState(0)
 
   // Tải danh sách tài khoản
   const loadAccounts = useCallback(async () => {
@@ -526,7 +635,7 @@ export default function DanhMucPage() {
   }, [loadAccounts])
 
   // Tải snapshot khi chọn tài khoản
-  useEffect(() => {
+  const loadSnapshot = useCallback(() => {
     if (selectedId === null) {
       setSnapshot(null)
       return
@@ -543,10 +652,20 @@ export default function DanhMucPage() {
       .finally(() => setSnapLoading(false))
   }, [selectedId])
 
+  useEffect(() => {
+    loadSnapshot()
+  }, [loadSnapshot])
+
   const handleAccountCreated = (acc: PortfolioAccountItem) => {
     setAccounts(prev => [...prev, acc])
     setSelectedId(acc.id)
     setShowCreateForm(false)
+  }
+
+  // Sau khi ghi giao dịch: nạp lại danh mục + lịch sử giao dịch
+  const handleTradeCreated = () => {
+    loadSnapshot()
+    setTradesRefresh(t => t + 1)
   }
 
   const selectedAccount = accounts.find(a => a.id === selectedId)
@@ -673,7 +792,7 @@ export default function DanhMucPage() {
 
               {/* Bảng cổ phiếu nắm giữ */}
               <Card className="overflow-hidden">
-                <div className="border-b border-border px-5 py-4">
+                <div className="flex items-center justify-between gap-2 border-b border-border px-5 py-4">
                   <h2 className="font-heading font-semibold text-foreground">
                     {VI.portfolio.holdings}
                     {snapshot.positions.length > 0 && (
@@ -682,7 +801,22 @@ export default function DanhMucPage() {
                       </span>
                     )}
                   </h2>
+                  {selectedId !== null && (
+                    <button
+                      type="button"
+                      onClick={() => setShowTradeForm(v => !v)}
+                      className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <Plus className="h-3.5 w-3.5" aria-hidden />
+                      Thêm giao dịch
+                    </button>
+                  )}
                 </div>
+                {showTradeForm && selectedId !== null && (
+                  <div className="border-b border-border bg-background/40 px-5 py-4">
+                    <CreateTradeForm accountId={selectedId} onCreated={handleTradeCreated} />
+                  </div>
+                )}
                 <HoldingsTable
                   positions={snapshot.positions}
                   totalMarketValue={snapshot.totalMarketValue}
@@ -690,7 +824,7 @@ export default function DanhMucPage() {
               </Card>
 
               {/* Giao dịch gần đây */}
-              {selectedId !== null && <TradesSection accountId={selectedId} />}
+              {selectedId !== null && <TradesSection accountId={selectedId} refreshTick={tradesRefresh} />}
             </>
           )}
 

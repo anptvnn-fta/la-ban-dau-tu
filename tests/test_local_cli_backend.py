@@ -225,7 +225,7 @@ def test_stderr_does_not_affect_successful_stdout_or_json_parsing(tmp_path: Path
         tmp_path,
         """
 import sys
-print('{"sentiment_score": 70, "trend_prediction": "看多"}')
+print('{"sentiment_score": 70, "trend_prediction": "tang"}')
 print('{"bad": "stderr"}', file=sys.stderr)
 """,
     )

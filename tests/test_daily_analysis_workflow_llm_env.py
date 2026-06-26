@@ -6,11 +6,19 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+import pytest
 import yaml
 
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 TEMPLATE_PATH = ROOT_DIR / "apps/dsa-web/src/components/settings/llmProviderTemplates.ts"
+
+# File frontend của repo Trung Quốc cũ không tồn tại trong repo VN-only.
+_TEMPLATE_EXISTS = TEMPLATE_PATH.exists()
+_skip_no_template = pytest.mark.skipif(
+    not _TEMPLATE_EXISTS,
+    reason="llmProviderTemplates.ts là file frontend repo CN cũ, không có trong repo VN-only",
+)
 WORKFLOW_PATH = ROOT_DIR / ".github/workflows/00-daily-analysis.yml"
 ENV_EXAMPLE_PATH = ROOT_DIR / ".env.example"
 
@@ -58,6 +66,7 @@ def _load_daily_analysis_env() -> dict[str, str]:
     return analyze_step["env"]
 
 
+@_skip_no_template
 def test_daily_analysis_maps_all_provider_template_channels() -> None:
     templates = _extract_provider_templates()
     env = _load_daily_analysis_env()
@@ -78,6 +87,7 @@ def test_daily_analysis_maps_all_provider_template_channels() -> None:
     assert not any(key.startswith("LLM_ARK_") for key in env)
 
 
+@_skip_no_template
 def test_daily_analysis_keeps_channel_secrets_in_secrets_context() -> None:
     templates = _extract_provider_templates()
     env = _load_daily_analysis_env()
@@ -143,6 +153,7 @@ def test_daily_analysis_generation_fallback_defaults_to_litellm() -> None:
     )
 
 
+@_skip_no_template
 def test_env_example_includes_provider_template_channel_examples() -> None:
     templates = _extract_provider_templates()
     env_example = ENV_EXAMPLE_PATH.read_text(encoding="utf-8")

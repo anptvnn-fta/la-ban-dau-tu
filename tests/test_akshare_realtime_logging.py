@@ -241,6 +241,10 @@ def test_hot_stocks_uses_eastmoney_hot_ranking_when_available(monkeypatch, aksha
 
 
 def test_hot_stocks_falls_back_to_xueqiu_when_primary_sources_empty(monkeypatch, akshare_fetcher):
+    # akshare là thư viện dữ liệu Trung Quốc, chưa cài trong môi trường VN.
+    # Inject stub vào sys.modules để get_hot_stocks() có thể qua dòng `import akshare as ak`.
+    monkeypatch.setitem(sys.modules, "akshare", SimpleNamespace())
+
     call_order = []
 
     def _eastmoney(_ak, _n):

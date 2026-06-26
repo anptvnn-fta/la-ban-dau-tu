@@ -161,7 +161,8 @@ class TestAnalyzerSchemaFallback(unittest.TestCase):
         self.assertEqual(result.sentiment_score, 72)
         self.assertEqual(result.analysis_summary, "技术面向好")
         self.assertEqual(result.action, "hold")
-        self.assertEqual(result.action_label, "持有")
+        # Nhãn hành động đã Việt hoá (sản phẩm VN-first): 持有 → Nắm giữ
+        self.assertEqual(result.action_label, "Nắm giữ")
 
     def test_parse_response_preserves_explicit_action_in_raw_result(self) -> None:
         analyzer = GeminiAnalyzer()
@@ -179,10 +180,11 @@ class TestAnalyzerSchemaFallback(unittest.TestCase):
         raw_result = result.to_dict()
 
         self.assertEqual(result.action, "watch")
-        self.assertEqual(result.action_label, "观望")
+        # Nhãn hành động đã Việt hoá (sản phẩm VN-first): 观望 → Quan sát
+        self.assertEqual(result.action_label, "Quan sát")
         self.assertEqual(result.decision_type, "hold")
         self.assertEqual(raw_result["action"], "watch")
-        self.assertEqual(raw_result["action_label"], "观望")
+        self.assertEqual(raw_result["action_label"], "Quan sát")
 
     def test_parse_response_keeps_unknown_dashboard_fields(self) -> None:
         analyzer = GeminiAnalyzer()

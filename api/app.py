@@ -258,6 +258,17 @@ async def app_lifespan(app: FastAPI):
     app.state.system_config_service = SystemConfigService(
         runtime_scheduler=app.state.runtime_scheduler_service,
     )
+    # BẢO MẬT: cảnh báo rõ ràng khi xác thực quản trị đang TẮT. Lúc này mọi endpoint
+    # /api/v1/* (kể cả ghi cấu hình) đều mở — chỉ chấp nhận khi chạy nội bộ tin cậy.
+    if not is_auth_enabled():
+        logger.warning(
+            "=" * 70 + "\n"
+            "  [BẢO MẬT] Xác thực quản trị đang TẮT (ADMIN_AUTH_ENABLED=false).\n"
+            "  Mọi API đang MỞ — bất kỳ ai truy cập được cổng này đều có thể đọc/ghi\n"
+            "  cấu hình. KHÔNG để lộ ra Internet ở chế độ này.\n"
+            "  Để bật: đặt ADMIN_AUTH_ENABLED=true trong .env rồi đăng nhập đặt mật khẩu.\n"
+            + "=" * 70
+        )
     _schedule_stock_index_background_refresh(app, "startup")
     try:
         yield
@@ -291,16 +302,17 @@ def create_app(static_dir: Optional[Path] = None) -> FastAPI:
     
     # 创建 FastAPI 实例
     app = FastAPI(
-        title="Daily Stock Analysis API",
+        title="La Bàn Đầu Tư API",
         description=(
-            "A股/港股/美股自选股智能分析系统 API\n\n"
-            "## 功能模块\n"
-            "- 股票分析：触发 AI 智能分析\n"
-            "- 历史记录：查询历史分析报告\n"
-            "- 股票数据：获取行情数据\n\n"
-            "## 认证方式\n"
-            "支持可选管理员认证：ADMIN_AUTH_ENABLED=true 时，除登录、状态、健康检查和 "
-            "OpenAPI 文档外，/api/v1/* 需要有效管理员会话 Cookie；关闭时不强制认证。"
+            "API hệ thống phân tích cổ phiếu Việt Nam thông minh\n\n"
+            "## Phân hệ chức năng\n"
+            "- Phân tích cổ phiếu: kích hoạt phân tích AI\n"
+            "- Lịch sử: tra cứu báo cáo đã phân tích\n"
+            "- Dữ liệu thị trường: lấy dữ liệu giá\n\n"
+            "## Xác thực\n"
+            "Hỗ trợ xác thực quản trị tùy chọn: khi ADMIN_AUTH_ENABLED=true, mọi "
+            "/api/v1/* (trừ đăng nhập, trạng thái, health check và tài liệu OpenAPI) "
+            "cần cookie phiên quản trị hợp lệ; khi tắt thì không bắt buộc xác thực."
         ),
         version="1.0.0",
         lifespan=app_lifespan,

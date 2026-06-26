@@ -27,10 +27,10 @@ function ThemeToggle() {
 
 export function SidebarNav() {
   return (
-    <aside className="flex h-full w-[240px] shrink-0 flex-col border-r border-border bg-card/60 px-3 py-4">
+    <aside className="flex h-full w-[240px] shrink-0 flex-col border-r border-border/60 bg-card/40 px-3 py-4 backdrop-blur-xl">
       {/* Thương hiệu */}
       <div className="mb-6 flex items-center gap-2.5 px-2">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-primary">
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-primary shadow-lg shadow-primary/20 ring-1 ring-primary/20">
           <CandlestickChart className="h-5 w-5" />
         </span>
         <div className="min-w-0 leading-tight">
@@ -48,10 +48,10 @@ export function SidebarNav() {
             end={path === '/'}
             className={({ isActive }) =>
               cn(
-                'flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'relative flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 isActive
-                  ? 'bg-primary/12 text-primary'
-                  : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+                  ? 'bg-primary/15 text-primary ring-1 ring-primary/25 before:absolute before:left-0 before:top-1/2 before:h-5 before:w-1 before:-translate-y-1/2 before:rounded-r-full before:bg-primary'
+                  : 'text-muted-foreground hover:bg-white/5 hover:text-foreground',
               )
             }
           >

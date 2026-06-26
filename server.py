@@ -44,11 +44,18 @@ __all__ = ['app']
 
 
 if __name__ == "__main__":
+    import os
     import uvicorn
+
+    # Mặc định AN TOÀN: chỉ bind loopback và TẮT auto-reload.
+    # reload=True chỉ dùng khi dev (đặt DEV_RELOAD=true); 0.0.0.0 chỉ khi chủ động đặt HOST.
+    host = os.getenv("HOST", "127.0.0.1")
+    port = int(os.getenv("PORT", "8000"))
+    reload = os.getenv("DEV_RELOAD", "false").strip().lower() in {"1", "true", "yes", "on"}
 
     uvicorn.run(
         "server:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
+        host=host,
+        port=port,
+        reload=reload,
     )

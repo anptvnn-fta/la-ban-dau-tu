@@ -389,8 +389,12 @@ class SystemConfigService:
             raw_value = config_map.get(key, "")
             field_schema = schema_by_key[key]
             display_value = self._resolve_display_value(raw_value, field_schema, raw_value_exists)
+            # BẢO MẬT: che MỌI trường nhạy cảm (API key, token, mật khẩu...) trong phản hồi,
+            # không chỉ 2 khoá cứng. Tránh lộ GEMINI_API_KEY/EMAIL_PASSWORD... khi gọi GET config.
+            # Frontend vẫn lưu được nhờ cơ chế mask_token (chỉ gửi trường đã thay đổi).
             is_masked = False
-            if key in self._SERVER_MASKED_CONFIG_KEYS and display_value:
+            is_sensitive = bool(field_schema.get("is_sensitive", False))
+            if display_value and (key in self._SERVER_MASKED_CONFIG_KEYS or is_sensitive):
                 display_value = mask_token
                 is_masked = True
             item: Dict[str, Any] = {
@@ -433,8 +437,8 @@ class SystemConfigService:
         channel: str,
         items: Sequence[Dict[str, str]],
         mask_token: str = "******",
-        title: str = "DSA 通知测试",
-        content: str = "这是一条来自 DSA Web 设置页的通知测试消息。",
+        title: str = "La Bàn Đầu Tư · Thông báo thử",
+        content: str = "Đây là tin nhắn kiểm tra thông báo từ trang Cài Đặt của La Bàn Đầu Tư.",
         timeout_seconds: float = 20.0,
     ) -> Dict[str, Any]:
         """Send one real notification test without persisting submitted values."""
@@ -450,7 +454,7 @@ class SystemConfigService:
         if missing:
             return self._build_notification_test_result(
                 success=False,
-                message=f"通知渠道配置不完整，缺少: {', '.join(missing)}",
+                message=f"Kênh thông báo thiếu cấu hình, còn thiếu: {', '.join(missing)}",
                 error_code="config_missing",
                 stage="config_validation",
                 retryable=False,
@@ -487,7 +491,7 @@ class SystemConfigService:
             error_code, retryable = self._classify_notification_exception(exc)
             return self._build_notification_test_result(
                 success=False,
-                message=f"通知测试异常: {exc}",
+                message=f"Gửi thử thất bại: {exc}",
                 error_code=error_code,
                 stage="notification_send",
                 retryable=retryable,
