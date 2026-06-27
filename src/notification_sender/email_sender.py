@@ -66,7 +66,7 @@ class EmailSender:
         self._stock_email_groups = getattr(config, 'stock_email_groups', None) or []
         
     def _is_email_configured(self) -> bool:
-        """检查邮件配置是否完整（只需邮箱和授权码）"""
+        """Kiểm tra cấu hình email có đầy đủ không (chỉ cần địa chỉ và mật khẩu/mã xác thực)"""
         return bool(self._email_config['sender'] and self._email_config['password'])
     
     def get_receivers_for_stocks(self, stock_codes: List[str]) -> List[str]:
@@ -151,7 +151,7 @@ class EmailSender:
             是否发送成功
         """
         if not self._is_email_configured():
-            logger.warning("邮件配置不完整，跳过推送")
+            logger.warning("Cấu hình email chưa đầy đủ, bỏ qua gửi thông báo")
             return False
         
         sender = self._email_config['sender']
@@ -188,13 +188,13 @@ class EmailSender:
                 smtp_server = smtp_config['server']
                 smtp_port = smtp_config['port']
                 use_ssl = smtp_config['ssl']
-                logger.info(f"自动识别邮箱类型: {domain} -> {smtp_server}:{smtp_port}")
+                logger.info(f"Tự động nhận diện loại hộp thư: {domain} -> {smtp_server}:{smtp_port}")
             else:
                 # 未知邮箱，尝试通用配置
                 smtp_server = f"smtp.{domain}"
                 smtp_port = 465
                 use_ssl = True
-                logger.warning(f"未知邮箱类型 {domain}，尝试通用配置: {smtp_server}:{smtp_port}")
+                logger.warning(f"Loại hộp thư {domain} không xác định, thử cấu hình chung: {smtp_server}:{smtp_port}")
             
             # 根据配置选择连接方式
             if use_ssl:
@@ -208,17 +208,17 @@ class EmailSender:
             server.login(sender, password)
             server.send_message(msg)
             
-            logger.info(f"邮件发送成功，收件人: {receivers}")
+            logger.info(f"Gửi email thành công, người nhận: {receivers}")
             return True
-            
+
         except smtplib.SMTPAuthenticationError:
-            logger.error("邮件发送失败：认证错误，请检查邮箱和授权码是否正确")
+            logger.error("Gửi email thất bại: lỗi xác thực, vui lòng kiểm tra địa chỉ email và mật khẩu/mã xác thực")
             return False
         except smtplib.SMTPConnectError as e:
-            logger.error(f"邮件发送失败：无法连接 SMTP 服务器 - {e}")
+            logger.error(f"Gửi email thất bại: không thể kết nối máy chủ SMTP - {e}")
             return False
         except Exception as e:
-            logger.error(f"发送邮件失败: {e}")
+            logger.error(f"Gửi email thất bại: {e}")
             return False
         finally:
             self._close_server(server)
@@ -235,17 +235,17 @@ class EmailSender:
         server: Optional[smtplib.SMTP] = None
         try:
             date_str = datetime.now().strftime('%Y-%m-%d')
-            subject = f"📈 股票智能分析报告 - {date_str}"
+            subject = f"📈 Báo cáo phân tích cổ phiếu - {date_str}"
             msg = MIMEMultipart('related')
             msg['Subject'] = Header(subject, 'utf-8')
             msg['From'] = self._format_sender_address(sender)
             msg['To'] = ', '.join(receivers)
 
             alt = MIMEMultipart('alternative')
-            alt.attach(MIMEText('报告已生成，详见下方图片。', 'plain', 'utf-8'))
+            alt.attach(MIMEText('Báo cáo đã được tạo, xem ảnh bên dưới.', 'plain', 'utf-8'))
             html_body = (
-                '<p>报告已生成，详见下方图片（点击可查看大图）：</p>'
-                '<p><img src="cid:report-image" alt="股票分析报告" style="max-width:100%%;" /></p>'
+                '<p>Báo cáo đã được tạo, xem ảnh bên dưới (nhấn để xem ảnh lớn):</p>'
+                '<p><img src="cid:report-image" alt="Báo cáo phân tích cổ phiếu" style="max-width:100%%;" /></p>'
             )
             alt.attach(MIMEText(html_body, 'html', 'utf-8'))
             msg.attach(alt)
@@ -271,10 +271,10 @@ class EmailSender:
                 server.starttls()
             server.login(sender, password)
             server.send_message(msg)
-            logger.info("邮件（内联图片）发送成功，收件人: %s", receivers)
+            logger.info("Gửi email (ảnh nội tuyến) thành công, người nhận: %s", receivers)
             return True
         except Exception as e:
-            logger.error("邮件（内联图片）发送失败: %s", e)
+            logger.error("Gửi email (ảnh nội tuyến) thất bại: %s", e)
             return False
         finally:
             self._close_server(server)

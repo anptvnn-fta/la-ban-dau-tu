@@ -13,13 +13,13 @@ from src.schemas.decision_action import DecisionAction
 
 
 class BacktestRunRequest(BaseModel):
-    code: Optional[str] = Field(None, description="仅回测指定股票")
-    force: bool = Field(False, description="强制重新计算")
-    eval_window_days: Optional[int] = Field(None, ge=1, le=120, description="评估窗口（交易日数）")
-    min_age_days: Optional[int] = Field(None, ge=0, le=365, description="分析记录最小天龄（0=不限）")
-    analysis_date_from: Optional[date] = Field(None, description="分析日期起始（含）")
-    analysis_date_to: Optional[date] = Field(None, description="分析日期结束（含）")
-    limit: int = Field(200, ge=1, le=2000, description="最多处理的分析记录数")
+    code: Optional[str] = Field(None, description="Chỉ backtest mã cổ phiếu chỉ định")
+    force: bool = Field(False, description="Bắt buộc tính lại toàn bộ")
+    eval_window_days: Optional[int] = Field(None, ge=1, le=120, description="Cửa sổ đánh giá (số phiên giao dịch)")
+    min_age_days: Optional[int] = Field(None, ge=0, le=365, description="Tuổi tối thiểu của bản ghi phân tích (0 = không giới hạn)")
+    analysis_date_from: Optional[date] = Field(None, description="Ngày phân tích bắt đầu (bao gồm)")
+    analysis_date_to: Optional[date] = Field(None, description="Ngày phân tích kết thúc (bao gồm)")
+    limit: int = Field(200, ge=1, le=2000, description="Số bản ghi phân tích tối đa cần xử lý")
 
 
 class WalkForwardRequest(BaseModel):
@@ -76,17 +76,17 @@ class WalkForwardResponse(BaseModel):
 
 
 class BacktestRunResponse(BaseModel):
-    processed: int = Field(..., description="候选记录数")
-    saved: int = Field(..., description="写入回测结果数")
-    completed: int = Field(..., description="完成回测数")
-    insufficient: int = Field(..., description="数据不足数")
-    errors: int = Field(..., description="错误数")
+    processed: int = Field(..., description="Số bản ghi ứng viên")
+    saved: int = Field(..., description="Số kết quả backtest đã ghi")
+    completed: int = Field(..., description="Số backtest hoàn thành")
+    insufficient: int = Field(..., description="Số trường hợp dữ liệu không đủ")
+    errors: int = Field(..., description="Số lỗi")
     applied_eval_window_days: Optional[int] = Field(
         ...,
-        description="实际生效的评估窗口（交易日数）",
+        description="Cửa sổ đánh giá thực tế áp dụng (số phiên giao dịch)",
     )
-    message: Optional[str] = Field(None, description="空结果或降级时的诊断说明")
-    diagnostics: Dict[str, Any] = Field(default_factory=dict, description="回测筛选与诊断信息")
+    message: Optional[str] = Field(None, description="Chẩn đoán khi kết quả trống hoặc suy giảm")
+    diagnostics: Dict[str, Any] = Field(default_factory=dict, description="Thông tin lọc và chẩn đoán backtest")
 
 
 class BacktestResultItem(BaseModel):

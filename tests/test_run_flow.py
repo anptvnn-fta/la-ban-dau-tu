@@ -1058,12 +1058,12 @@ class RunFlowTestCase(unittest.TestCase):
         snapshot = build_history_run_flow_snapshot(_history_record(context_snapshot=context_snapshot))
 
         self.assertEqual(
-            [node.label for node in snapshot.nodes if node.label == "保存报告"],
-            ["保存报告"],
+            [node.label for node in snapshot.nodes if node.label == "Lưu báo cáo"],
+            ["Lưu báo cáo"],
         )
         self.assertEqual(
-            [node.label for node in snapshot.nodes if node.label.startswith("推送通知")],
-            ["推送通知 · report"],
+            [node.label for node in snapshot.nodes if node.label.startswith("Gửi thông báo")],
+            ["Gửi thông báo · report"],
         )
         provider_labels = {node.label for node in snapshot.nodes if node.kind == "data_source"}
         self.assertNotIn("新闻舆情 · MarketNews", provider_labels)

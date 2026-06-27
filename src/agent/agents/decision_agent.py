@@ -51,7 +51,7 @@ Requirements:
 """
             if report_language == "en":
                 return prompt + "\nAlways answer in English.\n"
-            return prompt + "\n默认使用中文回答。\n"
+            return prompt + "\nMặc định trả lời bằng tiếng Việt.\n"
 
         skills = ""
         if self.skill_instructions:
@@ -115,7 +115,7 @@ keys: ``phase_context``, ``action_window``, ``immediate_action``,
 current action, watch conditions, and next check point. For pre-market,
 non-trading, or unknown phases, do not invent today's intraday movement. If
 quote, daily bars, or technical data is stale, fallback, missing, fetch_failed,
-partial, or estimated, ``confidence_level`` must not be High/高 and the
+partial, or estimated, ``confidence_level`` must not be High/Cao and the
 limitation must be reflected in ``confidence_reason`` or ``data_limitations``.
 """
         if report_language == "en":
@@ -128,10 +128,10 @@ limitation must be reflected in ``confidence_reason`` or ``data_limitations``.
 """
         return prompt + """
 
-## 输出语言
-- 所有 JSON 键名保持不变。
-- `decision_type` 必须保持为 `buy|hold|sell`。
-- 所有面向用户的人类可读文本值必须使用中文。
+## Ngôn ngữ đầu ra
+- Giữ nguyên tất cả tên khoá JSON.
+- `decision_type` phải giữ nguyên dạng `buy|hold|sell`.
+- Tất cả các giá trị văn bản hướng đến người dùng phải được viết bằng tiếng Việt.
 """
 
     def build_user_message(self, ctx: AgentContext) -> str:

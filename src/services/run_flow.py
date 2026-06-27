@@ -20,10 +20,10 @@ from src.utils.data_processing import normalize_model_used, parse_json_field
 
 
 _LANES = [
-    {"id": "entry", "label": "入口", "order": 1},
-    {"id": "data_source", "label": "数据来源", "order": 2},
-    {"id": "analysis", "label": "分析引擎", "order": 3},
-    {"id": "artifact", "label": "产物", "order": 4},
+    {"id": "entry", "label": "Đầu vào", "order": 1},
+    {"id": "data_source", "label": "Nguồn dữ liệu", "order": 2},
+    {"id": "analysis", "label": "Phân tích", "order": 3},
+    {"id": "artifact", "label": "Kết quả", "order": 4},
 ]
 
 _RUN_STATUS_MAP = {
@@ -101,7 +101,7 @@ def build_task_run_flow_snapshot(
         "request",
         lane="entry",
         kind="entry",
-        label="用户请求",
+        label="Yêu cầu người dùng",
         status="success" if created_at else "unknown",
         started_at=created_at,
         ended_at=created_at,
@@ -119,7 +119,7 @@ def build_task_run_flow_snapshot(
         "task_queue",
         lane="entry",
         kind="queue",
-        label="任务队列",
+        label="Hàng chờ tác vụ",
         status=flow_status,
         started_at=created_at,
         ended_at=completed_at,
@@ -130,7 +130,7 @@ def build_task_run_flow_snapshot(
             "error": getattr(task, "error", None),
         },
     )
-    _append_edge(edges, "request", "task_queue", "control", flow_status, label="提交")
+    _append_edge(edges, "request", "task_queue", "control", flow_status, label="Gửi")
 
     if flow_status in {"pending", "running", "cancel_requested"}:
         _put_node(
@@ -138,12 +138,12 @@ def build_task_run_flow_snapshot(
             "analysis_pipeline",
             lane="analysis",
             kind="analysis",
-            label="分析流程",
+            label="Luồng phân tích",
             status="running" if flow_status == "running" else flow_status,
             started_at=started_at,
             message=getattr(task, "message", None) or _task_status_message(flow_status),
         )
-        _append_edge(edges, "task_queue", "analysis_pipeline", "control", flow_status, label="调度")
+        _append_edge(edges, "task_queue", "analysis_pipeline", "control", flow_status, label="Lên lịch")
     else:
         _put_skeleton_tail(nodes, edges, anchor_node_id="task_queue", status=flow_status)
 
@@ -222,11 +222,11 @@ def build_history_run_flow_snapshot(
         "request",
         lane="entry",
         kind="entry",
-        label="用户请求",
+        label="Yêu cầu người dùng",
         status="success",
         started_at=created_at,
         ended_at=created_at,
-        message="历史分析记录",
+        message="Bản ghi phân tích lịch sử",
         metadata={
             "query_id": query_id,
             "trigger_source": diagnostics.get("trigger_source") or overview_metadata.get("trigger_source"),
@@ -238,21 +238,21 @@ def build_history_run_flow_snapshot(
         "task_queue",
         lane="entry",
         kind="queue",
-        label="任务队列",
+        label="Hàng chờ tác vụ",
         status="success",
         started_at=created_at,
         ended_at=created_at,
-        message="任务已完成并进入历史记录",
+        message="Tác vụ đã hoàn tất và được ghi vào lịch sử",
     )
-    _append_edge(edges, "request", "task_queue", "control", "success", label="提交")
+    _append_edge(edges, "request", "task_queue", "control", "success", label="Gửi")
     _append_event(
         events,
         "task_completed",
         node_id="task_queue",
         timestamp=created_at,
         severity="success",
-        title="任务完成",
-        message="历史记录已生成",
+        title="Tác vụ hoàn tất",
+        message="Lịch sử đã được tạo",
     )
 
     provider_success_by_block = _append_provider_runs(
@@ -281,7 +281,7 @@ def build_history_run_flow_snapshot(
     )
     _append_context_blocks(nodes, edges, events, overview, provider_success_by_block)
     if not any(edge["to"] == "context_pack" for edge in edges):
-        _append_edge(edges, "task_queue", "context_pack", "data", context_status, label="输入")
+        _append_edge(edges, "task_queue", "context_pack", "data", context_status, label="Đầu vào")
 
     last_analysis_node = _append_llm_runs(
         nodes,
@@ -296,12 +296,12 @@ def build_history_run_flow_snapshot(
             "llm",
             lane="analysis",
             kind="model",
-            label="LLM 生成",
+            label="LLM Tạo",
             status="unknown",
             provider=normalize_model_used(raw.get("model_used")) if raw else None,
-            message="LLM 未记录诊断信息",
+            message="LLM chưa ghi thông tin chẩn đoán",
         )
-        _append_edge(edges, "context_pack", "llm", "data", "unknown", label="生成")
+        _append_edge(edges, "context_pack", "llm", "data", "unknown", label="Tạo")
         last_analysis_node = "llm"
 
     last_artifact_node = _append_history_runs(
@@ -318,13 +318,13 @@ def build_history_run_flow_snapshot(
             "history_save",
             lane="artifact",
             kind="artifact",
-            label="保存报告",
+            label="Lưu báo cáo",
             status="success",
             ended_at=created_at,
-            message="历史记录已存在",
+            message="Lịch sử đã tồn tại",
             metadata={"analysis_history_id": getattr(record, "id", None)},
         )
-        _append_edge(edges, last_analysis_node, "history_save", "data", "success", label="保存")
+        _append_edge(edges, last_analysis_node, "history_save", "data", "success", label="Lưu")
         last_artifact_node = "history_save"
 
     notification_count = _append_notification_runs(
@@ -340,11 +340,11 @@ def build_history_run_flow_snapshot(
             "notification",
             lane="artifact",
             kind="notification",
-            label="推送通知",
+            label="Gửi thông báo",
             status="unknown",
-            message="通知结果未记录",
+            message="Kết quả thông báo chưa được ghi",
         )
-        _append_edge(edges, last_artifact_node, "notification", "control", "unknown", label="通知")
+        _append_edge(edges, last_artifact_node, "notification", "control", "unknown", label="Thông báo")
 
     summary = _build_summary(nodes, edges, events)
     status = _history_snapshot_status(nodes, diagnostics, overview)
@@ -438,11 +438,11 @@ def _append_provider_runs(
                 node_id,
                 edge_kind,
                 status,
-                label="降级" if edge_kind == "fallback" else "重试",
+                label="Dự phòng" if edge_kind == "fallback" else "Thử lại",
                 message=_safe_text(run.get("fallback_from") or run.get("fallback_to"), max_length=120),
             )
         else:
-            _append_edge(edges, "task_queue", node_id, "control", status, label="调用")
+            _append_edge(edges, "task_queue", node_id, "control", status, label="Gọi")
 
         if success:
             provider_success_by_block[block_key] = node_id
@@ -454,7 +454,7 @@ def _append_provider_runs(
             node_id=node_id,
             timestamp=timestamp,
             severity=severity,
-            title=f"{label}{'成功' if success else '失败'}",
+            title=f"{label} {'thành công' if success else 'thất bại'}",
             message=message,
             metadata={
                 "provider": provider,
@@ -511,10 +511,10 @@ def _append_context_blocks(
         )
         provider_node_id = provider_success_by_block.get(key)
         if provider_node_id:
-            _append_edge(edges, provider_node_id, node_id, "data", status, label="输入")
+            _append_edge(edges, provider_node_id, node_id, "data", status, label="Đầu vào")
         else:
-            _append_edge(edges, "task_queue", node_id, "data", status, label="输入")
-        _append_edge(edges, node_id, "context_pack", "data", status, label="组装")
+            _append_edge(edges, "task_queue", node_id, "data", status, label="Đầu vào")
+        _append_edge(edges, node_id, "context_pack", "data", status, label="Tổng hợp")
         if status != "success":
             _append_event(
                 events,
@@ -522,7 +522,7 @@ def _append_context_blocks(
                 node_id=node_id,
                 timestamp=overview.get("created_at"),
                 severity="danger" if status == "failed" else "warning",
-                title=f"{block_map.get('label') or key}输入状态",
+                title=f"Trạng thái đầu vào {block_map.get('label') or key}",
                 message=_context_block_message(block_map),
                 metadata={
                     "block_key": key,
@@ -566,7 +566,7 @@ def _append_llm_runs(
             node_id,
             lane="analysis",
             kind="model",
-            label="LLM 生成",
+            label="LLM Tạo",
             status=status,
             provider=model or provider,
             started_at=started_at,
@@ -584,14 +584,14 @@ def _append_llm_runs(
                 "error_message": run.get("error_message_sanitized"),
             },
         )
-        _append_edge(edges, previous_node_id, node_id, edge_kind, status, label="生成")
+        _append_edge(edges, previous_node_id, node_id, edge_kind, status, label="Tạo")
         _append_event(
             events,
             "llm_run",
             node_id=node_id,
             timestamp=timestamp,
             severity="success" if success else "danger",
-            title=f"LLM {'成功' if success else '失败'}",
+            title=f"LLM {'thành công' if success else 'thất bại'}",
             message=message,
             metadata={
                 "provider": provider,
@@ -627,13 +627,13 @@ def _append_history_runs(
         status = "success" if success else "failed"
         node_id = "history_save" if index == 1 else f"history_save_{index}"
         timestamp = _datetime_to_iso(run.get("created_at")) or fallback_created_at
-        message = "报告历史已保存" if success else f"报告历史保存失败：{_safe_text(run.get('error_message_sanitized'), max_length=160) or '未知错误'}"
+        message = "Báo cáo lịch sử đã được lưu" if success else f"Lưu lịch sử báo cáo thất bại: {_safe_text(run.get('error_message_sanitized'), max_length=160) or 'lỗi không xác định'}"
         _put_node(
             nodes,
             node_id,
             lane="artifact",
             kind="artifact",
-            label="保存报告",
+            label="Lưu báo cáo",
             status=status,
             ended_at=timestamp,
             message=message,
@@ -643,14 +643,14 @@ def _append_history_runs(
                 "error_message": run.get("error_message_sanitized"),
             },
         )
-        _append_edge(edges, previous_node_id, node_id, "data", status, label="保存")
+        _append_edge(edges, previous_node_id, node_id, "data", status, label="Lưu")
         _append_event(
             events,
             "history_run",
             node_id=node_id,
             timestamp=timestamp,
             severity="success" if success else "danger",
-            title="历史保存成功" if success else "历史保存失败",
+            title="Lưu lịch sử thành công" if success else "Lưu lịch sử thất bại",
             message=message,
             metadata={
                 "metadata_saved": run.get("metadata_saved"),
@@ -694,7 +694,7 @@ def _append_notification_runs(
             node_id,
             lane="artifact",
             kind="notification",
-            label=f"推送通知 · {channel}",
+            label=f"Gửi thông báo · {channel}",
             status=status,
             provider=channel,
             ended_at=timestamp,
@@ -707,14 +707,14 @@ def _append_notification_runs(
                 "error_message": run.get("error_message_sanitized"),
             },
         )
-        _append_edge(edges, anchor_node_id, node_id, "control", status, label="通知")
+        _append_edge(edges, anchor_node_id, node_id, "control", status, label="Thông báo")
         _append_event(
             events,
             "notification_run",
             node_id=node_id,
             timestamp=timestamp,
             severity="success" if status == "success" else ("warning" if status == "skipped" else "danger"),
-            title="通知发送成功" if status == "success" else ("通知跳过" if status == "skipped" else "通知失败"),
+            title="Gửi thông báo thành công" if status == "success" else ("Bỏ qua thông báo" if status == "skipped" else "Thông báo thất bại"),
             message=message,
             metadata={
                 "channel": channel,
@@ -825,39 +825,39 @@ def _put_skeleton_tail(
         kind="analysis",
         label="ContextPack",
         status=downstream_status,
-        message="尚未记录输入上下文诊断",
+        message="Chẩn đoán ngữ cảnh đầu vào chưa được ghi",
     )
     _put_node(
         nodes,
         "llm",
         lane="analysis",
         kind="model",
-        label="LLM 生成",
+        label="LLM Tạo",
         status=downstream_status,
-        message="尚未记录 LLM 诊断",
+        message="Chẩn đoán LLM chưa được ghi",
     )
     _put_node(
         nodes,
         "history_save",
         lane="artifact",
         kind="artifact",
-        label="保存报告",
+        label="Lưu báo cáo",
         status=downstream_status,
-        message="尚未记录历史保存结果",
+        message="Kết quả lưu lịch sử chưa được ghi",
     )
     _put_node(
         nodes,
         "notification",
         lane="artifact",
         kind="notification",
-        label="推送通知",
+        label="Gửi thông báo",
         status=downstream_status,
-        message="尚未记录通知结果",
+        message="Kết quả thông báo chưa được ghi",
     )
-    _append_edge(edges, anchor_node_id, "context_pack", "data", downstream_status, label="输入")
-    _append_edge(edges, "context_pack", "llm", "data", downstream_status, label="生成")
-    _append_edge(edges, "llm", "history_save", "data", downstream_status, label="保存")
-    _append_edge(edges, "history_save", "notification", "control", downstream_status, label="通知")
+    _append_edge(edges, anchor_node_id, "context_pack", "data", downstream_status, label="Đầu vào")
+    _append_edge(edges, "context_pack", "llm", "data", downstream_status, label="Tạo")
+    _append_edge(edges, "llm", "history_save", "data", downstream_status, label="Lưu")
+    _append_edge(edges, "history_save", "notification", "control", downstream_status, label="Thông báo")
 
 
 def _prune_active_skeleton_tail(
@@ -887,8 +887,8 @@ def _append_task_events(events: List[Dict[str, Any]], task: Any, flow_status: st
         node_id="task_queue",
         timestamp=_datetime_to_iso(getattr(task, "created_at", None)),
         severity="info",
-        title="任务已创建",
-        message=getattr(task, "message", None) or "任务已加入队列",
+        title="Tác vụ đã được tạo",
+        message=getattr(task, "message", None) or "Tác vụ đã được thêm vào hàng chờ",
     )
     if getattr(task, "started_at", None):
         _append_event(
@@ -897,8 +897,8 @@ def _append_task_events(events: List[Dict[str, Any]], task: Any, flow_status: st
             node_id="task_queue",
             timestamp=_datetime_to_iso(getattr(task, "started_at", None)),
             severity="info",
-            title="任务开始执行",
-            message=getattr(task, "message", None) or "任务执行中",
+            title="Tác vụ bắt đầu thực thi",
+            message=getattr(task, "message", None) or "Đang thực thi tác vụ",
         )
     if flow_status == "failed":
         _append_event(
@@ -907,7 +907,7 @@ def _append_task_events(events: List[Dict[str, Any]], task: Any, flow_status: st
             node_id="task_queue",
             timestamp=_datetime_to_iso(getattr(task, "completed_at", None)),
             severity="danger",
-            title="任务失败",
+            title="Tác vụ thất bại",
             message=getattr(task, "error", None) or getattr(task, "message", None),
         )
     elif flow_status in {"cancel_requested", "cancelled"}:
@@ -917,7 +917,7 @@ def _append_task_events(events: List[Dict[str, Any]], task: Any, flow_status: st
             node_id="task_queue",
             timestamp=_datetime_to_iso(getattr(task, "completed_at", None)),
             severity="warning",
-            title="任务取消" if flow_status == "cancelled" else "任务请求取消",
+            title="Tác vụ đã hủy" if flow_status == "cancelled" else "Yêu cầu hủy tác vụ",
             message=getattr(task, "message", None),
         )
     elif flow_status == "success":
@@ -927,8 +927,8 @@ def _append_task_events(events: List[Dict[str, Any]], task: Any, flow_status: st
             node_id="task_queue",
             timestamp=_datetime_to_iso(getattr(task, "completed_at", None)),
             severity="success",
-            title="任务完成",
-            message=getattr(task, "message", None) or "分析完成",
+            title="Tác vụ hoàn tất",
+            message=getattr(task, "message", None) or "Phân tích hoàn tất",
         )
 
 
@@ -1014,22 +1014,22 @@ def _append_active_flow_events(
                         node_id,
                         edge_kind,
                         nodes[node_id].get("status", "unknown"),
-                        label="降级" if edge_kind == "fallback" else ("重试" if edge_kind == "retry" else "调用"),
+                        label="Dự phòng" if edge_kind == "fallback" else ("Thử lại" if edge_kind == "retry" else "Gọi"),
                     )
                 else:
-                    _append_edge(edges, "task_queue", node_id, "control", nodes[node_id].get("status", "unknown"), label="调用")
+                    _append_edge(edges, "task_queue", node_id, "control", nodes[node_id].get("status", "unknown"), label="Gọi")
                 last_provider_node_by_type[provider_data_type] = (node_id, provider_run)
             elif event_type in {"llm_run", "llm_run_started"}:
                 anchor = "analysis_pipeline" if "analysis_pipeline" in nodes else "task_queue"
-                _append_edge(edges, anchor, node_id, "data", nodes[node_id].get("status", "unknown"), label="生成")
+                _append_edge(edges, anchor, node_id, "data", nodes[node_id].get("status", "unknown"), label="Tạo")
                 last_llm_node = node_id
             elif event_type == "history_run":
                 anchor = last_llm_node or ("analysis_pipeline" if "analysis_pipeline" in nodes else "task_queue")
-                _append_edge(edges, anchor, node_id, "data", nodes[node_id].get("status", "unknown"), label="保存")
+                _append_edge(edges, anchor, node_id, "data", nodes[node_id].get("status", "unknown"), label="Lưu")
                 last_history_node = node_id
             elif event_type == "notification_run":
                 anchor = last_history_node or last_llm_node or ("analysis_pipeline" if "analysis_pipeline" in nodes else "task_queue")
-                _append_edge(edges, anchor, node_id, "control", nodes[node_id].get("status", "unknown"), label="通知")
+                _append_edge(edges, anchor, node_id, "control", nodes[node_id].get("status", "unknown"), label="Thông báo")
             known_node_ids.add(node_id)
 
         _append_external_event(events, event)
@@ -1049,7 +1049,7 @@ def _append_external_event(events: List[Dict[str, Any]], event: Dict[str, Any]) 
             "severity": event.get("severity") if event.get("severity") in {"info", "success", "warning", "danger"} else "info",
             "type": _safe_key(event.get("type")) or "event",
             "node_id": _safe_text(event.get("node_id"), max_length=120),
-            "title": _safe_text(event.get("title"), max_length=100) or "运行事件",
+            "title": _safe_text(event.get("title"), max_length=100) or "Sự kiện chạy",
             "message": _safe_text(event.get("message"), max_length=220),
             "metadata": metadata,
         }
@@ -1127,65 +1127,65 @@ def _context_pack_status(overview: Optional[Dict[str, Any]]) -> str:
 
 def _context_pack_message(overview: Optional[Dict[str, Any]]) -> str:
     if not overview:
-        return "未记录 AnalysisContextPack overview"
+        return "Chưa ghi nhận tổng quan AnalysisContextPack"
     counts = overview.get("counts")
     if isinstance(counts, Mapping):
         available = counts.get("available", 0)
-        return f"输入上下文已组装，可用块 {available}"
-    return "输入上下文已组装"
+        return f"Ngữ cảnh đầu vào đã được tổng hợp, {available} khối khả dụng"
+    return "Ngữ cảnh đầu vào đã được tổng hợp"
 
 
 def _context_block_message(block: Dict[str, Any]) -> str:
     status = str(block.get("status") or "")
     if status == "available":
-        return "已进入本次分析输入"
+        return "Đã đưa vào đầu vào phân tích lần này"
     if status == "fallback":
-        return "本次分析输入使用降级数据"
+        return "Đầu vào phân tích lần này dùng dữ liệu dự phòng"
     if status == "partial":
-        return "本次分析输入仅部分可用"
+        return "Đầu vào phân tích lần này chỉ khả dụng một phần"
     if status == "stale":
-        return "本次分析输入使用过期数据"
+        return "Đầu vào phân tích lần này dùng dữ liệu lỗi thời"
     if status == "estimated":
-        return "本次分析输入使用估算数据"
+        return "Đầu vào phân tích lần này dùng dữ liệu ước tính"
     if status == "fetch_failed":
-        return "输入块抓取失败"
+        return "Tải khối đầu vào thất bại"
     if status == "missing":
         reasons = _as_list(block.get("missing_reasons"))
         reason = _safe_text(reasons[0], max_length=120) if reasons else None
-        return f"未进入本次分析输入：{reason}" if reason else "未进入本次分析输入"
+        return f"Không đưa vào đầu vào phân tích lần này: {reason}" if reason else "Không đưa vào đầu vào phân tích lần này"
     if status == "not_supported":
-        return "当前市场或链路不支持该输入块"
-    return f"输入块状态为 {status or 'unknown'}"
+        return "Thị trường hoặc luồng hiện tại không hỗ trợ khối đầu vào này"
+    return f"Trạng thái khối đầu vào: {status or 'unknown'}"
 
 
 def _provider_run_message(label: str, provider: str, run: Dict[str, Any], *, success: bool) -> str:
     if success:
         record_count = _safe_int(run.get("record_count"))
-        suffix = f"，返回 {record_count} 条" if record_count is not None else ""
-        return f"{label} {provider} 成功{suffix}"
+        suffix = f", trả về {record_count} bản ghi" if record_count is not None else ""
+        return f"{label} {provider} thành công{suffix}"
     error = _safe_text(run.get("error_message_sanitized") or run.get("error_type"), max_length=160)
-    return f"{label} {provider} 失败：{error or '未知错误'}"
+    return f"{label} {provider} thất bại: {error or 'lỗi không xác định'}"
 
 
 def _llm_run_message(model: Optional[str], run: Dict[str, Any], *, success: bool) -> str:
     display_model = _safe_text(model or run.get("provider") or "unknown", max_length=120)
     if success:
         if run.get("fallback_model"):
-            return f"LLM {display_model} 成功，期间发生模型切换"
-        return f"LLM {display_model} 成功"
+            return f"LLM {display_model} thành công, đã xảy ra chuyển đổi mô hình"
+        return f"LLM {display_model} thành công"
     error = _safe_text(run.get("error_message_sanitized") or run.get("error_type"), max_length=160)
-    return f"LLM {display_model} 失败：{error or '未知错误'}"
+    return f"LLM {display_model} thất bại: {error or 'lỗi không xác định'}"
 
 
 def _notification_run_message(channel: str, run: Dict[str, Any], status: str) -> str:
     if status == "success":
-        return f"{channel} 通知发送成功"
+        return f"Gửi thông báo {channel} thành công"
     if status == "skipped":
-        return f"{channel} 通知跳过"
+        return f"Bỏ qua thông báo {channel}"
     if status == "failed":
         error = _safe_text(run.get("error_message_sanitized") or run.get("status"), max_length=160)
-        return f"{channel} 通知失败：{error or '未知错误'}"
-    return f"{channel} 通知结果未知"
+        return f"Thông báo {channel} thất bại: {error or 'lỗi không xác định'}"
+    return f"Kết quả thông báo {channel} không xác định"
 
 
 def _build_summary(

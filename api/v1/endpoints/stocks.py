@@ -124,16 +124,16 @@ def _watchlist_match_key(code: str) -> str:
     "/extract-from-image",
     response_model=ExtractFromImageResponse,
     responses={
-        200: {"description": "提取的股票代码"},
-        400: {"description": "图片无效", "model": ErrorResponse},
-        500: {"description": "服务器错误", "model": ErrorResponse},
+        200: {"description": "Mã cổ phiếu được trích xuất"},
+        400: {"description": "Ảnh không hợp lệ", "model": ErrorResponse},
+        500: {"description": "Lỗi máy chủ", "model": ErrorResponse},
     },
-    summary="从图片提取股票代码",
-    description="上传截图/图片，通过 Vision LLM 提取股票代码。支持 JPEG、PNG、WebP、GIF，最大 5MB。",
+    summary="Trích xuất mã cổ phiếu từ ảnh",
+    description="Tải lên ảnh chụp màn hình/ảnh, trích xuất mã cổ phiếu qua Vision LLM. Hỗ trợ JPEG, PNG, WebP, GIF, tối đa 5MB.",
 )
 def extract_from_image(
-    file: Optional[UploadFile] = File(None, description="图片文件（表单字段名 file）"),
-    include_raw: bool = Query(False, description="是否在结果中包含原始 LLM 响应"),
+    file: Optional[UploadFile] = File(None, description="File ảnh (tên trường form: file)"),
+    include_raw: bool = Query(False, description="Có bao gồm phản hồi thô từ LLM trong kết quả không"),
 ) -> ExtractFromImageResponse:
     """
     Trích xuất mã cổ phiếu từ ảnh tải lên (sử dụng Vision LLM).
@@ -201,12 +201,12 @@ def extract_from_image(
     "/parse-import",
     response_model=ExtractFromImageResponse,
     responses={
-        200: {"description": "解析结果"},
-        400: {"description": "未提供数据或解析失败", "model": ErrorResponse},
-        500: {"description": "服务器错误", "model": ErrorResponse},
+        200: {"description": "Kết quả phân tích"},
+        400: {"description": "Không có dữ liệu hoặc phân tích thất bại", "model": ErrorResponse},
+        500: {"description": "Lỗi máy chủ", "model": ErrorResponse},
     },
-    summary="解析 CSV/Excel/剪贴板",
-    description="上传 CSV/Excel 文件或粘贴文本，自动解析股票代码。文件上限 2MB，文本上限 100KB。",
+    summary="Phân tích CSV/Excel/clipboard",
+    description="Tải lên file CSV/Excel hoặc dán văn bản, tự động trích xuất mã cổ phiếu. Giới hạn file 2MB, văn bản 100KB.",
 )
 async def parse_import(request: Request) -> ExtractFromImageResponse:
     """
@@ -319,11 +319,11 @@ async def parse_import(request: Request) -> ExtractFromImageResponse:
     "/watchlist",
     response_model=WatchlistResponse,
     responses={
-        200: {"description": "当前自选队列"},
-        500: {"description": "服务器错误", "model": ErrorResponse},
+        200: {"description": "Danh mục theo dõi hiện tại"},
+        500: {"description": "Lỗi máy chủ", "model": ErrorResponse},
     },
-    summary="获取自选队列",
-    description="返回当前 STOCK_LIST 配置中的所有股票代码。",
+    summary="Lấy danh mục theo dõi",
+    description="Trả về tất cả mã cổ phiếu trong cấu hình STOCK_LIST hiện tại.",
 )
 def get_watchlist(
     service: SystemConfigService = Depends(get_system_config_service),
@@ -343,12 +343,12 @@ def get_watchlist(
     "/watchlist/add",
     response_model=WatchlistResponse,
     responses={
-        200: {"description": "已加入自选"},
-        400: {"description": "参数错误", "model": ErrorResponse},
-        500: {"description": "服务器错误", "model": ErrorResponse},
+        200: {"description": "Đã thêm vào danh mục theo dõi"},
+        400: {"description": "Tham số không hợp lệ", "model": ErrorResponse},
+        500: {"description": "Lỗi máy chủ", "model": ErrorResponse},
     },
-    summary="加入自选队列",
-    description="将指定股票代码加入 STOCK_LIST。",
+    summary="Thêm vào danh mục theo dõi",
+    description="Thêm mã cổ phiếu chỉ định vào STOCK_LIST.",
 )
 def add_to_watchlist(
     request: WatchlistRequest,
@@ -376,12 +376,12 @@ def add_to_watchlist(
     "/watchlist/remove",
     response_model=WatchlistResponse,
     responses={
-        200: {"description": "已从自选删除"},
-        400: {"description": "参数错误", "model": ErrorResponse},
-        500: {"description": "服务器错误", "model": ErrorResponse},
+        200: {"description": "Đã xóa khỏi danh mục theo dõi"},
+        400: {"description": "Tham số không hợp lệ", "model": ErrorResponse},
+        500: {"description": "Lỗi máy chủ", "model": ErrorResponse},
     },
-    summary="从自选队列删除",
-    description="从 STOCK_LIST 中移除指定股票代码。",
+    summary="Xóa khỏi danh mục theo dõi",
+    description="Xóa mã cổ phiếu chỉ định khỏi STOCK_LIST.",
 )
 def remove_from_watchlist(
     request: WatchlistRequest,
@@ -411,12 +411,12 @@ def remove_from_watchlist(
     "/{stock_code}/quote",
     response_model=StockQuote,
     responses={
-        200: {"description": "行情数据"},
-        404: {"description": "股票不存在", "model": ErrorResponse},
-        500: {"description": "服务器错误", "model": ErrorResponse},
+        200: {"description": "Dữ liệu giá"},
+        404: {"description": "Cổ phiếu không tồn tại", "model": ErrorResponse},
+        500: {"description": "Lỗi máy chủ", "model": ErrorResponse},
     },
-    summary="获取股票实时行情",
-    description="获取指定股票的最新行情数据"
+    summary="Lấy giá thời gian thực của cổ phiếu",
+    description="Lấy dữ liệu giá mới nhất của cổ phiếu chỉ định"
 )
 def get_stock_quote(stock_code: str) -> StockQuote:
     """
@@ -480,12 +480,12 @@ def get_stock_quote(stock_code: str) -> StockQuote:
     "/{stock_code}/history",
     response_model=StockHistoryResponse,
     responses={
-        200: {"description": "历史行情数据"},
-        422: {"description": "不支持的周期参数", "model": ErrorResponse},
-        500: {"description": "服务器错误", "model": ErrorResponse},
+        200: {"description": "Dữ liệu giá lịch sử"},
+        422: {"description": "Tham số chu kỳ không được hỗ trợ", "model": ErrorResponse},
+        500: {"description": "Lỗi máy chủ", "model": ErrorResponse},
     },
-    summary="获取股票历史行情",
-    description="获取指定股票的历史 K 线数据"
+    summary="Lấy dữ liệu lịch sử giá cổ phiếu",
+    description="Lấy dữ liệu nến K lịch sử của cổ phiếu chỉ định"
 )
 def get_stock_history(
     stock_code: str,

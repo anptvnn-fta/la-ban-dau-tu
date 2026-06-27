@@ -612,13 +612,13 @@ def _provider_started_flow_event(
     label = _DATA_TYPE_LABELS.get(data_type_key, data_type_key)
     node_id = f"provider_{data_type_key}_{provider_key}_{index}"
     timestamp = datetime.now().isoformat()
-    message = f"{label} {provider} 调用中"
+    message = f"{label} {provider} đang gọi"
     return {
         "timestamp": timestamp,
         "severity": "info",
         "type": "provider_run_started",
         "node_id": node_id,
-        "title": f"{label}开始",
+        "title": f"{label} bắt đầu",
         "message": sanitize_diagnostic_text(message, max_length=220),
         "metadata": _clean_metadata(
             {
@@ -655,16 +655,16 @@ def _provider_flow_event(
     node_id = f"provider_{data_type}_{provider_key}_{index}"
     started_at = _started_at_from_end_and_duration(run.created_at, run.latency_ms)
     message = (
-        f"{label} {run.provider} 成功"
+        f"{label} {run.provider} thành công"
         if run.success
-        else f"{label} {run.provider} 失败：{run.error_message_sanitized or run.error_type or '未知错误'}"
+        else f"{label} {run.provider} thất bại: {run.error_message_sanitized or run.error_type or 'lỗi không xác định'}"
     )
     return {
         "timestamp": run.created_at,
         "severity": "success" if run.success else "warning",
         "type": "provider_run",
         "node_id": node_id,
-        "title": f"{label}{'成功' if run.success else '失败'}",
+        "title": f"{label} {'thành công' if run.success else 'thất bại'}",
         "message": sanitize_diagnostic_text(message, max_length=220),
         "metadata": _clean_metadata(
             {
@@ -707,13 +707,13 @@ def _llm_started_flow_event(
     display_model = model or provider or "unknown"
     node_id = f"llm_{call_type_key}_{index}"
     timestamp = datetime.now().isoformat()
-    message = f"LLM {display_model} 调用中"
+    message = f"LLM {display_model} đang gọi"
     return {
         "timestamp": timestamp,
         "severity": "info",
         "type": "llm_run_started",
         "node_id": node_id,
-        "title": "LLM 开始",
+        "title": "LLM bắt đầu",
         "message": sanitize_diagnostic_text(message, max_length=220),
         "metadata": _clean_metadata(
             {
@@ -725,7 +725,7 @@ def _llm_started_flow_event(
                     "id": node_id,
                     "lane": "analysis",
                     "kind": "model",
-                    "label": "LLM 生成",
+                    "label": "LLM Tạo",
                     "status": "running",
                     "provider": display_model,
                     "started_at": timestamp,
@@ -748,16 +748,16 @@ def _llm_flow_event(
     node_id = f"llm_{call_type}_{index}"
     started_at = _started_at_from_end_and_duration(run.created_at, run.duration_ms)
     message = (
-        f"LLM {model} 成功"
+        f"LLM {model} thành công"
         if run.success
-        else f"LLM {model} 失败：{run.error_message_sanitized or run.error_type or '未知错误'}"
+        else f"LLM {model} thất bại: {run.error_message_sanitized or run.error_type or 'lỗi không xác định'}"
     )
     return {
         "timestamp": run.created_at,
         "severity": "success" if run.success else "danger",
         "type": "llm_run",
         "node_id": node_id,
-        "title": f"LLM {'成功' if run.success else '失败'}",
+        "title": f"LLM {'thành công' if run.success else 'thất bại'}",
         "message": sanitize_diagnostic_text(message, max_length=220),
         "metadata": _clean_metadata(
             {
@@ -772,7 +772,7 @@ def _llm_flow_event(
                     "id": node_id,
                     "lane": "analysis",
                     "kind": "model",
-                    "label": "LLM 生成",
+                    "label": "LLM Tạo",
                     "status": status,
                     "provider": model,
                     "started_at": started_at,
@@ -792,13 +792,13 @@ def _history_flow_event(
 ) -> Dict[str, Any]:
     node_id = "history_save" if index == 1 else f"history_save_{index}"
     status = "success" if run.report_saved else "failed"
-    message = "报告历史已保存" if run.report_saved else f"报告历史保存失败：{run.error_message_sanitized or '未知错误'}"
+    message = "Lịch sử báo cáo đã lưu" if run.report_saved else f"Lưu lịch sử báo cáo thất bại: {run.error_message_sanitized or 'Lỗi không xác định'}"
     return {
         "timestamp": run.created_at,
         "severity": "success" if run.report_saved else "danger",
         "type": "history_run",
         "node_id": node_id,
-        "title": "历史保存成功" if run.report_saved else "历史保存失败",
+        "title": "Lưu lịch sử thành công" if run.report_saved else "Lưu lịch sử thất bại",
         "message": sanitize_diagnostic_text(message, max_length=220),
         "metadata": _clean_metadata(
             {
@@ -809,7 +809,7 @@ def _history_flow_event(
                     "id": node_id,
                     "lane": "artifact",
                     "kind": "artifact",
-                    "label": "保存报告",
+                    "label": "Lưu báo cáo",
                     "status": status,
                     "message": message,
                 },
@@ -829,14 +829,14 @@ def _notification_flow_event(
     status = _flow_status_for_success(run.success, skipped=skipped)
     node_id = f"notification_{channel_key}_{index}"
     if status == "success":
-        title = "通知发送成功"
-        message = f"{channel} 通知发送成功"
+        title = "Gửi thông báo thành công"
+        message = f"{channel} gửi thông báo thành công"
     elif status == "skipped":
-        title = "通知跳过"
-        message = f"{channel} 通知跳过"
+        title = "Thông báo bị bỏ qua"
+        message = f"{channel} thông báo bị bỏ qua"
     else:
-        title = "通知失败"
-        message = f"{channel} 通知失败：{run.error_message_sanitized or run.status or '未知错误'}"
+        title = "Thông báo thất bại"
+        message = f"{channel} thông báo thất bại: {run.error_message_sanitized or run.status or 'Lỗi không xác định'}"
     return {
         "timestamp": run.created_at,
         "severity": "success" if status == "success" else ("warning" if status == "skipped" else "danger"),
@@ -854,7 +854,7 @@ def _notification_flow_event(
                     "id": node_id,
                     "lane": "artifact",
                     "kind": "notification",
-                    "label": f"推送通知 · {channel}",
+                    "label": f"Gửi thông báo · {channel}",
                     "status": status,
                     "provider": channel,
                     "attempts": run.attempts,
@@ -1040,19 +1040,19 @@ def record_history_run(
 
 
 _SUMMARY_STATUS_LABELS = {
-    "normal": "正常",
-    "degraded": "部分降级",
-    "failed": "失败",
-    "unknown": "未知",
+    "normal": "Bình thường",
+    "degraded": "Một phần bị hạ cấp",
+    "failed": "Thất bại",
+    "unknown": "Không xác định",
 }
 _ANALYSIS_INPUT_STATUS_MESSAGES = {
-    "missing": "未进入本次分析输入",
-    "partial": "本次分析输入仅部分可用",
-    "fallback": "本次分析输入使用降级数据",
-    "stale": "本次分析输入使用过期数据",
-    "estimated": "本次分析输入使用估算数据",
-    "fetch_failed": "输入块显示抓取失败",
-    "not_supported": "输入块标记为不支持",
+    "missing": "Không đưa vào đầu vào phân tích lần này",
+    "partial": "Đầu vào phân tích lần này chỉ có một phần",
+    "fallback": "Đầu vào phân tích lần này sử dụng dữ liệu dự phòng",
+    "stale": "Đầu vào phân tích lần này sử dụng dữ liệu cũ",
+    "estimated": "Đầu vào phân tích lần này sử dụng dữ liệu ước tính",
+    "fetch_failed": "Khối đầu vào báo lỗi tải dữ liệu",
+    "not_supported": "Khối đầu vào được đánh dấu là không hỗ trợ",
 }
 
 
@@ -1112,7 +1112,7 @@ def _analysis_input_status_message(block: Dict[str, Any]) -> Optional[str]:
     status = str(block.get("status") or "").strip()
     if status == "available" or not status:
         return None
-    return _ANALYSIS_INPUT_STATUS_MESSAGES.get(status, f"输入块状态为 {status}")
+    return _ANALYSIS_INPUT_STATUS_MESSAGES.get(status, f"Trạng thái khối đầu vào: {status}")
 
 
 def _list_text(value: Any, *, limit: int = 5) -> List[str]:
@@ -1153,7 +1153,7 @@ def _reconcile_daily_provider_with_analysis_input(
         component.key,
         component.label,
         "degraded",
-        f"{component.label}{provider} 成功，但{input_message}",
+        f"{component.label} {provider} thành công, nhưng {input_message}",
         details,
     )
 
@@ -1170,7 +1170,7 @@ def _provider_component(
         if isinstance(run, dict) and run.get("data_type") == data_type
     ]
     if not runs:
-        return _component(key, label, "unknown", f"{label}未记录诊断信息")
+        return _component(key, label, "unknown", f"{label} chưa ghi thông tin chẩn đoán")
 
     successes = [run for run in runs if run.get("success") is True]
     failures = [run for run in runs if run.get("success") is False]
@@ -1194,27 +1194,27 @@ def _provider_component(
                 key,
                 label,
                 "degraded",
-                f"{label}{provider} 成功，前置数据源失败后已继续",
+                f"{label} {provider} thành công, tiếp tục sau khi nguồn dữ liệu trước thất bại",
                 details,
             )
         return _component(
             key,
             label,
             "ok",
-            f"{label}{provider} 成功",
+            f"{label} {provider} thành công",
             details,
         )
 
     message = (
         last_run.get("error_message_sanitized")
         or last_run.get("error_type")
-        or "所有数据源尝试失败"
+        or "Tất cả nguồn dữ liệu đều thất bại"
     )
     return _component(
         key,
         label,
         "failed",
-        f"{label}失败：{message}",
+        f"{label} thất bại: {message}",
         {
             "attempts": len(runs),
             "provider": last_run.get("provider"),
@@ -1224,7 +1224,7 @@ def _provider_component(
 
 
 def _news_component(context_snapshot: Dict[str, Any], raw_result: Dict[str, Any]) -> RunDiagnosticComponent:
-    label = "新闻搜索"
+    label = "Tìm kiếm tin tức"
     input_block = _analysis_input_block(context_snapshot, "news")
     input_message = _analysis_input_status_message(input_block)
     has_retrieval_news = "news_retrieval_content" in context_snapshot
@@ -1237,7 +1237,7 @@ def _news_component(context_snapshot: Dict[str, Any], raw_result: Dict[str, Any]
                     "news",
                     label,
                     "degraded",
-                    f"新闻检索返回 {news_result_count} 条结果，但新闻{input_message}；报告页相关资讯可能来自后续检索或历史持久化",
+                    f"Tìm kiếm tin tức trả về {news_result_count} kết quả, nhưng tin tức {input_message}; thông tin trên trang báo cáo có thể đến từ lần tìm kiếm sau hoặc lịch sử lưu trữ",
                     {
                         "record_count": news_result_count,
                         "analysis_input_block": "news",
@@ -1252,16 +1252,16 @@ def _news_component(context_snapshot: Dict[str, Any], raw_result: Dict[str, Any]
                 "news",
                 label,
                 "ok",
-                f"新闻检索返回 {news_result_count} 条结果",
+                f"Tìm kiếm tin tức trả về {news_result_count} kết quả",
                 {"record_count": news_result_count},
             )
-        return _component("news", label, "degraded", "新闻搜索无结果", {"record_count": 0})
+        return _component("news", label, "degraded", "Tìm kiếm tin tức không có kết quả", {"record_count": 0})
     if input_message:
         return _component(
             "news",
             label,
             "unknown",
-            f"新闻{input_message}；报告页相关资讯可能来自后续检索或历史持久化",
+            f"Tin tức {input_message}; thông tin trên trang báo cáo có thể đến từ lần tìm kiếm sau hoặc lịch sử lưu trữ",
             {
                 "analysis_input_block": "news",
                 "analysis_input_status": input_block.get("status"),
@@ -1272,8 +1272,8 @@ def _news_component(context_snapshot: Dict[str, Any], raw_result: Dict[str, Any]
             },
         )
     if has_snapshot_news and not has_retrieval_news:
-        return _component("news", label, "unknown", "新闻检索未记录原始证据，可能未尝试或未启用")
-    return _component("news", label, "unknown", "新闻搜索未记录诊断信息")
+        return _component("news", label, "unknown", "Tìm kiếm tin tức chưa ghi bằng chứng gốc, có thể chưa thử hoặc chưa bật")
+    return _component("news", label, "unknown", "Tìm kiếm tin tức chưa ghi thông tin chẩn đoán")
 
 
 def _llm_component(diagnostics: Dict[str, Any], raw_result: Dict[str, Any]) -> RunDiagnosticComponent:
@@ -1290,9 +1290,9 @@ def _llm_component(diagnostics: Dict[str, Any], raw_result: Dict[str, Any]) -> R
             success_run = successes[-1]
             model = success_run.get("model") or raw_result.get("model_used") or "unknown"
             status = "degraded" if failures or success_run.get("fallback_model") else "ok"
-            message = f"LLM {model} 成功"
+            message = f"LLM {model} thành công"
             if status == "degraded":
-                message = f"LLM {model} 成功，期间发生过失败或模型切换"
+                message = f"LLM {model} thành công nhưng có lỗi hoặc chuyển đổi mô hình trong quá trình"
             return _component(
                 "llm",
                 label,
@@ -1309,7 +1309,7 @@ def _llm_component(diagnostics: Dict[str, Any], raw_result: Dict[str, Any]) -> R
             "llm",
             label,
             "failed",
-            f"LLM 失败：{last_run.get('error_message_sanitized') or last_run.get('error_type') or '未知错误'}",
+            f"LLM thất bại: {last_run.get('error_message_sanitized') or last_run.get('error_type') or 'lỗi không xác định'}",
             {"model": last_run.get("model"), "error_type": last_run.get("error_type")},
         )
 
@@ -1319,24 +1319,24 @@ def _llm_component(diagnostics: Dict[str, Any], raw_result: Dict[str, Any]) -> R
                 "llm",
                 label,
                 "failed",
-                f"LLM 失败：{sanitize_diagnostic_text(raw_result.get('error_message')) or '未知错误'}",
+                f"LLM thất bại: {sanitize_diagnostic_text(raw_result.get('error_message')) or 'lỗi không xác định'}",
             )
         model = raw_result.get("model_used")
         if model:
-            return _component("llm", label, "ok", f"LLM {model} 成功", {"model": model})
+            return _component("llm", label, "ok", f"LLM {model} thành công", {"model": model})
         if raw_result.get("analysis_summary"):
-            return _component("llm", label, "ok", "LLM 成功，模型未记录")
-    return _component("llm", label, "unknown", "LLM 未记录诊断信息")
+            return _component("llm", label, "ok", "LLM thành công, mô hình chưa được ghi")
+    return _component("llm", label, "unknown", "LLM chưa ghi thông tin chẩn đoán")
 
 
 def _notification_component(diagnostics: Dict[str, Any]) -> RunDiagnosticComponent:
-    label = "通知"
+    label = "Thông báo"
     runs = [
         run for run in _as_list(diagnostics.get("notification_runs"))
         if isinstance(run, dict)
     ]
     if not runs:
-        return _component("notification", label, "unknown", "通知结果未记录")
+        return _component("notification", label, "unknown", "Kết quả thông báo chưa được ghi")
 
     skipped = [run for run in runs if run.get("status") in {"skipped", "not_configured"}]
     successes = [run for run in runs if run.get("success") is True]
@@ -1347,7 +1347,7 @@ def _notification_component(diagnostics: Dict[str, Any]) -> RunDiagnosticCompone
             "notification",
             label,
             "degraded",
-            "部分通知渠道失败，其余渠道已发送",
+            "Một số kênh thông báo thất bại, các kênh còn lại đã gửi thành công",
             {"channels": channels, "failed": [run.get("channel") for run in failures]},
         )
     if successes:
@@ -1355,7 +1355,7 @@ def _notification_component(diagnostics: Dict[str, Any]) -> RunDiagnosticCompone
             "notification",
             label,
             "ok",
-            "通知发送成功",
+            "Gửi thông báo thành công",
             {"channels": channels},
         )
     if skipped and not failures:
@@ -1364,7 +1364,7 @@ def _notification_component(diagnostics: Dict[str, Any]) -> RunDiagnosticCompone
             "notification",
             label,
             status,
-            "通知未配置或本次跳过",
+            "Thông báo chưa được cấu hình hoặc bỏ qua lần này",
             {"channels": channels},
         )
     last_failure = failures[-1] if failures else runs[-1]
@@ -1372,7 +1372,7 @@ def _notification_component(diagnostics: Dict[str, Any]) -> RunDiagnosticCompone
         "notification",
         label,
         "failed",
-        f"通知失败：{last_failure.get('error_message_sanitized') or last_failure.get('status') or '未知错误'}",
+        f"Thông báo thất bại: {last_failure.get('error_message_sanitized') or last_failure.get('status') or 'lỗi không xác định'}",
         {"channels": channels},
     )
 
@@ -1381,7 +1381,7 @@ def _history_component(
     diagnostics: Dict[str, Any],
     report_saved: Optional[bool],
 ) -> RunDiagnosticComponent:
-    label = "历史保存"
+    label = "Lưu lịch sử"
     runs = [
         run for run in _as_list(diagnostics.get("history_runs"))
         if isinstance(run, dict)
@@ -1393,20 +1393,20 @@ def _history_component(
                 "history",
                 label,
                 "ok",
-                "报告历史已保存",
+                "Lịch sử báo cáo đã được lưu",
                 {"analysis_history_id": last_run.get("analysis_history_id")},
             )
         return _component(
             "history",
             label,
             "failed",
-            f"报告历史保存失败：{last_run.get('error_message_sanitized') or '未知错误'}",
+            f"Lưu lịch sử báo cáo thất bại: {last_run.get('error_message_sanitized') or 'lỗi không xác định'}",
         )
     if report_saved is True:
-        return _component("history", label, "ok", "报告历史已保存")
+        return _component("history", label, "ok", "Lịch sử báo cáo đã được lưu")
     if report_saved is False:
-        return _component("history", label, "failed", "报告历史保存失败")
-    return _component("history", label, "unknown", "历史保存未记录诊断信息")
+        return _component("history", label, "failed", "Lưu lịch sử báo cáo thất bại")
+    return _component("history", label, "unknown", "Lưu lịch sử chưa ghi thông tin chẩn đoán")
 
 
 def build_run_diagnostic_summary(
@@ -1432,14 +1432,14 @@ def build_run_diagnostic_summary(
 
     daily_data_component = _provider_component(
         key="daily_data",
-        label="日线数据",
+        label="Dữ liệu ngày",
         data_type="daily_data",
         provider_runs=provider_runs,
     )
     components = {
         "realtime_quote": _provider_component(
             key="realtime_quote",
-            label="实时行情",
+            label="Giá thời gian thực",
             data_type="realtime_quote",
             provider_runs=provider_runs,
         ),

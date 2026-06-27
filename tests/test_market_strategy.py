@@ -55,10 +55,10 @@ class TestMarketAnalyzerStrategyPrompt(unittest.TestCase):
 
         prompt = analyzer._build_review_prompt(MarketOverview(date="2026-02-24"), [])
 
-        self.assertIn("美股市场", prompt)
+        self.assertIn("thị trường Mỹ", prompt)
         self.assertNotIn("US Market Regime Strategy", prompt)
         self.assertNotIn("Strategy Blueprint", prompt)
-        self.assertIn("风险偏好", prompt)
+        self.assertIn("rủi ro", prompt)
 
     def test_cn_prompt_uses_english_shell_when_report_language_is_en(self):
         with patch("src.market_analyzer.get_config", return_value=SimpleNamespace(report_language="en")):

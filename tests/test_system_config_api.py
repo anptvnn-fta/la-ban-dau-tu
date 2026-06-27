@@ -321,7 +321,7 @@ class SystemConfigApiTestCase(unittest.TestCase):
         run_warning = next(
             warning
             for warning in payload["warnings"]
-            if "RUN_IMMEDIATELY 已写入 .env" in warning
+            if "RUN_IMMEDIATELY đã ghi vào .env" in warning
         )
         schedule_warning = next(
             warning
@@ -329,11 +329,11 @@ class SystemConfigApiTestCase(unittest.TestCase):
             if "SCHEDULE_RUN_IMMEDIATELY" in warning
         )
 
-        self.assertIn("非 schedule 模式", run_warning)
-        self.assertNotIn("以 schedule 模式", run_warning)
-        self.assertIn("不会因为本次保存启动、停止或重建 scheduler", schedule_warning)
-        self.assertIn("以 schedule 模式重新启动后生效", schedule_warning)
-        self.assertNotIn("它属于启动期单次运行配置", schedule_warning)
+        self.assertIn("chế độ không phải schedule", run_warning)
+        self.assertNotIn("chế độ schedule", run_warning)
+        self.assertIn("không khởi động, dừng hay tái tạo scheduler", schedule_warning)
+        self.assertIn("khởi động lại tiến trình ở chế độ schedule", schedule_warning)
+        self.assertNotIn("cấu hình chạy một lần", schedule_warning)
 
     def test_put_config_returns_schedule_time_runtime_rebind_warning(self) -> None:
         current = system_config.get_system_config(include_schema=False, service=self.service).model_dump()
@@ -352,13 +352,13 @@ class SystemConfigApiTestCase(unittest.TestCase):
         schedule_time_warning = next(
             warning
             for warning in payload["warnings"]
-            if "SCHEDULE_TIME=09:30 已写入 .env" in warning
+            if "SCHEDULE_TIME=09:30 đã ghi vào .env" in warning
         )
 
-        self.assertIn("已经以 schedule 模式运行", schedule_time_warning)
-        self.assertIn("自动重建 daily job", schedule_time_warning)
-        self.assertIn("不会启动 scheduler", schedule_time_warning)
-        self.assertNotIn("重启当前进程", schedule_time_warning)
+        self.assertIn("chạy ở chế độ schedule", schedule_time_warning)
+        self.assertIn("tái tạo daily job", schedule_time_warning)
+        self.assertIn("không khởi động scheduler", schedule_time_warning)
+        self.assertNotIn("khởi động lại tiến trình", schedule_time_warning)
 
     def test_export_system_config_returns_raw_env_content(self) -> None:
         self.env_path.write_text(

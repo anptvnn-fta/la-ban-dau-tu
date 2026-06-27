@@ -322,7 +322,7 @@ def test_pipeline_attaches_low_sensitive_market_context_to_enhanced_context() ->
 
     assert enhanced_context["daily_market_context"]["region"] == "cn"
     assert enhanced_context["daily_market_context"]["summary"].startswith("大盘退潮")
-    assert "大盘环境摘要" in enhanced_context["daily_market_context_summary"]
+    assert "Tóm tắt môi trường thị trường" in enhanced_context["daily_market_context_summary"]
     assert "market_review_payload" not in str(enhanced_context)
 
 
@@ -339,6 +339,6 @@ def test_analyzer_prompt_renders_daily_market_context_before_technical_data() ->
 
     prompt = analyzer._format_prompt(context, "贵州茅台", report_language="zh")
 
-    assert "大盘环境摘要" in prompt
+    assert "Tóm tắt môi trường thị trường" in prompt
     assert "大盘退潮" in prompt
-    assert prompt.index("大盘环境摘要") < prompt.index("技术面数据")
+    assert prompt.index("Tóm tắt môi trường thị trường") < prompt.index("技术面数据")

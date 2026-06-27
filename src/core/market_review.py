@@ -36,9 +36,9 @@ logger = logging.getLogger(__name__)
 MARKET_REVIEW_HISTORY_CODE = "MARKET"
 MARKET_REVIEW_REPORT_TYPE = "market_review"
 _MARKET_REVIEW_MARKETS = (
-    ('cn', 'cn_title', 'A 股'),
-    ('hk', 'hk_title', '港股'),
-    ('us', 'us_title', '美股'),
+    ('cn', 'cn_title', 'A-share'),
+    ('hk', 'hk_title', 'Hồng Kông'),
+    ('us', 'us_title', 'Mỹ'),
     ('vn', 'vn_title', 'Việt Nam'),
 )
 _MARKET_REVIEW_REGION_ORDER = tuple(market for market, _, _ in _MARKET_REVIEW_MARKETS)
@@ -74,7 +74,7 @@ def _refresh_market_review_history_diagnostics(*, query_id: str) -> None:
                 diagnostics=diagnostic_snapshot,
             )
     except Exception as exc:
-        logger.warning("回写大盘复盘运行诊断失败（fail-open）: %s", exc)
+        logger.warning("Ghi lại chẩn đoán vận hành tổng kết thị trường thất bại (fail-open): %s", exc)
 
 
 def _record_market_review_notification_run(
@@ -121,13 +121,13 @@ def _get_market_review_text(language: str) -> dict[str, str]:
             "separator": "> Next market recap follows",
         }
     return {
-        "root_title": "# 🎯 大盘复盘",
-        "push_title": "🎯 大盘复盘",
-        "cn_title": "# A股大盘复盘",
-        "us_title": "# 美股大盘复盘",
-        "hk_title": "# 港股大盘复盘",
-        "vn_title": "# 越南股市复盘",
-        "separator": "> 以下为下一市场大盘复盘",
+        "root_title": "# 🎯 Tổng kết thị trường",
+        "push_title": "🎯 Tổng kết thị trường",
+        "cn_title": "# Tổng kết thị trường A-share",
+        "us_title": "# Tổng kết thị trường Mỹ",
+        "hk_title": "# Tổng kết thị trường Hồng Kông",
+        "vn_title": "# Tổng kết thị trường Việt Nam",
+        "separator": "> Tổng kết thị trường tiếp theo",
     }
 
 
@@ -555,9 +555,9 @@ def _persist_market_review_history(
             operation_advice = "View review"
             trend_prediction = "Market review"
         else:
-            stock_name = "大盘复盘"
-            operation_advice = "查看复盘"
-            trend_prediction = "大盘复盘"
+            stock_name = "Tổng kết thị trường"
+            operation_advice = "Xem tổng kết"
+            trend_prediction = "Tổng kết thị trường"
 
         result = AnalysisResult(
             code=MARKET_REVIEW_HISTORY_CODE,
@@ -616,9 +616,9 @@ def _persist_market_review_history(
         )
         _refresh_market_review_history_diagnostics(query_id=history_query_id)
         if saved_history_id:
-            logger.info("大盘复盘历史记录已保存: query_id=%s", history_query_id)
+            logger.info("Đã lưu lịch sử tổng kết thị trường: query_id=%s", history_query_id)
         else:
-            logger.warning("大盘复盘历史记录保存失败: query_id=%s", history_query_id)
+            logger.warning("Lưu lịch sử tổng kết thị trường thất bại: query_id=%s", history_query_id)
         return saved_history_id
     except Exception as exc:
         record_history_run(
@@ -626,7 +626,7 @@ def _persist_market_review_history(
             metadata_saved=False,
             error_message=exc,
         )
-        logger.warning("大盘复盘历史记录保存异常，报告文件与推送流程继续: %s", exc, exc_info=True)
+        logger.warning("Ngoại lệ khi lưu lịch sử tổng kết thị trường, luồng báo cáo và thông báo vẫn tiếp tục: %s", exc, exc_info=True)
         return 0
 
 
@@ -662,7 +662,7 @@ def _build_market_review_context_overview(
     elif report_language == "en":
         label = "Market review"
     else:
-        label = "大盘复盘"
+        label = "Tổng kết thị trường"
     return {
         "pack_version": "market_review/1.0",
         "created_at": datetime.now().isoformat(),
@@ -701,4 +701,4 @@ def _summarize_market_review(review_report: str, report_language: str) -> str:
             return text[:200]
     if report_language == "vi":
         return "Đã tạo báo cáo tổng kết thị trường."
-    return "Market review report generated." if report_language == "en" else "大盘复盘报告已生成。"
+    return "Market review report generated." if report_language == "en" else "Đã tạo báo cáo tổng kết thị trường."

@@ -753,7 +753,7 @@ class AnalysisApiContractTestCase(unittest.TestCase):
         self.assertIsNotNone(task_info)
         self.assertEqual(task_info.status, TaskStatus.FAILED)
         self.assertEqual(task_info.error, "runtime init failed")
-        self.assertEqual(task_info.message, "任务失败: runtime init failed")
+        self.assertEqual(task_info.message, "Tác vụ thất bại: runtime init failed")
         release_market_review_lock.assert_called_once()
 
     def test_get_analysis_status_completed_db_snapshot_preserves_zero_change_pct(self) -> None:
@@ -2991,7 +2991,7 @@ class BatchTaskQueueContractTestCase(unittest.TestCase):
         queue = AnalysisTaskQueue(max_workers=1)
         queue._executor = type("ExecutorStub", (), {"submit": lambda self, *args, **kwargs: Future()})()
 
-        with self.assertRaisesRegex(ValueError, "股票代码不能为空或仅包含空白字符"):
+        with self.assertRaisesRegex(ValueError, "Mã cổ phiếu không được rỗng hoặc chỉ chứa khoảng trắng"):
             queue.submit_task("   ", report_type="detailed")
 
         self.assertEqual(queue._tasks, {})

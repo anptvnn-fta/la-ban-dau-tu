@@ -163,7 +163,7 @@ def alphasift_start_screen_task(
         task_id=task.task_id,
         trace_id=task.trace_id or task.task_id,
         status=task.status.value if isinstance(task.status, QueueTaskStatus) else str(task.status),
-        message=task.message or "AlphaSift 选股任务已提交",
+        message=task.message or "Tác vụ chọn lọc AlphaSift đã được gửi",
         strategy=request.strategy,
         market=request.market,
         max_results=request.max_results,

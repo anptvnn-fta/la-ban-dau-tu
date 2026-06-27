@@ -17,8 +17,8 @@ from pydantic import BaseModel, ConfigDict, Field
 class RootResponse(BaseModel):
     """Phản hồi của route gốc API"""
     
-    message: str = Field(..., description="API 运行状态消息", json_schema_extra={"example": "Daily Stock Analysis API is running"})
-    version: Optional[str] = Field(None, description="API 版本", json_schema_extra={"example": "1.0.0"})
+    message: str = Field(..., description="Trạng thái hoạt động của API", json_schema_extra={"example": "Daily Stock Analysis API is running"})
+    version: Optional[str] = Field(None, description="Phiên bản API", json_schema_extra={"example": "1.0.0"})
     
     model_config = ConfigDict(json_schema_extra={
         "example": {
@@ -31,8 +31,8 @@ class RootResponse(BaseModel):
 class HealthResponse(BaseModel):
     """Phản hồi kiểm tra sức khỏe dịch vụ"""
     
-    status: str = Field(..., description="服务状态", json_schema_extra={"example": "ok"})
-    timestamp: Optional[str] = Field(None, description="时间戳")
+    status: str = Field(..., description="Trạng thái dịch vụ", json_schema_extra={"example": "ok"})
+    timestamp: Optional[str] = Field(None, description="Dấu thời gian")
     
     model_config = ConfigDict(json_schema_extra={
         "example": {
@@ -45,14 +45,14 @@ class HealthResponse(BaseModel):
 class ErrorResponse(BaseModel):
     """Phản hồi lỗi"""
     
-    error: str = Field(..., description="错误类型", json_schema_extra={"example": "validation_error"})
-    message: str = Field(..., description="错误详情", json_schema_extra={"example": "请求参数错误"})
-    detail: Optional[Any] = Field(None, description="附加错误信息")
-    
+    error: str = Field(..., description="Loại lỗi", json_schema_extra={"example": "validation_error"})
+    message: str = Field(..., description="Chi tiết lỗi", json_schema_extra={"example": "Tham số yêu cầu không hợp lệ"})
+    detail: Optional[Any] = Field(None, description="Thông tin lỗi bổ sung")
+
     model_config = ConfigDict(json_schema_extra={
         "example": {
             "error": "not_found",
-            "message": "资源不存在",
+            "message": "Tài nguyên không tồn tại",
             "detail": None
         }
     })
@@ -61,14 +61,14 @@ class ErrorResponse(BaseModel):
 class SuccessResponse(BaseModel):
     """Phản hồi thành công chung"""
     
-    success: bool = Field(True, description="是否成功")
-    message: Optional[str] = Field(None, description="成功消息")
-    data: Optional[Any] = Field(None, description="响应数据")
-    
+    success: bool = Field(True, description="Thao tác có thành công không")
+    message: Optional[str] = Field(None, description="Thông báo thành công")
+    data: Optional[Any] = Field(None, description="Dữ liệu phản hồi")
+
     model_config = ConfigDict(json_schema_extra={
         "example": {
             "success": True,
-            "message": "操作成功",
+            "message": "Thao tác thành công",
             "data": None
         }
     })

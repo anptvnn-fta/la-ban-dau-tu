@@ -75,19 +75,19 @@ def _normalize_code_for_grouping(code: str) -> str:
     "",
     response_model=HistoryListResponse,
     responses={
-        200: {"description": "历史记录列表"},
-        500: {"description": "服务器错误", "model": ErrorResponse},
+        200: {"description": "Danh sách bản ghi lịch sử"},
+        500: {"description": "Lỗi máy chủ", "model": ErrorResponse},
     },
-    summary="获取历史分析列表",
-    description="分页获取历史分析记录摘要，支持按股票代码和日期范围筛选"
+    summary="Lấy danh sách lịch sử phân tích",
+    description="Lấy tóm tắt bản ghi lịch sử phân tích theo phân trang, hỗ trợ lọc theo mã cổ phiếu và khoảng thời gian"
 )
 def get_history_list(
-    stock_code: Optional[str] = Query(None, description="股票代码筛选"),
-    report_type: Optional[str] = Query(None, description="报告类型筛选，如 market_review"),
-    start_date: Optional[str] = Query(None, description="开始日期 (YYYY-MM-DD)"),
-    end_date: Optional[str] = Query(None, description="结束日期 (YYYY-MM-DD)"),
-    page: int = Query(1, ge=1, description="页码（从 1 开始）"),
-    limit: int = Query(20, ge=1, le=100, description="每页数量"),
+    stock_code: Optional[str] = Query(None, description="Lọc theo mã cổ phiếu"),
+    report_type: Optional[str] = Query(None, description="Lọc theo loại báo cáo, ví dụ: market_review"),
+    start_date: Optional[str] = Query(None, description="Ngày bắt đầu (YYYY-MM-DD)"),
+    end_date: Optional[str] = Query(None, description="Ngày kết thúc (YYYY-MM-DD)"),
+    page: int = Query(1, ge=1, description="Số trang (bắt đầu từ 1)"),
+    limit: int = Query(20, ge=1, le=100, description="Số lượng mỗi trang"),
     db_manager: DatabaseManager = Depends(get_database_manager)
 ) -> HistoryListResponse:
     """
@@ -167,12 +167,12 @@ def get_history_list(
     "/by-code/{stock_code}",
     response_model=DeleteHistoryResponse,
     responses={
-        200: {"description": "删除成功"},
-        404: {"description": "未找到记录", "model": ErrorResponse},
-        500: {"description": "服务器错误", "model": ErrorResponse},
+        200: {"description": "Xóa thành công"},
+        404: {"description": "Không tìm thấy bản ghi", "model": ErrorResponse},
+        500: {"description": "Lỗi máy chủ", "model": ErrorResponse},
     },
-    summary="按股票代码删除历史分析记录",
-    description="删除指定股票代码的所有分析历史记录（支持代码变体归一化匹配）",
+    summary="Xóa lịch sử phân tích theo mã cổ phiếu",
+    description="Xóa tất cả bản ghi lịch sử phân tích của mã cổ phiếu chỉ định (hỗ trợ so khớp chuẩn hóa biến thể mã).",
 )
 def delete_history_by_code(
     stock_code: str,
@@ -198,12 +198,12 @@ def delete_history_by_code(
     "",
     response_model=DeleteHistoryResponse,
     responses={
-        200: {"description": "删除成功"},
-        400: {"description": "请求参数错误", "model": ErrorResponse},
-        500: {"description": "服务器错误", "model": ErrorResponse},
+        200: {"description": "Xóa thành công"},
+        400: {"description": "Tham số yêu cầu không hợp lệ", "model": ErrorResponse},
+        500: {"description": "Lỗi máy chủ", "model": ErrorResponse},
     },
-    summary="删除历史分析记录",
-    description="按历史记录主键 ID 批量删除分析历史"
+    summary="Xóa bản ghi lịch sử phân tích",
+    description="Xóa hàng loạt bản ghi lịch sử phân tích theo khóa chính ID"
 )
 def delete_history_records(
     request: DeleteHistoryRequest = Body(...),
@@ -243,16 +243,16 @@ def delete_history_records(
     "/stocks",
     response_model=StockBarResponse,
     responses={
-        200: {"description": "不重复个股列表"},
-        500: {"description": "服务器错误", "model": ErrorResponse},
+        200: {"description": "Danh sách cổ phiếu không trùng lặp"},
+        500: {"description": "Lỗi máy chủ", "model": ErrorResponse},
     },
-    summary="获取不重复个股列表",
-    description="返回历史记录中每只股票的最新一条分析摘要，不包含大盘复盘（code=MARKET）。",
+    summary="Lấy danh sách cổ phiếu không trùng lặp",
+    description="Trả về tóm tắt phân tích mới nhất của mỗi cổ phiếu trong lịch sử, không bao gồm tổng kết thị trường (code=MARKET).",
 )
 def get_stock_bar(
-    start_date: Optional[str] = Query(None, description="开始日期 (YYYY-MM-DD)"),
-    end_date: Optional[str] = Query(None, description="结束日期 (YYYY-MM-DD)"),
-    limit: int = Query(200, ge=1, le=500, description="最大返回数量"),
+    start_date: Optional[str] = Query(None, description="Ngày bắt đầu (YYYY-MM-DD)"),
+    end_date: Optional[str] = Query(None, description="Ngày kết thúc (YYYY-MM-DD)"),
+    limit: int = Query(200, ge=1, le=500, description="Số lượng trả về tối đa"),
     db_manager: DatabaseManager = Depends(get_database_manager),
 ) -> StockBarResponse:
     try:
@@ -342,12 +342,12 @@ def get_stock_bar(
     "/{record_id}",
     response_model=AnalysisReport,
     responses={
-        200: {"description": "报告详情"},
-        404: {"description": "报告不存在", "model": ErrorResponse},
-        500: {"description": "服务器错误", "model": ErrorResponse},
+        200: {"description": "Chi tiết báo cáo"},
+        404: {"description": "Báo cáo không tồn tại", "model": ErrorResponse},
+        500: {"description": "Lỗi máy chủ", "model": ErrorResponse},
     },
-    summary="获取历史报告详情",
-    description="根据分析历史记录 ID 或 query_id 获取完整的历史分析报告"
+    summary="Lấy chi tiết báo cáo lịch sử",
+    description="Lấy báo cáo phân tích lịch sử đầy đủ theo ID bản ghi lịch sử phân tích hoặc query_id"
 )
 def get_history_detail(
     record_id: str,
@@ -505,12 +505,12 @@ def get_history_detail(
     "/{record_id}/diagnostics",
     response_model=RunDiagnosticSummaryResponse,
     responses={
-        200: {"description": "运行诊断摘要"},
-        404: {"description": "报告不存在", "model": ErrorResponse},
-        500: {"description": "服务器错误", "model": ErrorResponse},
+        200: {"description": "Tóm tắt chẩn đoán chạy"},
+        404: {"description": "Báo cáo không tồn tại", "model": ErrorResponse},
+        500: {"description": "Lỗi máy chủ", "model": ErrorResponse},
     },
-    summary="获取历史报告运行诊断摘要",
-    description="根据分析历史记录 ID 或 query_id 获取用户可读诊断摘要和脱敏复制文本。",
+    summary="Lấy tóm tắt chẩn đoán chạy của báo cáo lịch sử",
+    description="Lấy tóm tắt chẩn đoán có thể đọc được cho người dùng và văn bản khử nhạy cảm để sao chép theo ID bản ghi hoặc query_id.",
 )
 def get_history_diagnostics(
     record_id: str,
@@ -548,12 +548,12 @@ def get_history_diagnostics(
     "/{record_id}/flow",
     response_model=RunFlowSnapshot,
     responses={
-        200: {"description": "运行流快照"},
-        404: {"description": "报告不存在", "model": ErrorResponse},
-        500: {"description": "服务器错误", "model": ErrorResponse},
+        200: {"description": "Ảnh chụp luồng chạy"},
+        404: {"description": "Báo cáo không tồn tại", "model": ErrorResponse},
+        500: {"description": "Lỗi máy chủ", "model": ErrorResponse},
     },
-    summary="获取历史报告运行流",
-    description="根据分析历史记录 ID 或 query_id 获取数据流/信息流快照。",
+    summary="Lấy luồng chạy của báo cáo lịch sử",
+    description="Lấy ảnh chụp luồng dữ liệu/thông tin theo ID bản ghi lịch sử phân tích hoặc query_id.",
 )
 def get_history_run_flow(
     record_id: str,
@@ -591,15 +591,15 @@ def get_history_run_flow(
     "/{record_id}/news",
     response_model=NewsIntelResponse,
     responses={
-        200: {"description": "新闻情报列表"},
-        500: {"description": "服务器错误", "model": ErrorResponse},
+        200: {"description": "Danh sách tin tức tình báo"},
+        500: {"description": "Lỗi máy chủ", "model": ErrorResponse},
     },
-    summary="获取历史报告关联新闻",
-    description="根据分析历史记录 ID 获取关联的新闻情报列表（为空也返回 200）"
+    summary="Lấy tin tức liên quan đến báo cáo lịch sử",
+    description="Lấy danh sách tin tức tình báo liên quan theo ID bản ghi lịch sử phân tích (trả về 200 ngay cả khi không có tin tức)"
 )
 def get_history_news(
     record_id: str,
-    limit: int = Query(20, ge=1, le=100, description="返回数量限制"),
+    limit: int = Query(20, ge=1, le=100, description="Giới hạn số lượng trả về"),
     db_manager: DatabaseManager = Depends(get_database_manager)
 ) -> NewsIntelResponse:
     """
@@ -649,12 +649,12 @@ def get_history_news(
     "/{record_id}/markdown",
     response_model=MarkdownReportResponse,
     responses={
-        200: {"description": "Markdown 格式报告"},
-        404: {"description": "报告不存在", "model": ErrorResponse},
-        500: {"description": "服务器错误", "model": ErrorResponse},
+        200: {"description": "Báo cáo định dạng Markdown"},
+        404: {"description": "Báo cáo không tồn tại", "model": ErrorResponse},
+        500: {"description": "Lỗi máy chủ", "model": ErrorResponse},
     },
-    summary="获取历史报告 Markdown 格式",
-    description="根据分析历史记录 ID 获取 Markdown 格式的完整分析报告"
+    summary="Lấy báo cáo lịch sử định dạng Markdown",
+    description="Lấy báo cáo phân tích đầy đủ định dạng Markdown theo ID bản ghi lịch sử phân tích"
 )
 def get_history_markdown(
     record_id: str,

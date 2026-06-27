@@ -221,7 +221,7 @@ def _legacy_audit_marker_specs(
     add("stock_name", stock_name)
     add("analysis_date", context.get("date"))
     add("market_phase", "## Market Phase Context" if report_language == "en" else "## 市场阶段上下文")
-    add("daily_market_context", "## Daily Market Context" if report_language == "en" else "## 大盘环境摘要")
+    add("daily_market_context", "## Daily Market Context" if report_language == "en" else "## Tóm tắt môi trường thị trường")
     add("analysis_context_pack", analysis_context_pack_summary)
     add("quote", "## 📈 技术面数据")
     add("news_context", "## 📰 舆情情报" if news_context else None)
@@ -367,22 +367,38 @@ def apply_placeholder_fill(result: "AnalysisResult", missing_fields: List[str]) 
         "dashboard.phase_decision.action_window": (
             "Model did not provide a phase action window"
             if report_language == "en"
-            else "模型未提供阶段化行动窗口"
+            else (
+                "Mô hình chưa cung cấp cửa sổ hành động theo giai đoạn"
+                if report_language == "vi"
+                else "模型未提供阶段化行动窗口"
+            )
         ),
         "dashboard.phase_decision.immediate_action": (
             "Model did not provide a phase-aware immediate action"
             if report_language == "en"
-            else "模型未提供阶段化即时动作"
+            else (
+                "Mô hình chưa cung cấp hành động tức thì theo giai đoạn"
+                if report_language == "vi"
+                else "模型未提供阶段化即时动作"
+            )
         ),
         "dashboard.phase_decision.next_check_time": (
             "Model did not provide a next check point"
             if report_language == "en"
-            else "模型未提供下一次检查点"
+            else (
+                "Mô hình chưa cung cấp thời điểm kiểm tra tiếp theo"
+                if report_language == "vi"
+                else "模型未提供下一次检查点"
+            )
         ),
         "dashboard.phase_decision.confidence_reason": (
             "Model did not provide a phase confidence rationale"
             if report_language == "en"
-            else "模型未提供阶段化置信度理由"
+            else (
+                "Mô hình chưa cung cấp lý do độ tin cậy theo giai đoạn"
+                if report_language == "vi"
+                else "模型未提供阶段化置信度理由"
+            )
         ),
     }
     for field in missing_fields:
@@ -1276,9 +1292,15 @@ def _capital_flow_bias_with_status(
 def _capital_flow_status_for_stability(reason: str, language: str) -> str:
     normalized = str(reason or "").strip().lower()
     if "not_supported" in normalized or "unsupported" in normalized or "not available" in normalized:
+        if language == "vi":
+            return "Dịch vụ dòng tiền thị trường chưa hỗ trợ"
         return "市场资金流服务暂不支持" if language == "zh" else "Capital flow source unsupported"
     if "empty_stock_flow" in normalized or "missing" in normalized:
+        if language == "vi":
+            return "Dữ liệu dòng tiền không có sẵn"
         return "资金流数据缺失" if language == "zh" else "capital flow data unavailable"
+    if language == "vi":
+        return "Dữ liệu dòng tiền không khả dụng"
     return "资金流数据不可用" if language == "zh" else "capital flow unavailable"
 
 
@@ -1295,7 +1317,11 @@ def _set_decision_stability_unavailable(
     result.dashboard = dashboard
     dashboard["decision_stability"] = {
         "applied": False,
-        "reason": "资金流不可用，未使用资金流校准" if language == "zh" else "Capital flow unavailable; stability calibration not applied",
+        "reason": (
+            "Dòng tiền không khả dụng; chưa áp dụng hiệu chỉnh ổn định"
+            if language == "vi"
+            else ("资金流不可用，未使用资金流校准" if language == "zh" else "Capital flow unavailable; stability calibration not applied")
+        ),
         "capital_flow_status": _capital_flow_status_for_stability(flow_status, language),
         "current_price": current_price,
         "support": support,
@@ -1335,8 +1361,16 @@ def _apply_hold_watch_dashboard(
     if not isinstance(core, dict):
         core = {}
         dashboard["core_conclusion"] = core
-    core["signal_type"] = "🟡持有观望" if language == "zh" else "🟡 Hold / Watch"
-    core["one_sentence"] = f"{advice}：{reason}" if language == "zh" else f"{advice}: {reason}"
+    core["signal_type"] = (
+        "🟡 Nắm giữ / Quan sát"
+        if language == "vi"
+        else ("🟡持有观望" if language == "zh" else "🟡 Hold / Watch")
+    )
+    core["one_sentence"] = (
+        f"{advice}: {reason}"
+        if language in ("en", "vi")
+        else f"{advice}：{reason}"
+    )
 
     position_advice = core.get("position_advice")
     if not isinstance(position_advice, dict):
@@ -1373,7 +1407,13 @@ def _downgrade_buy_without_capital_flow(
     flow_status: str,
 ) -> None:
     status_text = _capital_flow_status_for_stability(flow_status, language)
-    if language == "zh":
+    if language == "vi":
+        advice = "Nắm giữ và quan sát"
+        reason = f"{status_text}; kết luận mua chưa được xác nhận bởi dòng tiền, tạm xử lý theo dõi."
+        no_position = "Chưa có vị thế: không đuổi mua, chờ dòng tiền phục hồi, xác nhận hỗ trợ hoặc breakout hợp lệ."
+        has_position = "Có vị thế: dùng ngưỡng hỗ trợ quan trọng làm mức cắt lỗ, kiểm soát tỷ trọng đến khi dòng tiền phục hồi."
+        confidence = "Thấp"
+    elif language == "zh":
         advice = "持有观察"
         reason = f"{status_text}，买入结论缺少资金面确认，先按观察处理。"
         no_position = "空仓先不追买，等待资金流恢复、支撑确认或有效突破后再行动。"
@@ -1442,7 +1482,7 @@ def _set_structural_hold_wording(
     resistance: Optional[float],
     flow_bias: str,
 ) -> None:
-    advice = {
+    _advice_map = {
         "zh": {
             "range": "震荡观望",
             "shakeout": "洗盘观察",
@@ -1453,7 +1493,18 @@ def _set_structural_hold_wording(
             "shakeout": "Shakeout watch",
             "hold": "Hold and watch",
         },
-    }[language].get(advice_key, "持有观察" if language == "zh" else "Hold and watch")
+        "vi": {
+            "range": "Quan sát dao động",
+            "shakeout": "Quan sát rũ hàng",
+            "hold": "Nắm giữ và quan sát",
+        },
+    }
+    _advice_default = (
+        "Nắm giữ và quan sát"
+        if language == "vi"
+        else ("持有观察" if language == "zh" else "Hold and watch")
+    )
+    advice = _advice_map.get(language, _advice_map["zh"]).get(advice_key, _advice_default)
     reason_templates = {
         "zh": {
             "buy_near_resistance": "价格接近压力位且主力资金未确认流入，不宜仅因短线反弹追买。",
@@ -1471,15 +1522,28 @@ def _set_structural_hold_wording(
             "hold_shakeout": "Price pulled back near support without confirmed outflow, which is better treated as a shakeout watch.",
             "hold_mid_range": "Price is between support and resistance with neutral fund flow, so range-bound watch is more actionable.",
         },
+        "vi": {
+            "buy_near_resistance": "Giá gần ngưỡng kháng cự và chưa xác nhận dòng tiền mua vào, không nên đuổi theo phục hồi ngắn hạn.",
+            "buy_with_outflow": "Dòng tiền bán ra mâu thuẫn với kết luận mua; chờ xác nhận ngưỡng hỗ trợ hoặc dòng tiền quay lại.",
+            "sell_near_support": "Giá gần ngưỡng hỗ trợ và chưa thấy dòng tiền bán ra liên tục, không nên bán chỉ vì giảm một phiên.",
+            "sell_with_inflow": "Dòng tiền mua vào mâu thuẫn với kết luận bán; tạm xử lý nắm giữ quan sát và theo dõi phá vỡ hỗ trợ.",
+            "hold_shakeout": "Giá về gần hỗ trợ nhưng chưa xác nhận dòng tiền bán ra, phù hợp hơn với trạng thái quan sát rũ hàng.",
+            "hold_mid_range": "Giá nằm giữa hỗ trợ và kháng cự, dòng tiền chưa rõ xu hướng; quan sát dao động khả thi hơn.",
+        },
     }
     reason = reason_templates[language].get(reason_key, "")
     result.operation_advice = advice
-    if language == "zh" and "震荡" not in str(result.trend_prediction) and advice_key == "range":
+    if language == "vi" and advice_key == "range":
+        result.trend_prediction = "Đi ngang"
+    elif language == "zh" and "震荡" not in str(result.trend_prediction) and advice_key == "range":
         result.trend_prediction = "震荡"
     elif language == "en" and advice_key == "range":
         result.trend_prediction = "Sideways"
 
-    if language == "zh":
+    if language == "vi":
+        no_position = "Chưa có vị thế: không đuổi mua hay bán hoảng; chờ xác nhận hỗ trợ, breakout hoặc dòng tiền quay lại."
+        has_position = "Có vị thế: dùng ngưỡng hỗ trợ quan trọng làm mức cắt lỗ, quản lý tỷ trọng cho đến khi hỗ trợ bị phá vỡ."
+    elif language == "zh":
         no_position = "空仓先不追涨杀跌，等待支撑确认、放量突破或资金回流后再行动。"
         has_position = "持仓以关键支撑为风控线，未跌破前以观察和分批控仓为主。"
     else:

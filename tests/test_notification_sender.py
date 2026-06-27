@@ -986,7 +986,7 @@ class TestCustomWebhookSender(unittest.TestCase):
         self.assertEqual(
             payload,
             {
-                "title": "股票分析报告",
+                "title": "Báo cáo phân tích cổ phiếu",
                 "body": "hello",
                 "group": "stock",
             },
@@ -1013,7 +1013,7 @@ class TestCustomWebhookSender(unittest.TestCase):
         self.assertEqual(
             payload,
             {
-                "title": "股票分析报告",
+                "title": "Báo cáo phân tích cổ phiếu",
                 "body": "hello",
                 "sound": "bell",
             },
@@ -1036,7 +1036,7 @@ class TestCustomWebhookSender(unittest.TestCase):
         self.assertEqual(
             payload,
             {
-                "title": "股票分析报告",
+                "title": "Báo cáo phân tích cổ phiếu",
                 "content": 'line 1\nline "2"',
             },
         )

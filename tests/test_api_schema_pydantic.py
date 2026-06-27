@@ -73,7 +73,7 @@ def test_schema_examples_remain_in_openapi_schema() -> None:
 
     assert root_schema["properties"]["message"]["example"] == "Daily Stock Analysis API is running"
     assert root_schema["example"]["version"] == "1.0.0"
-    assert analyze_schema["properties"]["stock_code"]["example"] == "600519"
+    assert analyze_schema["properties"]["stock_code"]["example"] == "VCB.VN"
     assert analyze_schema["properties"]["skills"]["example"] == ["bull_trend", "growth_quality"]
     assert analyze_schema["properties"]["analysis_phase"]["default"] == "auto"
     assert analyze_schema["properties"]["analysis_phase"]["enum"] == [
@@ -82,8 +82,8 @@ def test_schema_examples_remain_in_openapi_schema() -> None:
         "intraday",
         "postmarket",
     ]
-    assert history_schema["example"]["stock_code"] == "600519"
-    assert quote_schema["example"]["stock_name"] == "贵州茅台"
+    assert history_schema["example"]["stock_code"] == "VCB.VN"
+    assert quote_schema["example"]["stock_name"] == "Công ty Cổ phần FPT"
 
 
 def test_analyze_request_supports_legacy_strategies_dict_input() -> None:

@@ -275,9 +275,9 @@ class MarketReviewLocalizationTestCase(unittest.TestCase):
                 notifier, send_notification=False, override_region="cn,us"
             )
 
-        self.assertIn("# A股大盘复盘\n\nCN body", result)
-        self.assertIn("# 美股大盘复盘\n\nUS body", result)
-        self.assertNotIn("港股", result)
+        self.assertIn("# Tổng kết thị trường A-share\n\nCN body", result)
+        self.assertIn("# Tổng kết thị trường Mỹ\n\nUS body", result)
+        self.assertNotIn("Hồng Kông", result)
         self.assertNotIn("HK", result)
 
     def test_run_market_review_comma_joined_subset_cn_hk(self) -> None:
@@ -308,9 +308,9 @@ class MarketReviewLocalizationTestCase(unittest.TestCase):
                 notifier, send_notification=False, override_region="cn,hk"
             )
 
-        self.assertIn("# A股大盘复盘\n\nCN body", result)
-        self.assertIn("# 港股大盘复盘\n\nHK body", result)
-        self.assertNotIn("美股", result)
+        self.assertIn("# Tổng kết thị trường A-share\n\nCN body", result)
+        self.assertIn("# Tổng kết thị trường Hồng Kông\n\nHK body", result)
+        self.assertNotIn("thị trường Mỹ", result)
         self.assertNotIn("US Market", result)
 
     def test_run_market_review_persists_only_current_run_market_light_snapshots(self) -> None:
@@ -474,7 +474,7 @@ class MarketReviewLocalizationTestCase(unittest.TestCase):
                     self.assertIsNotNone(row)
                     self.assertEqual(row.id, saved)
                     self.assertEqual(row.code, market_review_module.MARKET_REVIEW_HISTORY_CODE)
-                    self.assertEqual(row.name, "大盘复盘")
+                    self.assertEqual(row.name, "Tổng kết thị trường")
                     self.assertEqual(row.report_type, market_review_module.MARKET_REVIEW_REPORT_TYPE)
                     self.assertEqual(row.news_content, "## 今日大盘\n\n复盘正文")
                     self.assertIn("# 🎯 大盘复盘", row.raw_result)

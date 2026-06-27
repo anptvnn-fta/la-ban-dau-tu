@@ -20,43 +20,43 @@ from src.schemas.decision_action import DecisionAction
 class HistoryItem(BaseModel):
     """Tóm tắt bản ghi lịch sử (dùng để hiển thị trong danh sách)"""
 
-    id: Optional[int] = Field(None, description="分析历史记录主键 ID")
-    query_id: str = Field(..., description="分析记录关联 query_id（批量分析时重复）")
-    stock_code: str = Field(..., description="股票代码")
-    stock_name: Optional[str] = Field(None, description="股票名称")
-    report_type: Optional[str] = Field(None, description="报告类型")
-    trend_prediction: Optional[str] = Field(None, description="趋势预测")
-    analysis_summary: Optional[str] = Field(None, description="分析摘要")
+    id: Optional[int] = Field(None, description="Khoá chính ID của bản ghi lịch sử phân tích")
+    query_id: str = Field(..., description="Query_id liên kết bản ghi phân tích (có thể trùng khi phân tích hàng loạt)")
+    stock_code: str = Field(..., description="Mã cổ phiếu")
+    stock_name: Optional[str] = Field(None, description="Tên cổ phiếu")
+    report_type: Optional[str] = Field(None, description="Loại báo cáo")
+    trend_prediction: Optional[str] = Field(None, description="Dự báo xu hướng")
+    analysis_summary: Optional[str] = Field(None, description="Tóm tắt phân tích")
     sentiment_score: Optional[int] = Field(
         None,
-        description="情绪评分（历史数据可能超出 0-100 范围，读取时不做约束）",
+        description="Điểm tâm lý thị trường (dữ liệu cũ có thể nằm ngoài 0-100, không ràng buộc khi đọc)",
     )
-    operation_advice: Optional[str] = Field(None, description="操作建议")
-    action: Optional[DecisionAction] = Field(None, description="结构化建议动作 taxonomy")
-    action_label: Optional[str] = Field(None, description="建议动作展示标签")
-    current_price: Optional[float] = Field(None, description="分析时股价")
-    change_pct: Optional[float] = Field(None, description="分析时涨跌幅(%)")
-    volume_ratio: Optional[float] = Field(None, description="分析时量比")
-    turnover_rate: Optional[float] = Field(None, description="分析时换手率")
+    operation_advice: Optional[str] = Field(None, description="Khuyến nghị thao tác")
+    action: Optional[DecisionAction] = Field(None, description="Hành động khuyến nghị có cấu trúc (taxonomy)")
+    action_label: Optional[str] = Field(None, description="Nhãn hiển thị của hành động khuyến nghị")
+    current_price: Optional[float] = Field(None, description="Giá cổ phiếu tại thời điểm phân tích")
+    change_pct: Optional[float] = Field(None, description="Thay đổi giá tại thời điểm phân tích (%)")
+    volume_ratio: Optional[float] = Field(None, description="Tỷ lệ khối lượng tại thời điểm phân tích")
+    turnover_rate: Optional[float] = Field(None, description="Tỷ lệ luân chuyển tại thời điểm phân tích")
     model_used: Optional[str] = Field(
         None,
-        description="分析历史记录中的模型快照，仅用于展示历史元数据；不参与模型配置或运行时路由决策",
+        description="Ảnh chụp model trong bản ghi lịch sử, chỉ dùng để hiển thị metadata; không ảnh hưởng cấu hình model hay định tuyến runtime",
     )
     market_phase_summary: Optional[MarketPhaseSummary] = Field(
         None,
-        description="本次分析市场阶段低敏摘要",
+        description="Tóm tắt giai đoạn thị trường ít nhạy cảm của lần phân tích này",
     )
-    created_at: Optional[str] = Field(None, description="创建时间")
-    
+    created_at: Optional[str] = Field(None, description="Thời điểm tạo")
+
     model_config = ConfigDict(json_schema_extra={
         "example": {
             "id": 1234,
             "query_id": "abc123",
-            "stock_code": "600519",
-            "stock_name": "贵州茅台",
+            "stock_code": "VCB.VN",
+            "stock_name": "Ngân hàng Ngoại Thương",
             "report_type": "detailed",
             "sentiment_score": 75,
-            "operation_advice": "持有",
+            "operation_advice": "Giữ",
             "created_at": "2024-01-01T12:00:00"
         }
     })
@@ -64,12 +64,12 @@ class HistoryItem(BaseModel):
 
 class HistoryListResponse(BaseModel):
     """Phản hồi danh sách lịch sử"""
-    
-    total: int = Field(..., description="总记录数")
-    page: int = Field(..., description="当前页码")
-    limit: int = Field(..., description="每页数量")
-    items: List[HistoryItem] = Field(default_factory=list, description="记录列表")
-    
+
+    total: int = Field(..., description="Tổng số bản ghi")
+    page: int = Field(..., description="Trang hiện tại")
+    limit: int = Field(..., description="Số bản ghi mỗi trang")
+    items: List[HistoryItem] = Field(default_factory=list, description="Danh sách bản ghi")
+
     model_config = ConfigDict(json_schema_extra={
         "example": {
             "total": 100,
@@ -83,26 +83,26 @@ class HistoryListResponse(BaseModel):
 class DeleteHistoryRequest(BaseModel):
     """Yêu cầu xóa lịch sử"""
 
-    record_ids: List[int] = Field(default_factory=list, description="要删除的历史记录主键 ID 列表")
+    record_ids: List[int] = Field(default_factory=list, description="Danh sách khoá chính ID bản ghi lịch sử cần xóa")
 
 
 class DeleteHistoryResponse(BaseModel):
     """Phản hồi xóa lịch sử"""
 
-    deleted: int = Field(..., description="实际删除的历史记录数量")
+    deleted: int = Field(..., description="Số bản ghi lịch sử thực tế đã xóa")
 
 
 class NewsIntelItem(BaseModel):
     """Mục tin tức/thông tin tình báo"""
 
-    title: str = Field(..., description="新闻标题")
-    snippet: str = Field("", description="新闻摘要（最多200字）")
-    url: str = Field(..., description="新闻链接")
+    title: str = Field(..., description="Tiêu đề tin tức")
+    snippet: str = Field("", description="Tóm tắt tin tức (tối đa 200 ký tự)")
+    url: str = Field(..., description="Đường dẫn tin tức")
 
     model_config = ConfigDict(json_schema_extra={
         "example": {
-            "title": "公司发布业绩快报，营收同比增长 20%",
-            "snippet": "公司公告显示，季度营收同比增长 20%...",
+            "title": "Doanh nghiệp công bố kết quả kinh doanh, doanh thu tăng 20% so với cùng kỳ",
+            "snippet": "Theo thông báo của công ty, doanh thu quý tăng 20% so với cùng kỳ...",
             "url": "https://example.com/news/123"
         }
     })
@@ -111,8 +111,8 @@ class NewsIntelItem(BaseModel):
 class NewsIntelResponse(BaseModel):
     """Phản hồi tin tức/thông tin tình báo"""
 
-    total: int = Field(..., description="新闻条数")
-    items: List[NewsIntelItem] = Field(default_factory=list, description="新闻列表")
+    total: int = Field(..., description="Số tin tức")
+    items: List[NewsIntelItem] = Field(default_factory=list, description="Danh sách tin tức")
 
     model_config = ConfigDict(json_schema_extra={
         "example": {
@@ -127,62 +127,62 @@ class ReportMeta(BaseModel):
 
     model_config = ConfigDict(protected_namespaces=("model_validate", "model_dump"))
 
-    id: Optional[int] = Field(None, description="分析历史记录主键 ID（仅历史报告有此字段）")
-    query_id: str = Field(..., description="分析记录关联 query_id（批量分析时重复）")
-    stock_code: str = Field(..., description="股票代码")
-    stock_name: Optional[str] = Field(None, description="股票名称")
-    report_type: Optional[str] = Field(None, description="报告类型")
-    report_language: Optional[str] = Field(None, description="报告输出语言（zh/en）")
-    created_at: Optional[str] = Field(None, description="创建时间")
-    current_price: Optional[float] = Field(None, description="分析时股价")
-    change_pct: Optional[float] = Field(None, description="分析时涨跌幅(%)")
+    id: Optional[int] = Field(None, description="Khoá chính ID bản ghi lịch sử phân tích (chỉ có với báo cáo lịch sử)")
+    query_id: str = Field(..., description="Query_id liên kết bản ghi phân tích (có thể trùng khi phân tích hàng loạt)")
+    stock_code: str = Field(..., description="Mã cổ phiếu")
+    stock_name: Optional[str] = Field(None, description="Tên cổ phiếu")
+    report_type: Optional[str] = Field(None, description="Loại báo cáo")
+    report_language: Optional[str] = Field(None, description="Ngôn ngữ báo cáo (zh/en/vi)")
+    created_at: Optional[str] = Field(None, description="Thời điểm tạo")
+    current_price: Optional[float] = Field(None, description="Giá cổ phiếu tại thời điểm phân tích")
+    change_pct: Optional[float] = Field(None, description="Thay đổi giá tại thời điểm phân tích (%)")
     model_used: Optional[str] = Field(
         None,
-        description="历史报告元数据中的模型快照，仅用于展示，不影响 Provider/Model/Base URL 运行时路由",
+        description="Ảnh chụp model trong metadata báo cáo lịch sử, chỉ dùng để hiển thị; không ảnh hưởng định tuyến Provider/Model/Base URL runtime",
     )
     market_phase_summary: Optional[MarketPhaseSummary] = Field(
         None,
-        description="本次分析市场阶段低敏摘要",
+        description="Tóm tắt giai đoạn thị trường ít nhạy cảm của lần phân tích này",
     )
 
 
 class ReportSummary(BaseModel):
     """Phần tóm tắt tổng quan của báo cáo"""
     
-    analysis_summary: Optional[str] = Field(None, description="关键结论")
-    operation_advice: Optional[str] = Field(None, description="操作建议")
-    action: Optional[DecisionAction] = Field(None, description="结构化建议动作 taxonomy")
-    action_label: Optional[str] = Field(None, description="建议动作展示标签")
-    trend_prediction: Optional[str] = Field(None, description="趋势预测")
+    analysis_summary: Optional[str] = Field(None, description="Kết luận chính")
+    operation_advice: Optional[str] = Field(None, description="Khuyến nghị thao tác")
+    action: Optional[DecisionAction] = Field(None, description="Hành động khuyến nghị có cấu trúc (taxonomy)")
+    action_label: Optional[str] = Field(None, description="Nhãn hiển thị của hành động khuyến nghị")
+    trend_prediction: Optional[str] = Field(None, description="Dự báo xu hướng")
     sentiment_score: Optional[int] = Field(
         None,
-        description="情绪评分（历史数据可能超出 0-100 范围，读取时不做约束）",
+        description="Điểm tâm lý thị trường (dữ liệu cũ có thể nằm ngoài 0-100, không ràng buộc khi đọc)",
     )
-    sentiment_label: Optional[str] = Field(None, description="情绪标签")
+    sentiment_label: Optional[str] = Field(None, description="Nhãn tâm lý thị trường")
 
 
 class ReportStrategy(BaseModel):
     """Phần chiến lược và mức giá mục tiêu"""
     
-    ideal_buy: Optional[str] = Field(None, description="理想买入价")
-    secondary_buy: Optional[str] = Field(None, description="第二买入价")
-    stop_loss: Optional[str] = Field(None, description="止损价")
-    take_profit: Optional[str] = Field(None, description="止盈价")
+    ideal_buy: Optional[str] = Field(None, description="Giá mua lý tưởng")
+    secondary_buy: Optional[str] = Field(None, description="Giá mua thứ hai")
+    stop_loss: Optional[str] = Field(None, description="Giá cắt lỗ")
+    take_profit: Optional[str] = Field(None, description="Giá chốt lời")
 
 
 class AnalysisContextPackOverviewSubject(BaseModel):
     """Thông tin mã chứng khoán trong tóm tắt công khai của AnalysisContextPack"""
 
-    code: str = Field(..., description="股票代码")
-    stock_name: Optional[str] = Field(None, description="股票名称")
-    market: Optional[str] = Field(None, description="市场")
+    code: str = Field(..., description="Mã cổ phiếu")
+    stock_name: Optional[str] = Field(None, description="Tên cổ phiếu")
+    market: Optional[str] = Field(None, description="Thị trường")
 
 
 class AnalysisContextPackOverviewBlock(BaseModel):
     """Khối dữ liệu trong tóm tắt công khai của AnalysisContextPack"""
 
-    key: str = Field(..., description="数据块稳定 key")
-    label: str = Field(..., description="数据块展示名称")
+    key: str = Field(..., description="Khoá ổn định của khối dữ liệu")
+    label: str = Field(..., description="Tên hiển thị của khối dữ liệu")
     status: Literal[
         "available",
         "missing",
@@ -192,10 +192,10 @@ class AnalysisContextPackOverviewBlock(BaseModel):
         "estimated",
         "partial",
         "fetch_failed",
-    ] = Field(..., description="数据块质量状态")
-    source: Optional[str] = Field(None, description="数据来源")
-    warnings: List[str] = Field(default_factory=list, description="数据块告警码")
-    missing_reasons: List[str] = Field(default_factory=list, description="缺失原因")
+    ] = Field(..., description="Trạng thái chất lượng khối dữ liệu")
+    source: Optional[str] = Field(None, description="Nguồn dữ liệu")
+    warnings: List[str] = Field(default_factory=list, description="Mã cảnh báo của khối dữ liệu")
+    missing_reasons: List[str] = Field(default_factory=list, description="Lý do thiếu dữ liệu")
 
 
 class AnalysisContextPackOverviewCounts(BaseModel):
@@ -214,84 +214,84 @@ class AnalysisContextPackOverviewCounts(BaseModel):
 class AnalysisContextPackOverviewMetadata(BaseModel):
     """Metadata trong tóm tắt công khai của AnalysisContextPack"""
 
-    trigger_source: Optional[str] = Field(None, description="触发来源")
-    news_result_count: Optional[int] = Field(None, description="新闻结果数量")
+    trigger_source: Optional[str] = Field(None, description="Nguồn kích hoạt")
+    news_result_count: Optional[int] = Field(None, description="Số lượng kết quả tin tức")
 
 
 class AnalysisContextPackOverviewDataQuality(BaseModel):
     """Điểm chất lượng dữ liệu trong tóm tắt công khai của AnalysisContextPack"""
 
-    overall_score: Optional[int] = Field(None, ge=0, le=100, description="输入数据质量总分")
+    overall_score: Optional[int] = Field(None, ge=0, le=100, description="Điểm chất lượng tổng thể dữ liệu đầu vào")
     level: Optional[Literal["good", "usable", "limited", "poor"]] = Field(
         None,
-        description="输入数据质量等级",
+        description="Mức chất lượng dữ liệu đầu vào",
     )
-    block_scores: Dict[str, int] = Field(default_factory=dict, description="固定数据块质量分")
-    limitations: List[str] = Field(default_factory=list, description="低敏数据限制说明")
+    block_scores: Dict[str, int] = Field(default_factory=dict, description="Điểm chất lượng các khối dữ liệu cố định")
+    limitations: List[str] = Field(default_factory=list, description="Mô tả giới hạn dữ liệu ít nhạy cảm")
 
 
 class AnalysisContextPackOverview(BaseModel):
     """Tóm tắt AnalysisContextPack ít nhạy cảm, hiển thị qua lịch sử/API"""
 
-    pack_version: str = Field(..., description="AnalysisContextPack 版本")
-    created_at: Optional[str] = Field(None, description="创建时间")
+    pack_version: str = Field(..., description="Phiên bản AnalysisContextPack")
+    created_at: Optional[str] = Field(None, description="Thời điểm tạo")
     subject: AnalysisContextPackOverviewSubject
     blocks: List[AnalysisContextPackOverviewBlock] = Field(default_factory=list)
     counts: AnalysisContextPackOverviewCounts
     data_quality: Optional[AnalysisContextPackOverviewDataQuality] = Field(
         None,
-        description="本次分析输入数据质量低敏摘要",
+        description="Tóm tắt ít nhạy cảm về chất lượng dữ liệu đầu vào lần phân tích này",
     )
-    warnings: List[str] = Field(default_factory=list, description="顶层数据质量提醒")
+    warnings: List[str] = Field(default_factory=list, description="Cảnh báo chất lượng dữ liệu cấp cao nhất")
     metadata: AnalysisContextPackOverviewMetadata = Field(default_factory=AnalysisContextPackOverviewMetadata)
 
 
 class ReportDetails(BaseModel):
     """Phần chi tiết báo cáo"""
     
-    news_content: Optional[str] = Field(None, description="新闻摘要")
-    raw_result: Optional[Any] = Field(None, description="原始分析结果（JSON）")
-    context_snapshot: Optional[Any] = Field(None, description="分析时上下文快照（JSON）")
+    news_content: Optional[str] = Field(None, description="Tóm tắt tin tức")
+    raw_result: Optional[Any] = Field(None, description="Kết quả phân tích thô (JSON)")
+    context_snapshot: Optional[Any] = Field(None, description="Ảnh chụp ngữ cảnh tại thời điểm phân tích (JSON)")
     analysis_context_pack_overview: Optional[AnalysisContextPackOverview] = Field(
         None,
-        description="本次分析输入上下文包低敏摘要",
+        description="Tóm tắt ít nhạy cảm của gói ngữ cảnh đầu vào lần phân tích này",
     )
-    financial_report: Optional[Any] = Field(None, description="结构化财报摘要（来自 fundamental_context）")
-    dividend_metrics: Optional[Any] = Field(None, description="结构化分红指标（含 TTM 口径）")
-    belong_boards: Optional[Any] = Field(None, description="关联板块列表")
-    sector_rankings: Optional[Any] = Field(None, description="板块涨跌榜（结构 {top, bottom}）")
+    financial_report: Optional[Any] = Field(None, description="Tóm tắt báo cáo tài chính có cấu trúc (từ fundamental_context)")
+    dividend_metrics: Optional[Any] = Field(None, description="Chỉ số cổ tức có cấu trúc (bao gồm khẩu TTM)")
+    belong_boards: Optional[Any] = Field(None, description="Danh sách nhóm/ngành liên quan")
+    sector_rankings: Optional[Any] = Field(None, description="Bảng xếp hạng ngành tăng/giảm (cấu trúc {top, bottom})")
 
 
 class AnalysisReport(BaseModel):
     """Báo cáo phân tích đầy đủ"""
 
-    meta: ReportMeta = Field(..., description="元信息")
-    summary: ReportSummary = Field(..., description="概览区")
-    strategy: Optional[ReportStrategy] = Field(None, description="策略点位区")
-    details: Optional[ReportDetails] = Field(None, description="详情区")
+    meta: ReportMeta = Field(..., description="Thông tin meta")
+    summary: ReportSummary = Field(..., description="Vùng tổng quan")
+    strategy: Optional[ReportStrategy] = Field(None, description="Vùng chiến lược và mức giá")
+    details: Optional[ReportDetails] = Field(None, description="Vùng chi tiết")
 
     model_config = ConfigDict(json_schema_extra={
         "example": {
             "meta": {
                 "query_id": "abc123",
-                "stock_code": "600519",
-                "stock_name": "贵州茅台",
+                "stock_code": "VCB.VN",
+                "stock_name": "Ngân hàng Ngoại Thương",
                 "report_type": "detailed",
-                "report_language": "zh",
+                "report_language": "vi",
                 "created_at": "2024-01-01T12:00:00"
             },
             "summary": {
-                "analysis_summary": "技术面向好，建议持有",
-                "operation_advice": "持有",
-                "trend_prediction": "看多",
+                "analysis_summary": "Kỹ thuật tích cực, khuyến nghị nắm giữ",
+                "operation_advice": "Giữ",
+                "trend_prediction": "Tăng",
                 "sentiment_score": 75,
-                "sentiment_label": "乐观"
+                "sentiment_label": "Lạc quan"
             },
             "strategy": {
-                "ideal_buy": "1800.00",
-                "secondary_buy": "1750.00",
-                "stop_loss": "1700.00",
-                "take_profit": "2000.00"
+                "ideal_buy": "95000",
+                "secondary_buy": "92000",
+                "stop_loss": "88000",
+                "take_profit": "110000"
             },
             "details": None
         }
@@ -301,11 +301,11 @@ class AnalysisReport(BaseModel):
 class MarkdownReportResponse(BaseModel):
     """Phản hồi báo cáo định dạng Markdown"""
 
-    content: str = Field(..., description="Markdown 格式的完整报告内容")
+    content: str = Field(..., description="Nội dung báo cáo đầy đủ định dạng Markdown")
 
     model_config = ConfigDict(json_schema_extra={
         "example": {
-            "content": "# 📊 贵州茅台 (600519) 分析报告\n\n> 分析日期：**2024-01-01**\n\n..."
+            "content": "# Ngân hàng Ngoại Thương (VCB.VN) — Báo cáo phân tích\n\n> Ngày phân tích: **2024-01-01**\n\n..."
         }
     })
 
@@ -313,35 +313,35 @@ class MarkdownReportResponse(BaseModel):
 class StockBarItem(BaseModel):
     """Mục thanh cổ phiếu (tóm tắt theo chiều cổ phiếu sau khi loại trùng)"""
 
-    id: int = Field(..., description="该股最新一次分析的历史记录主键 ID")
-    stock_code: str = Field(..., description="股票代码")
-    stock_name: Optional[str] = Field(None, description="股票名称")
-    report_type: Optional[str] = Field(None, description="报告类型")
+    id: int = Field(..., description="Khoá chính ID của bản ghi lịch sử phân tích gần nhất cho cổ phiếu này")
+    stock_code: str = Field(..., description="Mã cổ phiếu")
+    stock_name: Optional[str] = Field(None, description="Tên cổ phiếu")
+    report_type: Optional[str] = Field(None, description="Loại báo cáo")
     sentiment_score: Optional[int] = Field(
         None,
-        description="最新情绪评分",
+        description="Điểm tâm lý mới nhất",
     )
-    operation_advice: Optional[str] = Field(None, description="最新操作建议")
-    action: Optional[DecisionAction] = Field(None, description="结构化建议动作 taxonomy")
-    action_label: Optional[str] = Field(None, description="建议动作展示标签")
-    analysis_count: int = Field(..., description="该股票的历史分析总次数")
-    last_analysis_time: Optional[str] = Field(None, description="最近一次分析时间")
+    operation_advice: Optional[str] = Field(None, description="Khuyến nghị thao tác mới nhất")
+    action: Optional[DecisionAction] = Field(None, description="Hành động khuyến nghị có cấu trúc (taxonomy)")
+    action_label: Optional[str] = Field(None, description="Nhãn hiển thị của hành động khuyến nghị")
+    analysis_count: int = Field(..., description="Tổng số lần phân tích lịch sử của cổ phiếu này")
+    last_analysis_time: Optional[str] = Field(None, description="Thời điểm phân tích gần nhất")
     model_used: Optional[str] = Field(
         None,
-        description="最新分析使用的模型快照",
+        description="Ảnh chụp model của lần phân tích gần nhất",
     )
     market_phase_summary: Optional[MarketPhaseSummary] = Field(
         None,
-        description="最新分析市场阶段低敏摘要",
+        description="Tóm tắt giai đoạn thị trường ít nhạy cảm của lần phân tích gần nhất",
     )
     model_config = ConfigDict(json_schema_extra={
         "example": {
             "id": 1234,
-            "stock_code": "600519",
-            "stock_name": "贵州茅台",
+            "stock_code": "VCB.VN",
+            "stock_name": "Ngân hàng Ngoại Thương",
             "report_type": "detailed",
             "sentiment_score": 75,
-            "operation_advice": "持有",
+            "operation_advice": "Giữ",
             "analysis_count": 18,
             "last_analysis_time": "2024-01-01T12:00:00",
             "model_used": "Gemini 2.5 Pro",
@@ -352,56 +352,56 @@ class StockBarItem(BaseModel):
 class StockBarResponse(BaseModel):
     """Phản hồi danh sách thanh cổ phiếu"""
 
-    total: int = Field(..., description="不重复个股数")
-    items: List[StockBarItem] = Field(default_factory=list, description="个股列表")
+    total: int = Field(..., description="Số cổ phiếu không trùng lặp")
+    items: List[StockBarItem] = Field(default_factory=list, description="Danh sách từng cổ phiếu")
 
 
 class WatchlistRequest(BaseModel):
     """Yêu cầu thao tác danh mục theo dõi"""
 
-    stock_code: str = Field(..., description="股票代码", min_length=1)
+    stock_code: str = Field(..., description="Mã cổ phiếu", min_length=1)
 
 
 class WatchlistResponse(BaseModel):
     """Phản hồi danh mục theo dõi"""
 
-    stock_codes: List[str] = Field(default_factory=list, description="当前自选队列股票代码列表")
-    message: str = Field(..., description="操作结果描述")
+    stock_codes: List[str] = Field(default_factory=list, description="Danh sách mã cổ phiếu trong danh mục theo dõi hiện tại")
+    message: str = Field(..., description="Mô tả kết quả thao tác")
 
 
 class RunDiagnosticComponent(BaseModel):
     """Tóm tắt một thành phần chẩn đoán khi chạy."""
 
-    key: str = Field(..., description="组件键")
-    label: str = Field(..., description="组件显示名称")
-    status: str = Field(..., description="组件状态：ok/degraded/failed/unknown/not_configured/skipped")
-    message: str = Field(..., description="用户可读摘要")
-    details: Optional[Dict[str, Any]] = Field(None, description="折叠展示的诊断细节")
+    key: str = Field(..., description="Khoá thành phần")
+    label: str = Field(..., description="Tên hiển thị của thành phần")
+    status: str = Field(..., description="Trạng thái thành phần: ok/degraded/failed/unknown/not_configured/skipped")
+    message: str = Field(..., description="Tóm tắt có thể đọc được cho người dùng")
+    details: Optional[Dict[str, Any]] = Field(None, description="Chi tiết chẩn đoán thu gọn")
 
 
 class RunDiagnosticSummaryResponse(BaseModel):
     """Tóm tắt chẩn đoán chạy của báo cáo lịch sử."""
 
-    trace_id: Optional[str] = Field(None, description="诊断 trace ID")
-    task_id: Optional[str] = Field(None, description="任务 ID")
-    query_id: Optional[str] = Field(None, description="分析 query ID")
-    stock_code: Optional[str] = Field(None, description="股票代码")
-    trigger_source: Optional[str] = Field(None, description="触发来源")
-    status: str = Field(..., description="总体状态：normal/degraded/failed/unknown")
-    status_label: str = Field(..., description="总体状态中文标签")
-    reason: str = Field(..., description="最主要的诊断原因")
-    components: Dict[str, RunDiagnosticComponent] = Field(default_factory=dict, description="关键链路诊断组件")
-    copy_text: str = Field(..., description="可复制的脱敏排障文本")
+    trace_id: Optional[str] = Field(None, description="Trace ID chẩn đoán")
+    task_id: Optional[str] = Field(None, description="ID tác vụ")
+    query_id: Optional[str] = Field(None, description="Query ID phân tích")
+    stock_code: Optional[str] = Field(None, description="Mã cổ phiếu")
+    trigger_source: Optional[str] = Field(None, description="Nguồn kích hoạt")
+    status: str = Field(..., description="Trạng thái tổng thể: normal/degraded/failed/unknown")
+    status_label: str = Field(..., description="Nhãn trạng thái tổng thể")
+    reason: str = Field(..., description="Nguyên nhân chẩn đoán chính")
+    components: Dict[str, RunDiagnosticComponent] = Field(default_factory=dict, description="Các thành phần chẩn đoán chuỗi quan trọng")
+    copy_text: str = Field(..., description="Văn bản chẩn đoán đã khử nhạy cảm để sao chép")
 
     model_config = ConfigDict(json_schema_extra={
         "example": {
             "trace_id": "task_abc123",
             "query_id": "task_abc123",
-            "stock_code": "600519",
+            "stock_code": "VCB.VN",
             "status": "degraded",
-            "status_label": "部分降级",
-            "reason": "实时行情失败：timeout",
+            "status_label": "Một phần suy giảm",
+            "reason": "Dữ liệu giá thời gian thực thất bại: timeout",
             "components": {},
-            "copy_text": "trace_id: task_abc123\nstock_code: 600519\n...",
+            "copy_text": "trace_id: task_abc123\nstock_code: VCB.VN\n...",
         }
     })

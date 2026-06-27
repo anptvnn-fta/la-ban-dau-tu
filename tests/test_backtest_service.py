@@ -588,7 +588,7 @@ class BacktestServiceTestCase(unittest.TestCase):
 
     def test_run_backtest_rejects_invalid_market_suffix_length_input(self) -> None:
         service = BacktestService(self.db)
-        with self.assertRaisesRegex(ValueError, "非法股票代码格式"):
+        with self.assertRaisesRegex(ValueError, "Định dạng mã cổ phiếu không hợp lệ"):
             service.run_backtest(
                 code="600519.HK",
                 force=False,
@@ -603,7 +603,7 @@ class BacktestServiceTestCase(unittest.TestCase):
         service = BacktestService(self.db)
         for invalid_code in ("600519.SZ", "SH000001", "000001.SH", "920748.SH", "SH920748"):
             with self.subTest(invalid_code=invalid_code):
-                with self.assertRaisesRegex(ValueError, "非法股票代码格式"):
+                with self.assertRaisesRegex(ValueError, "Định dạng mã cổ phiếu không hợp lệ"):
                     service.run_backtest(
                         code=invalid_code,
                         force=False,
@@ -618,7 +618,7 @@ class BacktestServiceTestCase(unittest.TestCase):
         service = BacktestService(self.db)
         for invalid_code in ("600519.SZ", "SH000001", "000001.SH", "920748.SH", "SH920748"):
             with self.subTest(invalid_code=invalid_code):
-                with self.assertRaisesRegex(ValueError, "非法股票代码格式"):
+                with self.assertRaisesRegex(ValueError, "Định dạng mã cổ phiếu không hợp lệ"):
                     service.get_recent_evaluations(
                         code=invalid_code,
                         eval_window_days=3,
@@ -632,7 +632,7 @@ class BacktestServiceTestCase(unittest.TestCase):
         service = BacktestService(self.db)
         for invalid_code in ("600519.SZ", "SH000001", "000001.SH", "920748.SH", "SH920748"):
             with self.subTest(invalid_code=invalid_code):
-                with self.assertRaisesRegex(ValueError, "非法股票代码格式"):
+                with self.assertRaisesRegex(ValueError, "Định dạng mã cổ phiếu không hợp lệ"):
                     service.get_summary(
                         scope="stock",
                         code=invalid_code,

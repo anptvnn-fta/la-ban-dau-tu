@@ -88,7 +88,7 @@ def fetch_url_content(url: str, timeout: int = 5) -> str:
         config.fetch_images = False  # 不下载图片
         config.memoize_articles = False # 不缓存
 
-        article = Article(url, config=config, language='zh') # 默认中文，但也支持其他
+        article = Article(url, config=config, language='vi') # mặc định tiếng Việt
         article.download()
         article.parse()
 
@@ -127,8 +127,8 @@ class SearchResult:
         if self.relevance_score is not None:
             relevance_parts.append(f"score={self.relevance_score}")
         if self.relevance_reasons:
-            relevance_parts.append(f"依据: {'；'.join(self.relevance_reasons[:3])}")
-        relevance_str = f"\n关联度: {'; '.join(relevance_parts)}" if relevance_parts else ""
+            relevance_parts.append(f"Căn cứ: {'；'.join(self.relevance_reasons[:3])}")
+        relevance_str = f"\nĐộ liên quan: {'; '.join(relevance_parts)}" if relevance_parts else ""
         return f"【{self.source}】{self.title}{date_str}\n{self.snippet}{relevance_str}"
 
 
@@ -145,9 +145,9 @@ class SearchResponse:
     def to_context(self, max_results: int = 5) -> str:
         """将搜索结果转换为可用于 AI 分析的上下文"""
         if not self.success or not self.results:
-            return f"搜索 '{self.query}' 未找到相关结果。"
-        
-        lines = [f"【{self.query} 搜索结果】（来源：{self.provider}）"]
+            return f"Tìm kiếm '{self.query}' không tìm thấy kết quả liên quan."
+
+        lines = [f"【Kết quả tìm kiếm: {self.query}】(Nguồn: {self.provider})"]
         for i, result in enumerate(self.results[:max_results], 1):
             lines.append(f"\n{i}. {result.to_text()}")
         
@@ -199,7 +199,7 @@ class BaseSearchProvider(ABC):
                     return key
             
             # 所有 key 都有问题，重置错误计数并返回第一个
-            logger.warning(f"[{self._name}] 所有 API Key 都有错误记录，重置错误计数")
+            logger.warning(f"[{self._name}] Tất cả API Key đều có lỗi, đặt lại bộ đếm lỗi")
             self._key_errors = {key: 0 for key in self._api_keys}
             return self._api_keys[0] if self._api_keys else None
     
@@ -216,7 +216,7 @@ class BaseSearchProvider(ABC):
         with self._state_lock:
             self._key_errors[key] = self._key_errors.get(key, 0) + 1
             error_count = self._key_errors[key]
-        logger.warning(f"[{self._name}] API Key {key[:8]}... 错误计数: {error_count}")
+        logger.warning(f"[{self._name}] API Key {key[:8]}... số lỗi: {error_count}")
     
     @abstractmethod
     def _do_search(self, query: str, api_key: str, max_results: int, days: int = 7) -> SearchResponse:
@@ -240,7 +240,7 @@ class BaseSearchProvider(ABC):
                 results=[],
                 provider=self._name,
                 success=False,
-                error_message=f"{self._name} 未配置 API Key"
+                error_message=f"{self._name} chưa cấu hình API Key"
             )
 
         start_time = time.time()
@@ -250,7 +250,7 @@ class BaseSearchProvider(ABC):
 
             if response.success:
                 self._record_success(api_key)
-                logger.info(f"[{self._name}] 搜索 '{query}' 成功，返回 {len(response.results)} 条结果，耗时 {response.search_time:.2f}s")
+                logger.info(f"[{self._name}] Tìm kiếm '{query}' thành công, trả về {len(response.results)} kết quả, thời gian {response.search_time:.2f}s")
             else:
                 self._record_error(api_key)
 
@@ -259,7 +259,7 @@ class BaseSearchProvider(ABC):
         except Exception as e:
             self._record_error(api_key)
             elapsed = time.time() - start_time
-            logger.error(f"[{self._name}] 搜索 '{query}' 失败: {e}")
+            logger.error(f"[{self._name}] Tìm kiếm '{query}' thất bại: {e}")
             return SearchResponse(
                 query=query,
                 results=[],
@@ -339,8 +339,8 @@ class TavilySearchProvider(BaseSearchProvider):
             )
             
             # 记录原始响应到日志
-            logger.info(f"[Tavily] 搜索完成，query='{query}', 返回 {len(response.get('results', []))} 条结果")
-            logger.debug(f"[Tavily] 原始响应: {response}")
+            logger.info(f"[Tavily] Tìm kiếm hoàn tất, query='{query}', trả về {len(response.get('results', []))} kết quả")
+            logger.debug(f"[Tavily] Phản hồi gốc: {response}")
             
             # 解析结果
             results = []
@@ -364,7 +364,7 @@ class TavilySearchProvider(BaseSearchProvider):
             error_msg = str(e)
             # 检查是否是配额问题
             if 'rate limit' in error_msg.lower() or 'quota' in error_msg.lower():
-                error_msg = f"API 配额已用尽: {error_msg}"
+                error_msg = f"Hạn mức API đã cạn: {error_msg}"
             
             return SearchResponse(
                 query=query,
@@ -392,7 +392,7 @@ class TavilySearchProvider(BaseSearchProvider):
                 results=[],
                 provider=self._name,
                 success=False,
-                error_message=f"{self._name} 未配置 API Key"
+                error_message=f"{self._name} chưa cấu hình API Key"
             )
 
         start_time = time.time()
@@ -402,7 +402,7 @@ class TavilySearchProvider(BaseSearchProvider):
 
             if response.success:
                 self._record_success(api_key)
-                logger.info(f"[{self._name}] 搜索 '{query}' 成功，返回 {len(response.results)} 条结果，耗时 {response.search_time:.2f}s")
+                logger.info(f"[{self._name}] Tìm kiếm '{query}' thành công, trả về {len(response.results)} kết quả, thời gian {response.search_time:.2f}s")
             else:
                 self._record_error(api_key)
 
@@ -411,7 +411,7 @@ class TavilySearchProvider(BaseSearchProvider):
         except Exception as e:
             self._record_error(api_key)
             elapsed = time.time() - start_time
-            logger.error(f"[{self._name}] 搜索 '{query}' 失败: {e}")
+            logger.error(f"[{self._name}] Tìm kiếm '{query}' thất bại: {e}")
             return SearchResponse(
                 query=query,
                 results=[],
@@ -529,7 +529,7 @@ class SerpAPISearchProvider(BaseSearchProvider):
             response = search.get_dict()
             
             # 记录原始响应到日志
-            logger.debug(f"[SerpAPI] 原始响应 keys: {response.keys()}")
+            logger.debug(f"[SerpAPI] Khóa phản hồi gốc: {response.keys()}")
             
             # 解析结果
             results = []
@@ -537,7 +537,7 @@ class SerpAPISearchProvider(BaseSearchProvider):
             # 1. 解析 Knowledge Graph (知识图谱)
             kg = response.get('knowledge_graph', {})
             if kg:
-                title = kg.get('title', '知识图谱')
+                title = kg.get('title', 'Đồ thị tri thức')
                 desc = kg.get('description', '')
                 
                 # 提取额外属性
@@ -550,7 +550,7 @@ class SerpAPISearchProvider(BaseSearchProvider):
                 snippet = f"{desc}\n" + " | ".join(details) if details else desc
                 
                 results.append(SearchResult(
-                    title=f"[知识图谱] {title}",
+                    title=f"[Đồ thị tri thức] {title}",
                     snippet=snippet,
                     url=kg.get('source', {}).get('link', ''),
                     source="Google Knowledge Graph"
@@ -559,7 +559,7 @@ class SerpAPISearchProvider(BaseSearchProvider):
             # 2. 解析 Answer Box (精选回答/行情卡片)
             ab = response.get('answer_box', {})
             if ab:
-                ab_title = ab.get('title', '精选回答')
+                ab_title = ab.get('title', 'Câu trả lời nổi bật')
                 ab_snippet = ""
                 
                 # 财经类回答
@@ -571,8 +571,8 @@ class SerpAPISearchProvider(BaseSearchProvider):
                     mv_val = movement.get('percentage', 0)
                     mv_dir = movement.get('movement', '')
                     
-                    ab_title = f"[行情卡片] {stock}"
-                    ab_snippet = f"价格: {price} {currency}\n涨跌: {mv_dir} {mv_val}%"
+                    ab_title = f"[Bảng giá] {stock}"
+                    ab_snippet = f"Giá: {price} {currency}\nThay đổi: {mv_dir} {mv_val}%"
                     
                     # 提取表格数据
                     if 'table' in ab:
@@ -595,7 +595,7 @@ class SerpAPISearchProvider(BaseSearchProvider):
                     
                 if ab_snippet:
                     results.append(SearchResult(
-                        title=f"[精选回答] {ab_title}",
+                        title=f"[Câu trả lời nổi bật] {ab_title}",
                         snippet=ab_snippet,
                         url=ab.get('link', '') or ab.get('displayed_link', ''),
                         source="Google Answer Box"
@@ -610,7 +610,7 @@ class SerpAPISearchProvider(BaseSearchProvider):
                 
                 if question and snippet:
                      results.append(SearchResult(
-                        title=f"[相关问题] {question}",
+                        title=f"[Câu hỏi liên quan] {question}",
                         snippet=snippet,
                         url=link,
                         source="Google Related Questions"
@@ -868,9 +868,9 @@ class SerpAPISearchProvider(BaseSearchProvider):
             preview = f"{preview}..."
 
         if snippet:
-            return f"{snippet}\n\n【网页详情】\n{preview}"
+            return f"{snippet}\n\n【Chi tiết trang web】\n{preview}"
 
-        return f"【网页详情】\n{preview}"
+        return f"【Chi tiết trang web】\n{preview}"
 
 
 class BochaSearchProvider(BaseSearchProvider):
@@ -948,17 +948,17 @@ class BochaSearchProvider(BaseSearchProvider):
                 
                 # 根据错误码处理
                 if response.status_code == 403:
-                    error_msg = f"余额不足: {error_message}"
+                    error_msg = f"Số dư không đủ: {error_message}"
                 elif response.status_code == 401:
-                    error_msg = f"API KEY无效: {error_message}"
+                    error_msg = f"API KEY không hợp lệ: {error_message}"
                 elif response.status_code == 400:
-                    error_msg = f"请求参数错误: {error_message}"
+                    error_msg = f"Tham số yêu cầu sai: {error_message}"
                 elif response.status_code == 429:
-                    error_msg = f"请求频率达到限制: {error_message}"
+                    error_msg = f"Vượt giới hạn tần suất yêu cầu: {error_message}"
                 else:
                     error_msg = f"HTTP {response.status_code}: {error_message}"
                 
-                logger.warning(f"[Bocha] 搜索失败: {error_msg}")
+                logger.warning(f"[Bocha] Tìm kiếm thất bại: {error_msg}")
                 
                 return SearchResponse(
                     query=query,
@@ -972,7 +972,7 @@ class BochaSearchProvider(BaseSearchProvider):
             try:
                 data = response.json()
             except ValueError as e:
-                error_msg = f"响应JSON解析失败: {str(e)}"
+                error_msg = f"Phân tích JSON phản hồi thất bại: {str(e)}"
                 logger.error(f"[Bocha] {error_msg}")
                 return SearchResponse(
                     query=query,
@@ -981,10 +981,10 @@ class BochaSearchProvider(BaseSearchProvider):
                     success=False,
                     error_message=error_msg
                 )
-            
-            # 检查响应code
+
+            # Kiểm tra mã phản hồi
             if data.get('code') != 200:
-                error_msg = data.get('msg') or f"API返回错误码: {data.get('code')}"
+                error_msg = data.get('msg') or f"API trả về mã lỗi: {data.get('code')}"
                 return SearchResponse(
                     query=query,
                     results=[],
@@ -994,8 +994,8 @@ class BochaSearchProvider(BaseSearchProvider):
                 )
             
             # 记录原始响应到日志
-            logger.info(f"[Bocha] 搜索完成，query='{query}'")
-            logger.debug(f"[Bocha] 原始响应: {data}")
+            logger.info(f"[Bocha] Tìm kiếm hoàn tất, query='{query}'")
+            logger.debug(f"[Bocha] Phản hồi gốc: {data}")
             
             # 解析搜索结果
             results = []
@@ -1018,7 +1018,7 @@ class BochaSearchProvider(BaseSearchProvider):
                     published_date=item.get('datePublished'),  # UTC+8格式，无需转换
                 ))
             
-            logger.info(f"[Bocha] 成功解析 {len(results)} 条结果")
+            logger.info(f"[Bocha] Phân tích thành công {len(results)} kết quả")
             
             return SearchResponse(
                 query=query,
@@ -1028,7 +1028,7 @@ class BochaSearchProvider(BaseSearchProvider):
             )
             
         except requests.exceptions.Timeout:
-            error_msg = "请求超时"
+            error_msg = "Yêu cầu quá thời gian"
             logger.error(f"[Bocha] {error_msg}")
             return SearchResponse(
                 query=query,
@@ -1038,7 +1038,7 @@ class BochaSearchProvider(BaseSearchProvider):
                 error_message=error_msg
             )
         except requests.exceptions.RequestException as e:
-            error_msg = f"网络请求失败: {str(e)}"
+            error_msg = f"Yêu cầu mạng thất bại: {str(e)}"
             logger.error(f"[Bocha] {error_msg}")
             return SearchResponse(
                 query=query,
@@ -1048,7 +1048,7 @@ class BochaSearchProvider(BaseSearchProvider):
                 error_message=error_msg
             )
         except Exception as e:
-            error_msg = f"未知错误: {str(e)}"
+            error_msg = f"Lỗi không xác định: {str(e)}"
             logger.error(f"[Bocha] {error_msg}")
             return SearchResponse(
                 query=query,
@@ -1132,15 +1132,15 @@ class AnspireSearchProvider(BaseSearchProvider):
                 
                 # 根据错误码处理
                 if response.status_code == 403:
-                    error_msg = f"余额不足或权限不足：{error_message}"
+                    error_msg = f"Số dư hoặc quyền không đủ: {error_message}"
                 elif response.status_code == 401:
-                    error_msg = f"API KEY 无效：{error_message}"
+                    error_msg = f"API KEY không hợp lệ: {error_message}"
                 elif response.status_code == 400:
-                    error_msg = f"请求参数错误：{error_message}"
+                    error_msg = f"Tham số yêu cầu sai: {error_message}"
                 else:
                     error_msg = f"HTTP {response.status_code}: {error_message}"
                 
-                logger.warning(f"[Anspire] 搜索失败：{error_msg}")
+                logger.warning(f"[Anspire] Tìm kiếm thất bại: {error_msg}")
                 
                 return SearchResponse(
                     query=query,
@@ -1154,7 +1154,7 @@ class AnspireSearchProvider(BaseSearchProvider):
             try:
                 data = response.json()
             except ValueError as e:
-                error_msg = f"响应 JSON 解析失败：{str(e)}"
+                error_msg = f"Phân tích JSON phản hồi thất bại: {str(e)}"
                 logger.error(f"[Anspire] {error_msg}")
                 return SearchResponse(
                     query=query,
@@ -1165,8 +1165,8 @@ class AnspireSearchProvider(BaseSearchProvider):
                 )
             
             if 'code' in data and data.get('code') != 200:
-                error_msg = data.get('msg') or f"API 返回错误码：{data.get('code')}"
-                logger.warning(f"[Anspire] 搜索失败：{error_msg}")
+                error_msg = data.get('msg') or f"API trả về mã lỗi: {data.get('code')}"
+                logger.warning(f"[Anspire] Tìm kiếm thất bại: {error_msg}")
                 return SearchResponse(
                     query=query,
                     results=[],
@@ -1176,8 +1176,8 @@ class AnspireSearchProvider(BaseSearchProvider):
                 )
             
             if 'results' not in data:
-                error_msg = "响应中缺少 results 字段"
-                logger.error(f"[Anspire] {error_msg}，原始响应：{data}")
+                error_msg = "Phản hồi thiếu trường results"
+                logger.error(f"[Anspire] {error_msg}, phản hồi gốc: {data}")
                 return SearchResponse(
                     query=query,
                     results=[],
@@ -1187,8 +1187,8 @@ class AnspireSearchProvider(BaseSearchProvider):
                 )
             
             # 记录原始响应到日志
-            logger.info(f"[Anspire] 搜索完成，query='{query}'")
-            logger.debug(f"[Anspire] 原始响应：{data}")
+            logger.info(f"[Anspire] Tìm kiếm hoàn tất, query='{query}'")
+            logger.debug(f"[Anspire] Phản hồi gốc: {data}")
             
             results = []
             value_list = data.get('results', [])
@@ -1206,7 +1206,7 @@ class AnspireSearchProvider(BaseSearchProvider):
                     published_date=item.get('date', '')
                 ))
             
-            logger.info(f"[Anspire] 成功解析 {len(results)} 条结果")
+            logger.info(f"[Anspire] Phân tích thành công {len(results)} kết quả")
             
             return SearchResponse(
                 query=query,
@@ -1216,7 +1216,7 @@ class AnspireSearchProvider(BaseSearchProvider):
             )
             
         except requests.exceptions.Timeout:
-            error_msg = "请求超时"
+            error_msg = "Yêu cầu quá thời gian"
             logger.error(f"[Anspire] {error_msg}")
             return SearchResponse(
                 query=query,
@@ -1226,7 +1226,7 @@ class AnspireSearchProvider(BaseSearchProvider):
                 error_message=error_msg
             )
         except requests.exceptions.RequestException as e:
-            error_msg = f"网络请求失败：{str(e)}"
+            error_msg = f"Yêu cầu mạng thất bại: {str(e)}"
             logger.error(f"[Anspire] {error_msg}")
             return SearchResponse(
                 query=query,
@@ -1236,7 +1236,7 @@ class AnspireSearchProvider(BaseSearchProvider):
                 error_message=error_msg
             )
         except Exception as e:
-            error_msg = f"未知错误：{str(e)}"
+            error_msg = f"Lỗi không xác định: {str(e)}"
             logger.error(f"[Anspire] {error_msg}")
             return SearchResponse(
                 query=query,
@@ -1558,7 +1558,7 @@ class BraveSearchProvider(BaseSearchProvider):
             # 检查HTTP状态码
             if response.status_code != 200:
                 error_msg = self._parse_error(response)
-                logger.warning(f"[Brave] 搜索失败: {error_msg}")
+                logger.warning(f"[Brave] Tìm kiếm thất bại: {error_msg}")
                 return SearchResponse(
                     query=query,
                     results=[],
@@ -1571,7 +1571,7 @@ class BraveSearchProvider(BaseSearchProvider):
             try:
                 data = response.json()
             except ValueError as e:
-                error_msg = f"响应JSON解析失败: {str(e)}"
+                error_msg = f"Phân tích JSON phản hồi thất bại: {str(e)}"
                 logger.error(f"[Brave] {error_msg}")
                 return SearchResponse(
                     query=query,
@@ -1581,8 +1581,8 @@ class BraveSearchProvider(BaseSearchProvider):
                     error_message=error_msg
                 )
 
-            logger.info(f"[Brave] 搜索完成，query='{query}'")
-            logger.debug(f"[Brave] 原始响应: {data}")
+            logger.info(f"[Brave] Tìm kiếm hoàn tất, query='{query}'")
+            logger.debug(f"[Brave] Phản hồi gốc: {data}")
 
             # 解析搜索结果
             results = []
@@ -1609,7 +1609,7 @@ class BraveSearchProvider(BaseSearchProvider):
                     published_date=published_date
                 ))
 
-            logger.info(f"[Brave] 成功解析 {len(results)} 条结果")
+            logger.info(f"[Brave] Phân tích thành công {len(results)} kết quả")
 
             return SearchResponse(
                 query=query,
@@ -1619,7 +1619,7 @@ class BraveSearchProvider(BaseSearchProvider):
             )
 
         except requests.exceptions.Timeout:
-            error_msg = "请求超时"
+            error_msg = "Yêu cầu quá thời gian"
             logger.error(f"[Brave] {error_msg}")
             return SearchResponse(
                 query=query,
@@ -1629,7 +1629,7 @@ class BraveSearchProvider(BaseSearchProvider):
                 error_message=error_msg
             )
         except requests.exceptions.RequestException as e:
-            error_msg = f"网络请求失败: {str(e)}"
+            error_msg = f"Yêu cầu mạng thất bại: {str(e)}"
             logger.error(f"[Brave] {error_msg}")
             return SearchResponse(
                 query=query,
@@ -1639,7 +1639,7 @@ class BraveSearchProvider(BaseSearchProvider):
                 error_message=error_msg
             )
         except Exception as e:
-            error_msg = f"未知错误: {str(e)}"
+            error_msg = f"Lỗi không xác định: {str(e)}"
             logger.error(f"[Brave] {error_msg}")
             return SearchResponse(
                 query=query,
@@ -1819,7 +1819,7 @@ class SearXNGSearchProvider(BaseSearchProvider):
             stale_urls: List[str] = []
             if cls._public_instances_cache is None and cls._public_instances_stale_retry_after > now:
                 logger.debug(
-                    "[SearXNG] 公共实例冷启动刷新退避中，剩余 %.0fs",
+                    "[SearXNG] Đang trong thời gian chờ khởi động lạnh phiên bản công khai, còn %.0fs",
                     cls._public_instances_stale_retry_after - now,
                 )
                 return []
@@ -1830,7 +1830,7 @@ class SearXNGSearchProvider(BaseSearchProvider):
                 stale_urls = list(cached_urls)
                 if cls._public_instances_stale_retry_after > now:
                     logger.debug(
-                        "[SearXNG] 公共实例刷新退避中，继续使用过期缓存，剩余 %.0fs",
+                        "[SearXNG] Đang trong thời gian chờ làm mới, tiếp tục dùng cache cũ, còn %.0fs",
                         cls._public_instances_stale_retry_after - now,
                     )
                     return stale_urls
@@ -1842,7 +1842,7 @@ class SearXNGSearchProvider(BaseSearchProvider):
                 )
                 if response.status_code != 200:
                     logger.warning(
-                        "[SearXNG] 拉取公共实例列表失败: HTTP %s",
+                        "[SearXNG] Lấy danh sách phiên bản công khai thất bại: HTTP %s",
                         response.status_code,
                     )
                 else:
@@ -1850,19 +1850,19 @@ class SearXNGSearchProvider(BaseSearchProvider):
                     if urls:
                         cls._public_instances_cache = (now, list(urls))
                         cls._public_instances_stale_retry_after = 0.0
-                        logger.info("[SearXNG] 已刷新公共实例池，共 %s 个候选实例", len(urls))
+                        logger.info("[SearXNG] Đã làm mới pool phiên bản công khai, tổng %s phiên bản", len(urls))
                         return list(urls)
-                    logger.warning("[SearXNG] searx.space 未返回可用公共实例，保留已有缓存")
+                    logger.warning("[SearXNG] searx.space không trả về phiên bản công khai khả dụng, giữ cache cũ")
             except Exception as exc:
-                logger.warning("[SearXNG] 拉取公共实例列表失败: %s", exc)
+                logger.warning("[SearXNG] Lấy danh sách phiên bản công khai thất bại: %s", exc)
 
             if stale_urls:
                 cls._public_instances_stale_retry_after = (
                     now + cls.PUBLIC_INSTANCES_STALE_REFRESH_BACKOFF_SECONDS
                 )
                 logger.warning(
-                    "[SearXNG] 公共实例刷新失败，继续使用过期缓存，共 %s 个候选实例；"
-                    "%.0fs 内不再刷新",
+                    "[SearXNG] Làm mới phiên bản công khai thất bại, tiếp tục dùng cache cũ, %s phiên bản; "
+                    "không làm mới trong %.0fs",
                     len(stale_urls),
                     cls.PUBLIC_INSTANCES_STALE_REFRESH_BACKOFF_SECONDS,
                 )
@@ -1871,7 +1871,7 @@ class SearXNGSearchProvider(BaseSearchProvider):
                 now + cls.PUBLIC_INSTANCES_STALE_REFRESH_BACKOFF_SECONDS
             )
             logger.warning(
-                "[SearXNG] 公共实例冷启动刷新失败，%.0fs 内不再刷新",
+                "[SearXNG] Khởi động lạnh phiên bản công khai thất bại, không làm mới trong %.0fs",
                 cls.PUBLIC_INSTANCES_STALE_REFRESH_BACKOFF_SECONDS,
             )
             return []
@@ -1918,8 +1918,8 @@ class SearXNGSearchProvider(BaseSearchProvider):
                 error_msg = self._parse_http_error(response)
                 if response.status_code == 403:
                     error_msg = (
-                        f"{error_msg}；SearXNG 实例可能未启用 JSON 输出（请检查 settings.yml），"
-                        "或实例/代理拒绝了本次访问"
+                        f"{error_msg}; Phiên bản SearXNG có thể chưa bật đầu ra JSON (kiểm tra settings.yml), "
+                        "hoặc phiên bản/proxy từ chối truy cập"
                     )
                 return SearchResponse(
                     query=query,
@@ -1937,7 +1937,7 @@ class SearXNGSearchProvider(BaseSearchProvider):
                     results=[],
                     provider=self.name,
                     success=False,
-                    error_message="响应JSON解析失败",
+                    error_message="Phân tích JSON phản hồi thất bại",
                 )
 
             if not isinstance(data, dict):
@@ -1946,7 +1946,7 @@ class SearXNGSearchProvider(BaseSearchProvider):
                     results=[],
                     provider=self.name,
                     success=False,
-                    error_message="响应格式无效",
+                    error_message="Định dạng phản hồi không hợp lệ",
                 )
 
             raw = data.get("results", [])
@@ -1991,7 +1991,7 @@ class SearXNGSearchProvider(BaseSearchProvider):
                 results=[],
                 provider=self.name,
                 success=False,
-                error_message="请求超时",
+                error_message="Yêu cầu quá thời gian",
             )
         except requests.exceptions.RequestException as e:
             return SearchResponse(
@@ -1999,7 +1999,7 @@ class SearXNGSearchProvider(BaseSearchProvider):
                 results=[],
                 provider=self.name,
                 success=False,
-                error_message=f"网络请求失败: {e}",
+                error_message=f"Yêu cầu mạng thất bại: {e}",
             )
         except Exception as e:
             return SearchResponse(
@@ -2007,7 +2007,7 @@ class SearXNGSearchProvider(BaseSearchProvider):
                 results=[],
                 provider=self.name,
                 success=False,
-                error_message=f"未知错误: {e}",
+                error_message=f"Lỗi không xác định: {e}",
             )
 
     @staticmethod
@@ -2032,7 +2032,7 @@ class SearXNGSearchProvider(BaseSearchProvider):
             )
             retry_enabled = True
             timeout = self.SELF_HOSTED_TIMEOUT_SECONDS
-            empty_error = "SearXNG 未配置可用实例"
+            empty_error = "SearXNG chưa cấu hình phiên bản khả dụng"
         elif self._use_public_instances:
             public_instances = self._get_public_instances()
             candidates = self._rotate_candidates(
@@ -2041,12 +2041,12 @@ class SearXNGSearchProvider(BaseSearchProvider):
             )
             retry_enabled = False
             timeout = self.PUBLIC_INSTANCES_TIMEOUT_SECONDS
-            empty_error = "未获取到可用的公共 SearXNG 实例"
+            empty_error = "Không lấy được phiên bản SearXNG công khai khả dụng"
         else:
             candidates = []
             retry_enabled = False
             timeout = self.PUBLIC_INSTANCES_TIMEOUT_SECONDS
-            empty_error = "SearXNG 未配置可用实例"
+            empty_error = "SearXNG chưa cấu hình phiên bản khả dụng"
 
         if not candidates:
             return SearchResponse(
@@ -2071,7 +2071,7 @@ class SearXNGSearchProvider(BaseSearchProvider):
             response.search_time = time.time() - start_time
             if response.success:
                 logger.info(
-                    "[%s] 搜索 '%s' 成功，实例=%s，返回 %s 条结果，耗时 %.2fs",
+                    "[%s] Tìm kiếm '%s' thành công, phiên bản=%s, trả về %s kết quả, thời gian %.2fs",
                     self.name,
                     query,
                     base_url,
@@ -2080,8 +2080,8 @@ class SearXNGSearchProvider(BaseSearchProvider):
                 )
                 return response
 
-            errors.append(f"{base_url}: {response.error_message or '未知错误'}")
-            logger.warning("[%s] 实例 %s 搜索失败: %s", self.name, base_url, response.error_message)
+            errors.append(f"{base_url}: {response.error_message or 'Lỗi không xác định'}")
+            logger.warning("[%s] Phiên bản %s tìm kiếm thất bại: %s", self.name, base_url, response.error_message)
 
         elapsed = time.time() - start_time
         return SearchResponse(
@@ -2288,7 +2288,7 @@ class SearchService:
         self.news_strategy_profile = normalize_news_strategy_profile(news_strategy_profile)
         if raw_profile != self.news_strategy_profile:
             logger.warning(
-                "NEWS_STRATEGY_PROFILE '%s' 无效，已回退为 'short'",
+                "NEWS_STRATEGY_PROFILE '%s' không hợp lệ, đã dùng 'short'",
                 news_strategy_profile,
             )
         self.news_window_days = resolve_news_window_days(
@@ -2304,27 +2304,27 @@ class SearchService:
         # 1. Bocha 优先（中文搜索优化，AI摘要）
         if bocha_keys:
             self._providers.append(BochaSearchProvider(bocha_keys))
-            logger.info(f"已配置 Bocha 搜索，共 {len(bocha_keys)} 个 API Key")
+            logger.info(f"Đã cấu hình tìm kiếm Bocha, tổng {len(bocha_keys)} API Key")
 
         # 2. Tavily（免费额度更多，每月 1000 次）
         if tavily_keys:
             self._providers.append(TavilySearchProvider(tavily_keys))
-            logger.info(f"已配置 Tavily 搜索，共 {len(tavily_keys)} 个 API Key")
+            logger.info(f"Đã cấu hình tìm kiếm Tavily, tổng {len(tavily_keys)} API Key")
 
         # 3. Brave Search（隐私优先，全球覆盖）
         if brave_keys:
             self._providers.append(BraveSearchProvider(brave_keys))
-            logger.info(f"已配置 Brave 搜索，共 {len(brave_keys)} 个 API Key")
+            logger.info(f"Đã cấu hình tìm kiếm Brave, tổng {len(brave_keys)} API Key")
 
         # 4. SerpAPI 作为备选（每月 100 次）
         if serpapi_keys:
             self._providers.append(SerpAPISearchProvider(serpapi_keys))
-            logger.info(f"已配置 SerpAPI 搜索，共 {len(serpapi_keys)} 个 API Key")
+            logger.info(f"Đã cấu hình tìm kiếm SerpAPI, tổng {len(serpapi_keys)} API Key")
 
         # 5. MiniMax（Coding Plan Web Search，结构化结果）
         if minimax_keys:
             self._providers.append(MiniMaxSearchProvider(minimax_keys))
-            logger.info(f"已配置 MiniMax 搜索，共 {len(minimax_keys)} 个 API Key")
+            logger.info(f"Đã cấu hình tìm kiếm MiniMax, tổng {len(minimax_keys)} API Key")
 
         # 6. SearXNG（自建实例优先；未配置时可自动发现公共实例）
         searxng_provider = SearXNGSearchProvider(
@@ -2334,17 +2334,17 @@ class SearchService:
         if searxng_provider.is_available:
             self._providers.append(searxng_provider)
             if searxng_base_urls:
-                logger.info("已配置 SearXNG 搜索，共 %s 个自建实例", len(searxng_base_urls))
+                logger.info("Đã cấu hình tìm kiếm SearXNG, tổng %s phiên bản tự dựng", len(searxng_base_urls))
             else:
-                logger.info("已启用 SearXNG 公共实例自动发现模式")
+                logger.info("Đã bật chế độ tự động tìm phiên bản SearXNG công khai")
 
         # 7. Anspire Search（实时智能搜索优化）
         if anspire_keys:
             self._providers.insert(0, AnspireSearchProvider(anspire_keys))
-            logger.info(f"已配置 Anspire Search 搜索，共 {len(anspire_keys)} 个 API Key")
+            logger.info(f"Đã cấu hình tìm kiếm Anspire Search, tổng {len(anspire_keys)} API Key")
             
         if not self._providers:
-            logger.warning("未配置任何搜索能力，新闻搜索功能将不可用")
+            logger.warning("Chưa cấu hình công cụ tìm kiếm nào, tính năng tìm kiếm tin tức sẽ không khả dụng")
 
         # In-memory search result cache: {cache_key: (timestamp, SearchResponse)}
         self._cache: Dict[str, Tuple[float, 'SearchResponse']] = {}
@@ -2353,7 +2353,7 @@ class SearchService:
         # Default cache TTL in seconds (10 minutes)
         self._cache_ttl: int = 600
         logger.info(
-            "新闻时效策略已启用: profile=%s, profile_days=%s, NEWS_MAX_AGE_DAYS=%s, effective_window=%s",
+            "Chiến lược thời hiệu tin tức đã kích hoạt: profile=%s, profile_days=%s, NEWS_MAX_AGE_DAYS=%s, effective_window=%s",
             self.news_strategy_profile,
             self.news_profile_days,
             self.news_max_age_days,
@@ -2979,7 +2979,7 @@ class SearchService:
                 score += 55
                 direct_signal += 55
                 has_stock_code_signal = True
-                add_reason(f"标题命中股票代码 {term}")
+                add_reason(f"Tiêu đề khớp mã CK {term}")
                 break
         else:
             for term in cls._stock_code_identity_terms(stock_code):
@@ -2987,7 +2987,7 @@ class SearchService:
                     score += 34
                     direct_signal += 34
                     has_stock_code_signal = True
-                    add_reason(f"摘要命中股票代码 {term}")
+                    add_reason(f"Tóm tắt khớp mã CK {term}")
                     break
             else:
                 for term in cls._stock_code_identity_terms(stock_code):
@@ -2995,7 +2995,7 @@ class SearchService:
                         score += 18
                         direct_signal += 18
                         has_stock_code_signal = True
-                        add_reason(f"链接命中股票代码 {term}")
+                        add_reason(f"Đường dẫn khớp mã CK {term}")
                         break
 
         for term in cls._company_identity_terms(stock_name):
@@ -3012,7 +3012,7 @@ class SearchService:
                     has_ambiguous_company_signal = True
                 else:
                     has_unambiguous_company_signal = True
-                add_reason(f"标题命中公司名 {term}")
+                add_reason(f"Tiêu đề khớp tên DN {term}")
                 break
             if cls._contains_identity_term(snippet, term):
                 score += snippet_score
@@ -3021,7 +3021,7 @@ class SearchService:
                     has_ambiguous_company_signal = True
                 else:
                     has_unambiguous_company_signal = True
-                add_reason(f"摘要命中公司名 {term}")
+                add_reason(f"Tóm tắt khớp tên DN {term}")
                 break
 
         has_company_event = cls._contains_any_news_term(full_text, cls._COMPANY_EVENT_TERMS)
@@ -3038,11 +3038,11 @@ class SearchService:
             )
             if not ambiguous_name_only or has_confirming_event:
                 direct_signal += 12
-            add_reason("命中公告/财报/交易等公司事件词")
+            add_reason("Khớp từ khóa sự kiện DN (CB/BCTC/GD)")
 
         if cls._is_trusted_official_news_source(item):
             score += 8
-            add_reason("来源接近公告或交易所渠道")
+            add_reason("Nguồn gần kênh công bố hoặc sàn CK")
 
         has_sector_signal = cls._contains_any_news_term(full_text, cls._SECTOR_NEWS_TERMS)
         has_macro_signal = cls._contains_any_news_term(full_text, cls._MACRO_NEWS_TERMS)
@@ -3052,14 +3052,14 @@ class SearchService:
         elif has_macro_signal and not direct_signal:
             category = cls._MACRO_NEWS_CATEGORY
             score = max(0, score - 12)
-            add_reason("未命中目标公司身份，归为宏观/市场新闻")
+            add_reason("Không khớp DN mục tiêu, xếp vào tin vĩ mô/thị trường")
         else:
             category = cls._SECTOR_NEWS_CATEGORY
             if has_sector_signal:
                 score += 6
-                add_reason("仅命中行业或板块背景")
+                add_reason("Chỉ khớp nền tảng ngành/nhóm cổ phiếu")
             else:
-                add_reason("未命中股票代码或公司全称，降级为背景新闻")
+                add_reason("Không khớp mã CK hay tên DN, hạ cấp thành tin nền")
 
         score = max(0, min(100, score))
         return SearchResult(
@@ -3618,8 +3618,8 @@ class SearchService:
 
         logger.info(
             (
-                "搜索股票新闻: %s(%s), query='%s', 时间范围: 近%s天 "
-                "(profile=%s, NEWS_MAX_AGE_DAYS=%s, prefer_chinese=%s), 目标条数=%s, provider请求条数=%s"
+                "Tìm kiếm tin tức CP: %s(%s), query='%s', phạm vi thời gian: %s ngày gần nhất "
+                "(profile=%s, NEWS_MAX_AGE_DAYS=%s, prefer_chinese=%s), mục tiêu=%s, provider yêu cầu=%s"
             ),
             stock_name,
             stock_code,
@@ -3642,7 +3642,7 @@ class SearchService:
         )
         cached, cache_owner, cache_event = self._get_cached_or_reserve(cache_key)
         if cached is not None:
-            logger.info(f"使用缓存搜索结果: {stock_name}({stock_code})")
+            logger.info(f"Sử dụng kết quả tìm kiếm từ cache: {stock_name}({stock_code})")
             self._record_news_search_run(
                 provider=cached.provider or "SearchCache",
                 operation="search_stock_news_cache",
@@ -3657,7 +3657,7 @@ class SearchService:
         if not cache_owner and cache_event is not None:
             cached = self._wait_for_cached(cache_key, cache_event)
             if cached is not None:
-                logger.info(f"使用并发填充后的缓存搜索结果: {stock_name}({stock_code})")
+                logger.info(f"Sử dụng kết quả tìm kiếm từ cache sau khi lấp đầy song song: {stock_name}({stock_code})")
                 self._record_news_search_run(
                     provider=cached.provider or "SearchCache",
                     operation="search_stock_news_cache_wait",
@@ -3670,7 +3670,7 @@ class SearchService:
                 return cached
             cached, cache_owner, cache_event = self._get_cached_or_reserve(cache_key)
             if cached is not None:
-                logger.info(f"使用等待后命中的缓存搜索结果: {stock_name}({stock_code})")
+                logger.info(f"Sử dụng kết quả tìm kiếm từ cache sau khi chờ: {stock_name}({stock_code})")
                 self._record_news_search_run(
                     provider=cached.provider or "SearchCache",
                     operation="search_stock_news_cache_retry",
@@ -3758,12 +3758,12 @@ class SearchService:
                         record_count=admitted_count,
                         error_type=None if admitted_count else "NoUsableNews",
                         error_message=None if admitted_count else (
-                            response.error_message or "过滤后无有效新闻"
+                            response.error_message or "Không có tin tức hữu ích sau lọc"
                         ),
                     )
                     if not admitted_count:
                         logger.info(
-                            "%s 搜索成功但准入过滤后无有效新闻，继续尝试下一引擎",
+                            "%s tìm kiếm thành công nhưng không có tin tức hữu ích sau lọc kiểm duyệt, thử engine tiếp theo",
                             provider.name,
                         )
                         continue
@@ -3786,7 +3786,7 @@ class SearchService:
                         not prefer_chinese or stats["preferred_direct_count"] > 0
                     ):
                         logger.info(
-                            "%s 搜索成功，识别到 %s 条直接个股新闻，优先返回",
+                            "%s tìm kiếm thành công, nhận diện %s tin trực tiếp CP, ưu tiên trả về",
                             provider.name,
                             stats["direct_count"],
                         )
@@ -3795,7 +3795,7 @@ class SearchService:
 
                     if prefer_chinese and stats["direct_count"] > 0:
                         logger.info(
-                            "%s 搜索成功，识别到 %s 条直接个股新闻但缺少中文直接命中，继续尝试下一引擎",
+                            "%s tìm kiếm thành công, nhận diện %s tin trực tiếp CP nhưng thiếu kết quả tiếng ưu tiên, thử engine tiếp theo",
                             provider.name,
                             stats["direct_count"],
                         )
@@ -3803,21 +3803,21 @@ class SearchService:
 
                     if prefer_chinese and stats["preferred_count"] >= max_results:
                         logger.info(
-                            "%s 搜索成功，中文结果已满足目标条数但缺少直接个股命中，继续尝试下一引擎",
+                            "%s tìm kiếm thành công, kết quả ưu tiên đủ số lượng nhưng thiếu khớp trực tiếp CP, thử engine tiếp theo",
                             provider.name,
                         )
                         continue
 
                     if prefer_chinese and stats["preferred_count"] > 0:
                         logger.info(
-                            "%s 搜索成功，识别到 %s/%s 条中文新闻但缺少直接个股命中，继续尝试下一引擎",
+                            "%s tìm kiếm thành công, nhận diện %s/%s tin ưu tiên nhưng thiếu khớp trực tiếp CP, thử engine tiếp theo",
                             provider.name,
                             stats["preferred_count"],
                             len(limited_response.results),
                         )
                     else:
                         logger.info(
-                            "%s 搜索成功但未识别直接个股新闻，继续尝试下一引擎",
+                            "%s tìm kiếm thành công nhưng không nhận diện tin trực tiếp CP, thử engine tiếp theo",
                             provider.name,
                         )
                 else:
@@ -3830,17 +3830,17 @@ class SearchService:
                         record_count=filtered_count,
                         error_type=None if filtered_count else "NoUsableNews",
                         error_message=None if filtered_count else (
-                            response.error_message or "过滤后无有效新闻"
+                            response.error_message or "Không có tin tức hữu ích sau lọc"
                         ),
                     )
                     if response.success and not filtered_response.results:
                         logger.info(
-                            "%s 搜索成功但过滤后无有效新闻，继续尝试下一引擎",
+                            "%s tìm kiếm thành công nhưng không có tin tức hữu ích sau lọc, thử engine tiếp theo",
                             provider.name,
                         )
                     else:
                         logger.warning(
-                            "%s 搜索失败: %s，尝试下一个引擎",
+                            "%s tìm kiếm thất bại: %s, thử engine tiếp theo",
                             provider.name,
                             response.error_message,
                         )
@@ -3864,7 +3864,7 @@ class SearchService:
                 results=[],
                 provider="None",
                 success=False,
-                error_message="所有搜索引擎都不可用或搜索失败"
+                error_message="Tất cả công cụ tìm kiếm đều không khả dụng hoặc thất bại"
             )
         finally:
             if cache_owner and cache_event is not None:
@@ -3899,7 +3899,7 @@ class SearchService:
         event_query = " OR ".join(event_types)
         query = f"{stock_name} ({event_query})"
         
-        logger.info(f"搜索股票事件: {stock_name}({stock_code}) - {event_types}")
+        logger.info(f"Tìm kiếm sự kiện CP: {stock_name}({stock_code}) - {event_types}")
         
         # 依次尝试各个搜索引擎
         for provider in self._providers:
@@ -3916,7 +3916,7 @@ class SearchService:
             results=[],
             provider="None",
             success=False,
-            error_message="事件搜索失败"
+            error_message="Tìm kiếm sự kiện thất bại"
         )
     
     def search_comprehensive_intel(
@@ -4058,8 +4058,8 @@ class SearchService:
 
         logger.info(
             (
-                "开始多维度情报搜索: %s(%s), 时间范围: 近%s天 "
-                "(profile=%s, NEWS_MAX_AGE_DAYS=%s), 目标条数=%s, provider请求条数=%s"
+                "Bắt đầu tìm kiếm thông tin đa chiều: %s(%s), phạm vi: %s ngày gần nhất "
+                "(profile=%s, NEWS_MAX_AGE_DAYS=%s), mục tiêu=%s, provider yêu cầu=%s"
             ),
             stock_name,
             stock_code,
@@ -4092,7 +4092,7 @@ class SearchService:
             )
 
             logger.info(
-                "[情报搜索] %s: 使用 %s，请求窗口: 近%s天",
+                "[Tìm kiếm thông tin] %s: dùng %s, cửa sổ yêu cầu: %s ngày gần nhất",
                 dim['desc'],
                 provider.name,
                 request_days,
@@ -4152,13 +4152,13 @@ class SearchService:
             
             if response.success:
                 logger.info(
-                    "[情报搜索] %s: 原始=%s条, 过滤后=%s条",
+                    "[Tìm kiếm thông tin] %s: gốc=%s kết quả, sau lọc=%s kết quả",
                     dim['desc'],
                     len(response.results),
                     len(filtered_response.results),
                 )
             else:
-                logger.warning(f"[情报搜索] {dim['desc']}: 搜索失败 - {response.error_message}")
+                logger.warning(f"[Tìm kiếm thông tin] {dim['desc']}: tìm kiếm thất bại - {response.error_message}")
             
             # 短暂延迟避免请求过快
             time.sleep(0.5)
@@ -4283,80 +4283,79 @@ class SearchService:
 
         if not self.is_available:
             return SearchResponse(
-                query=f"{stock_name} 股价走势",
+                query=f"{stock_name} diễn biến giá",
                 results=[],
                 provider="None",
                 success=False,
-                error_message="未配置搜索能力"
+                error_message="Chưa cấu hình công cụ tìm kiếm"
             )
-        
-        logger.info(f"[增强搜索] 数据源失败，启动增强搜索: {stock_name}({stock_code})")
-        
+
+        logger.info(f"[Tìm kiếm tăng cường] Nguồn dữ liệu thất bại, khởi động tìm kiếm tăng cường: {stock_name}({stock_code})")
+
         all_results = []
         seen_urls = set()
         successful_providers = []
-        
-        # 使用多个关键词模板搜索
+
+        # Tìm kiếm bằng nhiều mẫu từ khóa
         is_foreign = self._is_foreign_stock(stock_code)
         keywords = self.ENHANCED_SEARCH_KEYWORDS_EN if is_foreign else self.ENHANCED_SEARCH_KEYWORDS
         for i, keyword_template in enumerate(keywords[:max_attempts]):
             query = keyword_template.format(name=stock_name, code=stock_code)
-            
-            logger.info(f"[增强搜索] 第 {i+1}/{max_attempts} 次搜索: {query}")
-            
-            # 依次尝试各个搜索引擎
+
+            logger.info(f"[Tìm kiếm tăng cường] Lần {i+1}/{max_attempts}: {query}")
+
+            # Lần lượt thử từng công cụ tìm kiếm
             for provider in self._providers:
                 if not provider.is_available:
                     continue
-                
+
                 try:
                     response = provider.search(query, max_results=3)
-                    
+
                     if response.success and response.results:
-                        # 去重并添加结果
+                        # Lọc trùng và thêm kết quả
                         for result in response.results:
                             if result.url not in seen_urls:
                                 seen_urls.add(result.url)
                                 all_results.append(result)
-                                
+
                         if provider.name not in successful_providers:
                             successful_providers.append(provider.name)
-                        
-                        logger.info(f"[增强搜索] {provider.name} 返回 {len(response.results)} 条结果")
-                        break  # 成功后跳到下一个关键词
+
+                        logger.info(f"[Tìm kiếm tăng cường] {provider.name} trả về {len(response.results)} kết quả")
+                        break  # Chuyển sang từ khóa tiếp theo sau khi thành công
                     else:
-                        logger.debug(f"[增强搜索] {provider.name} 无结果或失败")
-                        
+                        logger.debug(f"[Tìm kiếm tăng cường] {provider.name} không có kết quả hoặc thất bại")
+
                 except Exception as e:
-                    logger.warning(f"[增强搜索] {provider.name} 搜索异常: {e}")
+                    logger.warning(f"[Tìm kiếm tăng cường] {provider.name} ngoại lệ: {e}")
                     continue
-            
-            # 短暂延迟避免请求过快
+
+            # Dừng ngắn để tránh gửi quá nhanh
             if i < max_attempts - 1:
                 time.sleep(0.5)
-        
-        # 汇总结果
+
+        # Tổng hợp kết quả
         if all_results:
-            # 截取前 max_results 条
             final_results = all_results[:max_results]
             provider_str = ", ".join(successful_providers) if successful_providers else "None"
-            
-            logger.info(f"[增强搜索] 完成，共获取 {len(final_results)} 条结果（来源: {provider_str}）")
-            
+
+            logger.info(f"[Tìm kiếm tăng cường] Hoàn tất, tổng {len(final_results)} kết quả (nguồn: {provider_str})")
+
             return SearchResponse(
-                query=f"{stock_name}({stock_code}) 股价走势",
+                query=f"{stock_name}({stock_code}) diễn biến giá",
                 results=final_results,
                 provider=provider_str,
                 success=True,
             )
         else:
-            logger.warning(f"[增强搜索] 所有搜索均未返回结果")
+            logger.warning(f"[Tìm kiếm tăng cường] Tất cả tìm kiếm đều không trả về kết quả")
             return SearchResponse(
-                query=f"{stock_name}({stock_code}) 股价走势",
+                query=f"{stock_name}({stock_code}) diễn biến giá",
                 results=[],
                 provider="None",
                 success=False,
-                error_message="增强搜索未找到相关信息"
+                error_message="Tìm kiếm tăng cường không tìm thấy thông tin liên quan"
             )
 
     def search_stock_with_enhanced_fallback(
@@ -4413,11 +4412,11 @@ class SearchService:
             格式化的文本，可直接用于 AI 分析
         """
         if not response.success or not response.results:
-            return "【股价走势搜索】未找到相关信息，请以其他渠道数据为准。"
-        
+            return "【Tìm kiếm diễn biến giá】Không tìm thấy thông tin, vui lòng tham khảo dữ liệu từ kênh khác."
+
         lines = [
-            f"【股价走势搜索结果】（来源: {response.provider}）",
-            "⚠️ 注意：以下信息来自网络搜索，仅供参考，可能存在延迟或不准确。",
+            f"【Kết quả tìm kiếm diễn biến giá】(Nguồn: {response.provider})",
+            "⚠️ Lưu ý: Thông tin dưới đây từ tìm kiếm web, chỉ mang tính tham khảo, có thể bị trễ hoặc không chính xác.",
             ""
         ]
         

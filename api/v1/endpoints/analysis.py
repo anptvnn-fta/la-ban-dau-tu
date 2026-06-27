@@ -223,17 +223,17 @@ def _resolve_and_normalize_input(raw_value: str) -> str:
     "/analyze",
     response_model=AnalysisResultResponse,
     responses={
-        200: {"description": "分析完成（同步模式）", "model": AnalysisResultResponse},
+        200: {"description": "Phân tích hoàn thành (chế độ đồng bộ)", "model": AnalysisResultResponse},
         202: {
-            "description": "分析任务已接受（异步模式）",
+            "description": "Tác vụ phân tích đã được chấp nhận (chế độ bất đồng bộ)",
             "model": Union[TaskAccepted, BatchTaskAcceptedResponse],
         },
-        400: {"description": "请求参数错误", "model": ErrorResponse},
-        409: {"description": "股票正在分析中，拒绝重复提交", "model": DuplicateTaskErrorResponse},
-        500: {"description": "分析失败", "model": ErrorResponse},
+        400: {"description": "Tham số yêu cầu không hợp lệ", "model": ErrorResponse},
+        409: {"description": "Cổ phiếu đang được phân tích, từ chối gửi trùng lặp", "model": DuplicateTaskErrorResponse},
+        500: {"description": "Phân tích thất bại", "model": ErrorResponse},
     },
-    summary="触发股票分析",
-    description="启动 AI 智能分析任务，支持同步和异步模式。异步模式下相同股票代码不允许重复提交。"
+    summary="Kích hoạt phân tích cổ phiếu",
+    description="Khởi động tác vụ phân tích AI thông minh, hỗ trợ chế độ đồng bộ và bất đồng bộ. Ở chế độ bất đồng bộ, không cho phép gửi trùng lặp cùng mã cổ phiếu."
 )
 def trigger_analysis(
         request: AnalyzeRequest,
@@ -482,12 +482,12 @@ def _handle_sync_analysis(
     response_model=MarketReviewAccepted,
     status_code=202,
     responses={
-        202: {"description": "大盘复盘任务已接受", "model": MarketReviewAccepted},
-        409: {"description": "大盘复盘正在执行", "model": ErrorResponse},
-        500: {"description": "提交失败", "model": ErrorResponse},
+        202: {"description": "Tác vụ tổng kết thị trường đã được chấp nhận", "model": MarketReviewAccepted},
+        409: {"description": "Tổng kết thị trường đang thực thi", "model": ErrorResponse},
+        500: {"description": "Gửi tác vụ thất bại", "model": ErrorResponse},
     },
-    summary="触发大盘复盘",
-    description="提交一个后台大盘复盘任务，复用 CLI 的大盘复盘运行时装配并保存报告。该人工触发入口不按交易日检查跳过；接口内部仅提供进程内/单机防重，如多实例（多 Worker/多容器）部署，需结合外部幂等机制避免重复触发。",
+    summary="Kích hoạt tổng kết thị trường",
+    description="Gửi tác vụ tổng kết thị trường chạy nền, tái sử dụng bộ lắp ráp thời gian thực của CLI và lưu báo cáo. Lối vào kích hoạt thủ công này không kiểm tra bỏ qua theo ngày giao dịch; bên trong chỉ chống trùng lặp trong tiến trình/máy đơn, nếu triển khai đa instance (multi-worker/container) cần kết hợp cơ chế idempotent bên ngoài.",
 )
 def trigger_market_review(
     request: Optional[MarketReviewRequest] = Body(None),
@@ -554,17 +554,17 @@ def trigger_market_review(
     "/tasks",
     response_model=TaskListResponse,
     responses={
-        200: {"description": "任务列表"},
+        200: {"description": "Danh sách tác vụ"},
     },
-    summary="获取分析任务列表",
-    description="获取当前所有分析任务，可按状态筛选"
+    summary="Lấy danh sách tác vụ phân tích",
+    description="Lấy tất cả tác vụ phân tích hiện tại, có thể lọc theo trạng thái"
 )
 def get_task_list(
     status: Optional[str] = Query(
         None,
-        description="筛选状态：pending, processing, completed, failed, cancel_requested, cancelled（支持逗号分隔多个）"
+        description="Lọc trạng thái: pending, processing, completed, failed, cancel_requested, cancelled (hỗ trợ nhiều giá trị phân tách bằng dấu phẩy)"
     ),
-    limit: int = Query(20, description="返回数量限制", ge=1, le=100),
+    limit: int = Query(20, description="Giới hạn số lượng trả về", ge=1, le=100),
 ) -> TaskListResponse:
     """
     Lấy danh sách tác vụ phân tích
@@ -627,10 +627,10 @@ def get_task_list(
 @router.get(
     "/tasks/stream",
     responses={
-        200: {"description": "SSE 事件流", "content": {"text/event-stream": {}}},
+        200: {"description": "Luồng sự kiện SSE", "content": {"text/event-stream": {}}},
     },
-    summary="任务状态 SSE 流",
-    description="通过 Server-Sent Events 实时推送任务状态变化"
+    summary="Luồng SSE trạng thái tác vụ",
+    description="Đẩy thay đổi trạng thái tác vụ theo thời gian thực qua Server-Sent Events"
 )
 async def task_stream():
     """
@@ -737,16 +737,16 @@ def _load_history_run_flow_by_query_id(
     "/tasks/{task_id}/flow",
     response_model=RunFlowSnapshot,
     responses={
-        200: {"description": "任务运行流快照"},
-        404: {"description": "任务不存在", "model": ErrorResponse},
-        500: {"description": "服务器错误", "model": ErrorResponse},
+        200: {"description": "Ảnh chụp luồng chạy tác vụ"},
+        404: {"description": "Tác vụ không tồn tại", "model": ErrorResponse},
+        500: {"description": "Lỗi máy chủ", "model": ErrorResponse},
     },
-    summary="获取分析任务运行流",
-    description="根据 task_id 查询任务数据流/信息流快照；活跃任务缺少诊断时返回骨架流。",
+    summary="Lấy luồng chạy tác vụ phân tích",
+    description="Truy vấn ảnh chụp luồng dữ liệu/thông tin của tác vụ theo task_id; tác vụ đang hoạt động thiếu chẩn đoán sẽ trả về luồng khung.",
 )
 def get_task_run_flow(task_id: str) -> RunFlowSnapshot:
     """
-    查询分析任务运行流。
+    Truy vấn luồng chạy tác vụ phân tích.
 
     Active tasks are served from the in-memory task queue. Completed tasks try
     to hydrate from persisted history diagnostics using the same task_id/query_id.
@@ -959,11 +959,11 @@ def _build_task_analysis_result(task: Any) -> AnalysisResultResponse:
     "/status/{task_id}",
     response_model=TaskStatus,
     responses={
-        200: {"description": "任务状态"},
-        404: {"description": "任务不存在", "model": ErrorResponse},
+        200: {"description": "Trạng thái tác vụ"},
+        404: {"description": "Tác vụ không tồn tại", "model": ErrorResponse},
     },
-    summary="查询分析任务状态",
-    description="根据 task_id 查询单个任务的状态"
+    summary="Truy vấn trạng thái tác vụ phân tích",
+    description="Truy vấn trạng thái của một tác vụ đơn lẻ theo task_id"
 )
 def get_analysis_status(task_id: str) -> TaskStatus:
     """

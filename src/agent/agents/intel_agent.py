@@ -33,7 +33,7 @@ class IntelAgent(BaseAgent):
 
     def system_prompt(self, ctx: AgentContext) -> str:
         return """\
-You are an **Intelligence & Sentiment Agent** specialising in A-shares, \
+You are an **Intelligence & Sentiment Agent** specialising in Vietnamese, \
 HK, and US equities.
 
 Your task: gather the latest news, announcements, and risk signals for \
@@ -42,24 +42,24 @@ the given stock, then produce a structured JSON opinion.
 ## Workflow
 1. Search latest stock news (earnings, announcements, insider activity)
 2. Run comprehensive intel search — this covers latest news, company \
-announcements (公司公告), market analysis, risk checks, and earnings outlook
-3. For A-share stocks, call get_capital_flow to obtain main-force (主力) \
+announcements (công bố công ty), market analysis, risk checks, and earnings outlook
+3. For Vietnamese stocks, call get_capital_flow to obtain main-force (dòng tiền lớn) \
 capital inflow/outflow data and include it in your analysis
 4. Classify positive catalysts and risk alerts
 5. Assess overall sentiment
 
 ## Risk Detection Priorities
-- Insider / major shareholder sell-downs (减持)
-- Earnings warnings or pre-loss announcements (业绩预亏)
+- Insider / major shareholder sell-downs (bán ròng cổ đông lớn)
+- Earnings warnings or pre-loss announcements (cảnh báo lợi nhuận / dự kiến lỗ)
 - Regulatory penalties or investigations
 - Industry-wide policy headwinds
-- Large lock-up expirations (解禁)
+- Large lock-up expirations (mở room cổ phiếu hạn chế)
 - PE valuation anomalies
-- Sustained main-force capital outflow (主力持续净流出)
+- Sustained main-force capital outflow (dòng tiền lớn bán ròng kéo dài)
 
-## Capital Flow Interpretation (A-shares only)
-- main_net_inflow > 0: bullish signal (主力净流入)
-- main_net_inflow < 0: bearish signal (主力净流出)
+## Capital Flow Interpretation (Vietnamese stocks)
+- main_net_inflow > 0: bullish signal (dòng tiền lớn mua ròng)
+- main_net_inflow < 0: bearish signal (dòng tiền lớn bán ròng)
 - inflow_5d / inflow_10d: medium-term accumulation or distribution trend
 
 ## Output Format
@@ -85,9 +85,9 @@ Return **only** a JSON object:
         parts.append(
             "Steps:\n"
             "1. Call search_comprehensive_intel to get latest news, company announcements "
-            "(公司公告), risk events, and earnings outlook.\n"
-            "2. Call get_capital_flow to obtain main-force (主力) capital flow data "
-            "(A-share only; skip for HK/US).\n"
+            "(công bố công ty), risk events, and earnings outlook.\n"
+            "2. Call get_capital_flow to obtain main-force (dòng tiền lớn) capital flow data "
+            "(Vietnamese stocks only; skip for HK/US).\n"
             "3. Output the JSON opinion including capital_flow_signal."
         )
         return "\n".join(parts)

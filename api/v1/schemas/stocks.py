@@ -16,33 +16,33 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class StockQuote(BaseModel):
     """Giá thị trường thời gian thực của cổ phiếu"""
-    
-    stock_code: str = Field(..., description="股票代码")
-    stock_name: Optional[str] = Field(None, description="股票名称")
-    current_price: float = Field(..., description="当前价格")
-    change: Optional[float] = Field(None, description="涨跌额")
-    change_percent: Optional[float] = Field(None, description="涨跌幅 (%)")
-    open: Optional[float] = Field(None, description="开盘价")
-    high: Optional[float] = Field(None, description="最高价")
-    low: Optional[float] = Field(None, description="最低价")
-    prev_close: Optional[float] = Field(None, description="昨收价")
-    volume: Optional[float] = Field(None, description="成交量（股）")
-    amount: Optional[float] = Field(None, description="成交额（元）")
-    update_time: Optional[str] = Field(None, description="更新时间")
-    
+
+    stock_code: str = Field(..., description="Mã cổ phiếu")
+    stock_name: Optional[str] = Field(None, description="Tên cổ phiếu")
+    current_price: float = Field(..., description="Giá hiện tại")
+    change: Optional[float] = Field(None, description="Thay đổi giá")
+    change_percent: Optional[float] = Field(None, description="Thay đổi giá (%)")
+    open: Optional[float] = Field(None, description="Giá mở cửa")
+    high: Optional[float] = Field(None, description="Giá cao nhất")
+    low: Optional[float] = Field(None, description="Giá thấp nhất")
+    prev_close: Optional[float] = Field(None, description="Giá đóng cửa phiên trước")
+    volume: Optional[float] = Field(None, description="Khối lượng khớp lệnh (cổ phiếu)")
+    amount: Optional[float] = Field(None, description="Giá trị khớp lệnh (VND)")
+    update_time: Optional[str] = Field(None, description="Thời điểm cập nhật")
+
     model_config = ConfigDict(json_schema_extra={
         "example": {
-            "stock_code": "600519",
-            "stock_name": "贵州茅台",
-            "current_price": 1800.00,
-            "change": 15.00,
-            "change_percent": 0.84,
-            "open": 1785.00,
-            "high": 1810.00,
-            "low": 1780.00,
-            "prev_close": 1785.00,
-            "volume": 10000000,
-            "amount": 18000000000,
+            "stock_code": "FPT.VN",
+            "stock_name": "Công ty Cổ phần FPT",
+            "current_price": 120000,
+            "change": 1500,
+            "change_percent": 1.27,
+            "open": 118500,
+            "high": 121000,
+            "low": 118000,
+            "prev_close": 118500,
+            "volume": 2500000,
+            "amount": 297500000000,
             "update_time": "2024-01-01T15:00:00"
         }
     })
@@ -50,12 +50,12 @@ class StockQuote(BaseModel):
 
 class KLineData(BaseModel):
     """Điểm dữ liệu nến K"""
-    
-    date: str = Field(..., description="日期")
-    open: float = Field(..., description="开盘价")
-    high: float = Field(..., description="最高价")
-    low: float = Field(..., description="最低价")
-    close: float = Field(..., description="收盘价")
+
+    date: str = Field(..., description="Ngày")
+    open: float = Field(..., description="Giá mở cửa")
+    high: float = Field(..., description="Giá cao nhất")
+    low: float = Field(..., description="Giá thấp nhất")
+    close: float = Field(..., description="Giá đóng cửa")
     volume: Optional[float] = Field(None, description="Khối lượng")
     amount: Optional[float] = Field(None, description="Giá trị giao dịch")
     change_percent: Optional[float] = Field(None, description="Thay đổi (%)")
@@ -84,26 +84,26 @@ class KLineData(BaseModel):
 class ExtractItem(BaseModel):
     """Một kết quả trích xuất (mã, tên, độ tin cậy)"""
 
-    code: Optional[str] = Field(None, description="股票代码，None 表示解析失败")
-    name: Optional[str] = Field(None, description="股票名称（如有）")
-    confidence: str = Field("medium", description="置信度：high/medium/low")
+    code: Optional[str] = Field(None, description="Mã cổ phiếu; None nếu phân tích thất bại")
+    name: Optional[str] = Field(None, description="Tên cổ phiếu (nếu có)")
+    confidence: str = Field("medium", description="Độ tin cậy: high/medium/low")
 
 
 class ExtractFromImageResponse(BaseModel):
     """Phản hồi trích xuất mã cổ phiếu từ ảnh"""
 
-    codes: List[str] = Field(..., description="提取的股票代码（已去重，向后兼容）")
-    items: List[ExtractItem] = Field(default_factory=list, description="提取结果明细（代码+名称+置信度）")
-    raw_text: Optional[str] = Field(None, description="原始 LLM 响应（调试用）")
+    codes: List[str] = Field(..., description="Danh sách mã cổ phiếu đã trích xuất (đã khử trùng, tương thích ngược)")
+    items: List[ExtractItem] = Field(default_factory=list, description="Chi tiết kết quả trích xuất (mã + tên + độ tin cậy)")
+    raw_text: Optional[str] = Field(None, description="Phản hồi thô từ LLM (dùng để gỡ lỗi)")
 
 
 class StockHistoryResponse(BaseModel):
     """Phản hồi lịch sử giá cổ phiếu"""
-    
-    stock_code: str = Field(..., description="股票代码")
-    stock_name: Optional[str] = Field(None, description="股票名称")
-    period: str = Field(..., description="K 线周期")
-    data: List[KLineData] = Field(default_factory=list, description="K 线数据列表")
+
+    stock_code: str = Field(..., description="Mã cổ phiếu")
+    stock_name: Optional[str] = Field(None, description="Tên cổ phiếu")
+    period: str = Field(..., description="Chu kỳ nến K")
+    data: List[KLineData] = Field(default_factory=list, description="Danh sách dữ liệu nến K")
     
     model_config = ConfigDict(json_schema_extra={
         "example": {

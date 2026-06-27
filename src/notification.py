@@ -149,22 +149,22 @@ class ChannelDetector:
     def get_channel_name(channel: NotificationChannel) -> str:
         """获取渠道中文名称"""
         names = {
-            NotificationChannel.WECHAT: "企业微信",
-            NotificationChannel.FEISHU: "飞书",
+            NotificationChannel.WECHAT: "WeChat Doanh Nghiệp",
+            NotificationChannel.FEISHU: "Feishu",
             NotificationChannel.TELEGRAM: "Telegram",
-            NotificationChannel.EMAIL: "邮件",
+            NotificationChannel.EMAIL: "Email",
             NotificationChannel.PUSHOVER: "Pushover",
             NotificationChannel.NTFY: "ntfy",
             NotificationChannel.GOTIFY: "Gotify",
             NotificationChannel.PUSHPLUS: "PushPlus",
             NotificationChannel.SERVERCHAN3: "Server酱3",
-            NotificationChannel.CUSTOM: "自定义Webhook",
-            NotificationChannel.DISCORD: "Discord机器人",
+            NotificationChannel.CUSTOM: "Webhook tùy chỉnh",
+            NotificationChannel.DISCORD: "Bot Discord",
             NotificationChannel.SLACK: "Slack",
-            NotificationChannel.ASTRBOT: "ASTRBOT机器人",
-            NotificationChannel.UNKNOWN: "未知渠道",
+            NotificationChannel.ASTRBOT: "Bot ASTRBOT",
+            NotificationChannel.UNKNOWN: "Kênh không xác định",
         }
-        return names.get(channel, "未知渠道")
+        return names.get(channel, "Kênh không xác định")
 
 
 class NotificationService(
@@ -242,16 +242,16 @@ class NotificationService(
         # 检测所有已配置的渠道
         self._available_channels = self._detect_all_channels()
         if self._extract_dingtalk_session_webhook() is not None:
-            self._context_channels.append("钉钉会话")
+            self._context_channels.append("Hội thoại DingTalk")
         if self._extract_feishu_reply_info() is not None:
-            self._context_channels.append("飞书会话")
+            self._context_channels.append("Hội thoại Feishu")
 
         if not self._available_channels and not self._context_channels:
-            logger.warning("未配置有效的通知渠道，将不发送推送通知")
+            logger.warning("Chưa cấu hình kênh thông báo hợp lệ, sẽ không gửi thông báo")
         else:
             channel_names = [ChannelDetector.get_channel_name(ch) for ch in self._available_channels]
             channel_names.extend(self._context_channels)
-            logger.info(f"已配置 {len(channel_names)} 个通知渠道：{', '.join(channel_names)}")
+            logger.info(f"Đã cấu hình {len(channel_names)} kênh thông báo: {', '.join(channel_names)}")
 
     def _normalize_report_type(self, report_type: Any) -> ReportType:
         """Normalize string/enum input into ReportType."""
@@ -485,7 +485,7 @@ class NotificationService(
 
         route_config = get_notification_route_config(route_type)
         if route_config is None:
-            logger.warning("未知通知路由类型 %s，沿用全部已配置渠道", route_type)
+            logger.warning("Loại định tuyến thông báo không xác định %s, dùng tất cả kênh đã cấu hình", route_type)
             return target_channels
 
         configured_route_channels = getattr(self._config, route_config["config_attr"], []) or []
@@ -634,36 +634,36 @@ class NotificationService(
         if session_webhook:
             try:
                 if self._send_dingtalk_chunked(session_webhook, content, max_bytes=20000):
-                    logger.info("已通过钉钉会话（Stream）推送报告")
+                    logger.info("Đã gửi báo cáo qua hội thoại DingTalk (Stream)")
                     success = True
                 else:
-                    logger.error("钉钉会话（Stream）推送失败")
+                    logger.error("Gửi qua hội thoại DingTalk (Stream) thất bại")
             except Exception as e:
-                logger.error(f"钉钉会话（Stream）推送异常: {e}")
+                logger.error(f"Ngoại lệ khi gửi qua hội thoại DingTalk (Stream): {e}")
 
         # 尝试飞书会话
         feishu_info = self._extract_feishu_reply_info()
         if feishu_info:
             try:
                 if self._send_feishu_stream_reply(feishu_info["chat_id"], content):
-                    logger.info("已通过飞书会话（Stream）推送报告")
+                    logger.info("Đã gửi báo cáo qua hội thoại Feishu (Stream)")
                     success = True
                 else:
-                    logger.error("飞书会话（Stream）推送失败")
+                    logger.error("Gửi qua hội thoại Feishu (Stream) thất bại")
             except Exception as e:
-                logger.error(f"飞书会话（Stream）推送异常: {e}")
+                logger.error(f"Ngoại lệ khi gửi qua hội thoại Feishu (Stream): {e}")
 
         # 尝试 Telegram 会话上下文（按来源 chat_id 回执）
         telegram_chat_id = self._extract_telegram_context_chat_id()
         if telegram_chat_id:
             try:
                 if self.send_to_telegram(content, chat_id=telegram_chat_id):
-                    logger.info("已通过 Telegram 上下文会话推送报告")
+                    logger.info("Đã gửi báo cáo qua hội thoại Telegram (ngữ cảnh)")
                     success = True
                 else:
-                    logger.error("Telegram 上下文会话推送失败")
+                    logger.error("Gửi qua hội thoại Telegram (ngữ cảnh) thất bại")
             except Exception as e:
-                logger.error(f"Telegram 上下文会话推送异常: {e}")
+                logger.error(f"Ngoại lệ khi gửi qua hội thoại Telegram (ngữ cảnh): {e}")
 
         return success
 
@@ -681,7 +681,7 @@ class NotificationService(
         try:
             from bot.platforms.feishu_stream import FeishuReplyClient, FEISHU_SDK_AVAILABLE
             if not FEISHU_SDK_AVAILABLE:
-                logger.warning("飞书 SDK 不可用，无法发送 Stream 回复")
+                logger.warning("SDK Feishu không khả dụng, không thể gửi Stream reply")
                 return False
             
             from src.config import get_config
@@ -691,7 +691,7 @@ class NotificationService(
             app_secret = getattr(config, 'feishu_app_secret', None)
             
             if not app_id or not app_secret:
-                logger.warning("飞书 APP_ID 或 APP_SECRET 未配置")
+                logger.warning("Feishu APP_ID hoặc APP_SECRET chưa được cấu hình")
                 return False
             
             # 创建回复客户端
@@ -707,10 +707,10 @@ class NotificationService(
             return reply_client.send_to_chat(chat_id, content)
             
         except ImportError as e:
-            logger.error(f"导入飞书 Stream 模块失败: {e}")
+            logger.error(f"Nhập module Feishu Stream thất bại: {e}")
             return False
         except Exception as e:
-            logger.error(f"飞书 Stream 回复异常: {e}")
+            logger.error(f"Ngoại lệ khi gửi Feishu Stream reply: {e}")
             return False
 
     def _send_feishu_stream_chunked(
@@ -778,7 +778,7 @@ class NotificationService(
             
             if not reply_client.send_to_chat(chat_id, chunk):
                 success = False
-                logger.error(f"飞书 Stream 分块 {i+1}/{len(chunks)} 发送失败")
+                logger.error(f"Gửi phân đoạn Feishu Stream {i+1}/{len(chunks)} thất bại")
         
         return success
         
@@ -871,114 +871,114 @@ class NotificationService(
                     report_lines.extend([signal_excerpt, ""])
                 self._append_market_snapshot(report_lines, result)
                 
-                # 核心看点
+                # Điểm nhấn cốt lõi
                 if hasattr(result, 'key_points') and result.key_points:
                     report_lines.extend([
-                        f"**🎯 核心看点**：{result.key_points}",
+                        f"**🎯 Điểm nhấn cốt lõi**: {result.key_points}",
                         "",
                     ])
-                
-                # 买入/卖出理由
+
+                # Lý do mua/bán
                 if hasattr(result, 'buy_reason') and result.buy_reason:
                     report_lines.extend([
-                        f"**💡 操作理由**：{result.buy_reason}",
+                        f"**💡 Lý do thao tác**: {result.buy_reason}",
                         "",
                     ])
-                
-                # 走势分析
+
+                # Phân tích xu hướng
                 if hasattr(result, 'trend_analysis') and result.trend_analysis:
                     report_lines.extend([
-                        "#### 📉 走势分析",
+                        "#### 📉 Xu hướng",
                         f"{result.trend_analysis}",
                         "",
                     ])
-                
-                # 短期/中期展望
+
+                # Triển vọng ngắn/trung hạn
                 outlook_lines = []
                 if hasattr(result, 'short_term_outlook') and result.short_term_outlook:
-                    outlook_lines.append(f"- **短期（1-3日）**：{result.short_term_outlook}")
+                    outlook_lines.append(f"- **Ngắn hạn (1-3 ngày)**: {result.short_term_outlook}")
                 if hasattr(result, 'medium_term_outlook') and result.medium_term_outlook:
-                    outlook_lines.append(f"- **中期（1-2周）**：{result.medium_term_outlook}")
+                    outlook_lines.append(f"- **Trung hạn (1-2 tuần)**: {result.medium_term_outlook}")
                 if outlook_lines:
                     report_lines.extend([
-                        "#### 🔮 市场展望",
+                        "#### 🔮 Triển vọng thị trường",
                         *outlook_lines,
                         "",
                     ])
-                
-                # 技术面分析
+
+                # Phân tích kỹ thuật
                 tech_lines = []
                 if result.technical_analysis:
-                    tech_lines.append(f"**综合**：{result.technical_analysis}")
+                    tech_lines.append(f"**Tổng hợp**: {result.technical_analysis}")
                 if hasattr(result, 'ma_analysis') and result.ma_analysis:
-                    tech_lines.append(f"**均线**：{result.ma_analysis}")
+                    tech_lines.append(f"**Đường trung bình**: {result.ma_analysis}")
                 if hasattr(result, 'volume_analysis') and result.volume_analysis:
-                    tech_lines.append(f"**量能**：{result.volume_analysis}")
+                    tech_lines.append(f"**Thanh khoản**: {result.volume_analysis}")
                 if hasattr(result, 'pattern_analysis') and result.pattern_analysis:
-                    tech_lines.append(f"**形态**：{result.pattern_analysis}")
+                    tech_lines.append(f"**Mẫu hình**: {result.pattern_analysis}")
                 if tech_lines:
                     report_lines.extend([
-                        "#### 📊 技术面分析",
+                        "#### 📊 Kỹ thuật",
                         *tech_lines,
                         "",
                     ])
-                
-                # 基本面分析
+
+                # Phân tích cơ bản
                 fund_lines = []
                 if hasattr(result, 'fundamental_analysis') and result.fundamental_analysis:
                     fund_lines.append(result.fundamental_analysis)
                 if hasattr(result, 'sector_position') and result.sector_position:
-                    fund_lines.append(f"**板块地位**：{result.sector_position}")
+                    fund_lines.append(f"**Vị thế ngành**: {result.sector_position}")
                 if hasattr(result, 'company_highlights') and result.company_highlights:
-                    fund_lines.append(f"**公司亮点**：{result.company_highlights}")
+                    fund_lines.append(f"**Điểm nổi bật công ty**: {result.company_highlights}")
                 if fund_lines:
                     report_lines.extend([
-                        "#### 🏢 基本面分析",
+                        "#### 🏢 Cơ bản",
                         *fund_lines,
                         "",
                     ])
-                
-                # 消息面/情绪面
+
+                # Tin tức / Tâm lý thị trường
                 news_lines = []
                 if result.news_summary:
-                    news_lines.append(f"**新闻摘要**：{result.news_summary}")
+                    news_lines.append(f"**Tóm tắt tin tức**: {result.news_summary}")
                 if hasattr(result, 'market_sentiment') and result.market_sentiment:
-                    news_lines.append(f"**市场情绪**：{result.market_sentiment}")
+                    news_lines.append(f"**Tâm lý thị trường**: {result.market_sentiment}")
                 if hasattr(result, 'hot_topics') and result.hot_topics:
-                    news_lines.append(f"**相关热点**：{result.hot_topics}")
+                    news_lines.append(f"**Chủ đề nóng**: {result.hot_topics}")
                 if news_lines:
                     report_lines.extend([
-                        "#### 📰 消息面/情绪面",
+                        "#### 📰 Tin tức / Tâm lý",
                         *news_lines,
                         "",
                     ])
-                
-                # 综合分析
+
+                # Phân tích tổng hợp
                 if result.analysis_summary:
                     report_lines.extend([
-                        "#### 📝 综合分析",
+                        "#### 📝 Tổng hợp",
                         result.analysis_summary,
                         "",
                     ])
-                
-                # 风险提示
+
+                # Cảnh báo rủi ro
                 if hasattr(result, 'risk_warning') and result.risk_warning:
                     report_lines.extend([
-                        f"⚠️ **风险提示**：{result.risk_warning}",
+                        f"⚠️ **Cảnh báo rủi ro**: {result.risk_warning}",
                         "",
                     ])
-                
-                # 数据来源说明
+
+                # Nguồn dữ liệu
                 if hasattr(result, 'search_performed') and result.search_performed:
-                    report_lines.append("*🔍 已执行联网搜索*")
+                    report_lines.append("*🔍 Đã thực hiện tìm kiếm trực tuyến*")
                 if hasattr(result, 'data_sources') and result.data_sources:
-                    report_lines.append(f"*📋 数据来源：{result.data_sources}*")
-                
-                # 错误信息（如果有）
+                    report_lines.append(f"*📋 Nguồn dữ liệu: {result.data_sources}*")
+
+                # Thông báo lỗi (nếu có)
                 if not result.success and result.error_message:
                     report_lines.extend([
                         "",
-                        f"❌ **分析异常**：{result.error_message[:100]}",
+                        f"❌ **Lỗi phân tích**: {result.error_message[:100]}",
                     ])
                 
                 report_lines.extend([
@@ -1047,12 +1047,12 @@ class NotificationService(
         config = get_config()
         report_language = self._get_report_language(results)
         labels = get_report_labels(report_language)
-        reason_label = "Rationale" if report_language == "en" else "操作理由"
-        risk_warning_label = "Risk Warning" if report_language == "en" else "风险提示"
-        technical_heading = "Technicals" if report_language == "en" else "技术面"
-        ma_label = "Moving Averages" if report_language == "en" else "均线"
-        volume_analysis_label = "Volume" if report_language == "en" else "量能"
-        news_heading = "News Flow" if report_language == "en" else "消息面"
+        reason_label = "Rationale" if report_language == "en" else "Lý do thao tác"
+        risk_warning_label = "Risk Warning" if report_language == "en" else "Cảnh báo rủi ro"
+        technical_heading = "Technicals" if report_language == "en" else "Kỹ thuật"
+        ma_label = "Moving Averages" if report_language == "en" else "Đường trung bình"
+        volume_analysis_label = "Volume" if report_language == "en" else "Thanh khoản"
+        news_heading = "News Flow" if report_language == "en" else "Tin tức"
         if getattr(config, 'report_renderer_enabled', False) and results:
             from src.services.report_renderer import render
             out = render(
@@ -1838,11 +1838,12 @@ class NotificationService(
         lines.append("")
 
     _CURRENCY_SUFFIX = {
-        "USD": "美元",
-        "HKD": "港元",
-        "CNY": "元",
-        "RMB": "元",
-        "CNH": "元",
+        "USD": "USD",
+        "HKD": "HKD",
+        "CNY": "CNY",
+        "RMB": "RMB",
+        "CNH": "CNH",
+        "VND": "VND",
     }
 
     @classmethod
@@ -1859,12 +1860,15 @@ class NotificationService(
             return "N/A"
         sign = "-" if amount < 0 else ""
         abs_amount = abs(amount)
-        suffix = cls._CURRENCY_SUFFIX.get((currency or "").upper(), "元")
+        suffix = cls._CURRENCY_SUFFIX.get((currency or "").upper(), "")
+        suffix_str = f" {suffix}" if suffix else ""
         if abs_amount >= 1e8:
-            return f"{sign}{abs_amount / 1e8:.2f} 亿{suffix}"
-        if abs_amount >= 1e4:
-            return f"{sign}{abs_amount / 1e4:.2f} 万{suffix}"
-        return f"{sign}{abs_amount:.0f} {suffix}"
+            return f"{sign}{abs_amount / 1e8:.2f} tỷ{suffix_str}"
+        if abs_amount >= 1e6:
+            return f"{sign}{abs_amount / 1e6:.2f} triệu{suffix_str}"
+        if abs_amount >= 1e3:
+            return f"{sign}{abs_amount / 1e3:.2f} nghìn{suffix_str}"
+        return f"{sign}{abs_amount:.0f}{suffix_str}"
 
     @staticmethod
     def _format_percent(value: Any) -> str:
@@ -1881,8 +1885,9 @@ class NotificationService(
             return "N/A"
         if amount != amount:  # NaN
             return "N/A"
-        suffix = cls._CURRENCY_SUFFIX.get((currency or "").upper(), "元")
-        return f"{amount:.4f} {suffix}"
+        suffix = cls._CURRENCY_SUFFIX.get((currency or "").upper(), "")
+        suffix_str = f" {suffix}" if suffix else ""
+        return f"{amount:.4f}{suffix_str}"
 
     @staticmethod
     def _format_text(value: Any) -> str:
@@ -2175,7 +2180,7 @@ class NotificationService(
             return self.send_to_slack(content)
         if channel == NotificationChannel.ASTRBOT:
             return self.send_to_astrbot(content)
-        logger.warning(f"不支持的通知渠道: {channel}")
+        logger.warning(f"Kênh thông báo không được hỗ trợ: {channel}")
         return False
 
     def send_with_results(
@@ -2214,14 +2219,14 @@ class NotificationService(
         context_success = self.send_to_context(content)
         if not self.should_broadcast_static_channels():
             if context_success:
-                logger.info("已通过上下文会话完成推送，跳过静态通知渠道")
+                logger.info("Đã gửi qua hội thoại ngữ cảnh, bỏ qua kênh thông báo tĩnh")
                 return NotificationDispatchResult(
                     dispatched=True,
                     success=True,
                     status="sent",
                     channel_results=[ChannelAttemptResult(channel="__context__", success=True)],
                 )
-            logger.warning("交互式上下文推送失败，已跳过静态通知渠道")
+            logger.warning("Gửi qua ngữ cảnh tương tác thất bại, đã bỏ qua kênh thông báo tĩnh")
             return NotificationDispatchResult(
                 dispatched=True,
                 success=False,
@@ -2239,14 +2244,14 @@ class NotificationService(
 
         if not self._available_channels:
             if context_success:
-                logger.info("已通过消息上下文渠道完成推送（无其他通知渠道）")
+                logger.info("Đã gửi qua kênh ngữ cảnh tin nhắn (không có kênh thông báo nào khác)")
                 return NotificationDispatchResult(
                     dispatched=True,
                     success=True,
                     status="sent",
                     channel_results=[ChannelAttemptResult(channel="__context__", success=True)],
                 )
-            logger.warning("通知服务不可用，跳过推送")
+            logger.warning("Dịch vụ thông báo không khả dụng, bỏ qua gửi")
             return NotificationDispatchResult(
                 dispatched=False,
                 success=False,
@@ -2257,14 +2262,14 @@ class NotificationService(
         target_channels = self.get_channels_for_route(route_type)
         if not target_channels:
             if context_success:
-                logger.info("已通过消息上下文渠道完成推送（路由后无其他通知渠道）")
+                logger.info("Đã gửi qua kênh ngữ cảnh tin nhắn (không còn kênh nào sau khi định tuyến)")
                 return NotificationDispatchResult(
                     dispatched=True,
                     success=True,
                     status="sent",
                     channel_results=[ChannelAttemptResult(channel="__context__", success=True)],
                 )
-            logger.warning("通知路由 %s 未命中任何已配置渠道，跳过静态通知渠道", route_type)
+            logger.warning("Định tuyến thông báo %s không khớp bất kỳ kênh nào đã cấu hình, bỏ qua kênh tĩnh", route_type)
             return NotificationDispatchResult(
                 dispatched=False,
                 success=False,
@@ -2305,7 +2310,7 @@ class NotificationService(
                 content, max_chars=self._markdown_to_image_max_chars
             )
             if image_bytes:
-                logger.info("Markdown 已转换为图片，将向 %s 发送图片",
+                logger.info("Markdown đã chuyển đổi thành ảnh, sẽ gửi ảnh tới %s",
                             [ch.value for ch in channels_needing_image])
             elif channels_needing_image:
                 try:
@@ -2318,12 +2323,12 @@ class NotificationService(
                     else "wkhtmltopdf (apt install wkhtmltopdf / brew install wkhtmltopdf)"
                 )
                 logger.warning(
-                    "Markdown 转图片失败，将回退为文本发送。请检查 MARKDOWN_TO_IMAGE_CHANNELS 配置并安装 %s",
+                    "Chuyển đổi Markdown thành ảnh thất bại, sẽ gửi dạng văn bản. Hãy kiểm tra cấu hình MARKDOWN_TO_IMAGE_CHANNELS và cài đặt %s",
                     hint,
                 )
 
         channel_names = ', '.join(ChannelDetector.get_channel_name(ch) for ch in target_channels)
-        logger.info(f"正在向 {len(target_channels)} 个渠道发送通知：{channel_names}")
+        logger.info(f"Đang gửi thông báo tới {len(target_channels)} kênh: {channel_names}")
 
         success_count = 0
         fail_count = 0
@@ -2357,7 +2362,7 @@ class NotificationService(
                 )
 
             except Exception as e:
-                logger.error(f"{channel_name} 发送失败: {e}")
+                logger.error(f"{channel_name} gửi thất bại: {e}")
                 fail_count += 1
                 channel_results.append(
                     ChannelAttemptResult(
@@ -2370,7 +2375,7 @@ class NotificationService(
                     )
                 )
 
-        logger.info(f"通知发送完成：成功 {success_count} 个，失败 {fail_count} 个")
+        logger.info(f"Gửi thông báo hoàn tất: thành công {success_count}, thất bại {fail_count}")
         if success_count > 0:
             self.record_noise_control(noise_decision)
         else:
@@ -2458,7 +2463,7 @@ class NotificationService(
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(content)
 
-        logger.info(f"日报已保存到: {filepath}")
+        logger.info(f"Báo cáo ngày đã lưu tại: {filepath}")
         return str(filepath)
 
 
@@ -2582,26 +2587,26 @@ if __name__ == "__main__":
     
     service = NotificationService()
     
-    # 显示检测到的渠道
-    print("=== 通知渠道检测 ===")
-    print(f"当前渠道: {service.get_channel_names()}")
-    print(f"渠道列表: {service.get_available_channels()}")
-    print(f"服务可用: {service.is_available()}")
-    
-    # 生成日报
-    print("\n=== 生成日报测试 ===")
+    # Hiển thị kênh đã phát hiện
+    print("=== Kiểm tra kênh thông báo ===")
+    print(f"Kênh hiện tại: {service.get_channel_names()}")
+    print(f"Danh sách kênh: {service.get_available_channels()}")
+    print(f"Dịch vụ khả dụng: {service.is_available()}")
+
+    # Tạo báo cáo ngày
+    print("\n=== Kiểm tra tạo báo cáo ngày ===")
     report = service.generate_daily_report(test_results)
     print(report)
-    
-    # 保存到文件
-    print("\n=== 保存日报 ===")
+
+    # Lưu vào tệp
+    print("\n=== Lưu báo cáo ngày ===")
     filepath = service.save_report_to_file(report)
-    print(f"保存成功: {filepath}")
-    
-    # 推送测试
+    print(f"Lưu thành công: {filepath}")
+
+    # Kiểm tra gửi
     if service.is_available():
-        print(f"\n=== 推送测试（{service.get_channel_names()}）===")
+        print(f"\n=== Kiểm tra gửi ({service.get_channel_names()}) ===")
         success = service.send(report)
-        print(f"推送结果: {'成功' if success else '失败'}")
+        print(f"Kết quả gửi: {'thành công' if success else 'thất bại'}")
     else:
-        print("\n通知渠道未配置，跳过推送测试")
+        print("\nKênh thông báo chưa cấu hình, bỏ qua kiểm tra gửi")

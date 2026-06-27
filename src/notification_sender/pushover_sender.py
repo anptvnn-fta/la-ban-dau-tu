@@ -32,7 +32,7 @@ class PushoverSender:
         }
         
     def _is_pushover_configured(self) -> bool:
-        """检查 Pushover 配置是否完整"""
+        """Kiểm tra cấu hình Pushover có đầy đủ không"""
         return bool(self._pushover_config['user_key'] and self._pushover_config['api_token'])
 
     def send_to_pushover(
@@ -68,7 +68,7 @@ class PushoverSender:
             是否发送成功
         """
         if not self._is_pushover_configured():
-            logger.warning("Pushover 配置不完整，跳过推送")
+            logger.warning("Cấu hình Pushover chưa đầy đủ, bỏ qua gửi thông báo")
             return False
         
         user_key = self._pushover_config['user_key']
@@ -80,7 +80,7 @@ class PushoverSender:
         # 处理消息标题
         if title is None:
             date_str = datetime.now().strftime('%Y-%m-%d')
-            title = f"📈 股票分析报告 - {date_str}"
+            title = f"📈 Báo cáo phân tích cổ phiếu - {date_str}"
         
         # Pushover 消息限制 1024 字符
         max_length = 1024
@@ -139,19 +139,19 @@ class PushoverSender:
             if response.status_code == 200:
                 result = response.json()
                 if result.get('status') == 1:
-                    logger.info("Pushover 消息发送成功")
+                    logger.info("Gửi tin nhắn Pushover thành công")
                     return True
                 else:
-                    errors = result.get('errors', ['未知错误'])
-                    logger.error(f"Pushover 返回错误: {errors}")
+                    errors = result.get('errors', ['Lỗi không xác định'])
+                    logger.error(f"Pushover trả về lỗi: {errors}")
                     return False
             else:
-                logger.error(f"Pushover 请求失败: HTTP {response.status_code}")
-                logger.debug(f"响应内容: {response.text}")
+                logger.error(f"Yêu cầu Pushover thất bại: HTTP {response.status_code}")
+                logger.debug(f"Nội dung phản hồi: {response.text}")
                 return False
-                
+
         except Exception as e:
-            logger.error(f"发送 Pushover 消息失败: {e}")
+            logger.error(f"Gửi tin nhắn Pushover thất bại: {e}")
             return False
     
     def _send_pushover_chunked(
@@ -210,7 +210,7 @@ class PushoverSender:
         total_chunks = len(chunks)
         success_count = 0
         
-        logger.info(f"Pushover 分批发送：共 {total_chunks} 批")
+        logger.info(f"Pushover gửi theo lô: tổng cộng {total_chunks} lô")
         
         for i, chunk in enumerate(chunks):
             # 添加分页标记到标题
@@ -225,9 +225,9 @@ class PushoverSender:
                 timeout_seconds=timeout_seconds,
             ):
                 success_count += 1
-                logger.info(f"Pushover 第 {i+1}/{total_chunks} 批发送成功")
+                logger.info(f"Pushover lô {i+1}/{total_chunks} gửi thành công")
             else:
-                logger.error(f"Pushover 第 {i+1}/{total_chunks} 批发送失败")
+                logger.error(f"Pushover lô {i+1}/{total_chunks} gửi thất bại")
             
             # 批次间隔，避免触发频率限制
             if i < total_chunks - 1:

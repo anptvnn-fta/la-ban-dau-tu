@@ -709,7 +709,7 @@ class TestAgentResultConversion(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertFalse(result.success)
         self.assertEqual(result.sentiment_score, 50)
-        self.assertEqual(result.operation_advice, "观望")
+        self.assertEqual(result.operation_advice, "Quan sát")
         self.assertIn("Max steps exceeded", result.error_message)
 
     def test_convert_agent_dashboard_preserves_explicit_action(self):
@@ -895,7 +895,7 @@ class TestAgentResultConversion(unittest.TestCase):
         ok, missing = check_content_integrity(result)
         self.assertTrue(ok, missing)
         self.assertEqual(result.sentiment_score, 68)
-        self.assertEqual(result.analysis_summary, "趋势结论：多头排列；操作建议：买入。")
+        self.assertEqual(result.analysis_summary, "Xu hướng: 多头排列; Khuyến nghị: 买入.")
         self.assertEqual(result.dashboard["sentiment_score"], 68)
         self.assertEqual(result.dashboard["core_conclusion"]["one_sentence"], result.analysis_summary)
         self.assertEqual(result.dashboard["intelligence"]["risk_alerts"], ["跌破 MA20 需止损"])
@@ -1366,7 +1366,7 @@ class TestAgentResultConversion(unittest.TestCase):
         self.assertEqual(result.dashboard["sentiment_score"], 62)
         self.assertEqual(result.dashboard["core_conclusion"]["one_sentence"], result.analysis_summary)
         self.assertEqual(result.dashboard["intelligence"]["risk_alerts"], ["趋势跌破支撑需减仓"])
-        self.assertEqual(result.dashboard["battle_plan"]["sniper_points"]["stop_loss"], "待补充")
+        self.assertEqual(result.dashboard["battle_plan"]["sniper_points"]["stop_loss"], "Cần bổ sung")
 
     def test_convert_invalid_dashboard_normalizes_strong_trend_decision_type(self):
         """Fallback preserves strong advice text while keeping stable decision_type values."""

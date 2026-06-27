@@ -202,9 +202,9 @@ def test_pipeline_warns_once_when_all_realtime_sources_fail(caplog):
     downgrade_logs = [
         record.message
         for record in caplog.records
-        if "历史收盘价继续分析" in record.message
+        if "hạ cấp sang giá đóng cửa lịch sử" in record.message
     ]
-    assert downgrade_logs == ["贵州茅台(600519) 所有实时行情数据源均不可用，已降级为历史收盘价继续分析"]
+    assert downgrade_logs == ["贵州茅台(600519) Tất cả nguồn giá thực đều không khả dụng, đã hạ cấp sang giá đóng cửa lịch sử"]
 
 
 @patch("src.config.get_config")
@@ -247,6 +247,6 @@ def test_pipeline_logs_disabled_realtime_once_without_fetching_quote(caplog):
     downgrade_logs = [
         record.message
         for record in caplog.records
-        if "历史收盘价继续分析" in record.message
+        if "giá đóng cửa lịch sử" in record.message
     ]
-    assert downgrade_logs == ["贵州茅台(600519) 实时行情已禁用，使用历史收盘价继续分析"]
+    assert downgrade_logs == ["贵州茅台(600519) Giá thực đã tắt, tiếp tục phân tích bằng giá đóng cửa lịch sử"]

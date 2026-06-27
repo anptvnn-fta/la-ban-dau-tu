@@ -66,17 +66,17 @@ class GotifySender:
     ) -> bool:
         """Publish a notification to Gotify using JSON and header auth."""
         if not self._is_gotify_configured():
-            logger.warning("Gotify 配置不完整，跳过推送")
+            logger.warning("Cấu hình Gotify chưa đầy đủ, bỏ qua gửi thông báo")
             return False
 
         endpoint = self._resolve_gotify_endpoint()
         if not endpoint:
-            logger.error("GOTIFY_URL 必须是 Gotify server base URL，不包含 /message")
+            logger.error("GOTIFY_URL phải là URL cơ sở của Gotify server, không bao gồm /message")
             return False
 
         if title is None:
             date_str = datetime.now().strftime("%Y-%m-%d")
-            title = f"📈 股票分析报告 - {date_str}"
+            title = f"📈 Báo cáo phân tích cổ phiếu - {date_str}"
 
         headers = {
             "Content-Type": "application/json; charset=utf-8",
@@ -102,20 +102,20 @@ class GotifySender:
                 verify=self._webhook_verify_ssl,
             )
             if 200 <= response.status_code < 300:
-                logger.info("Gotify 消息发送成功")
+                logger.info("Gửi tin nhắn Gotify thành công")
                 return True
 
-            logger.error("Gotify 请求失败: HTTP %s", response.status_code)
-            logger.debug("Gotify 响应内容: %s", response.text)
+            logger.error("Yêu cầu Gotify thất bại: HTTP %s", response.status_code)
+            logger.debug("Nội dung phản hồi Gotify: %s", response.text)
             return False
         except requests.exceptions.Timeout:
-            logger.error("发送 Gotify 消息失败: 请求超时")
+            logger.error("Gửi Gotify thất bại: yêu cầu hết thời gian chờ")
             return False
         except requests.exceptions.RequestException as exc:
-            logger.error("发送 Gotify 消息失败: 网络请求异常")
-            logger.debug("Gotify 请求异常类型: %s", type(exc).__name__)
+            logger.error("Gửi Gotify thất bại: lỗi kết nối mạng")
+            logger.debug("Loại ngoại lệ Gotify: %s", type(exc).__name__)
             return False
         except Exception as exc:
-            logger.error("发送 Gotify 消息失败: 未知异常")
-            logger.debug("Gotify 未知异常类型: %s", type(exc).__name__)
+            logger.error("Gửi Gotify thất bại: ngoại lệ không xác định")
+            logger.debug("Loại ngoại lệ Gotify không xác định: %s", type(exc).__name__)
             return False

@@ -145,7 +145,7 @@ class DuplicateTaskError(Exception):
     def __init__(self, stock_code: str, existing_task_id: str):
         self.stock_code = stock_code
         self.existing_task_id = existing_task_id
-        super().__init__(f"股票 {stock_code} 正在分析中 (task_id: {existing_task_id})")
+        super().__init__(f"Cổ phiếu {stock_code} đang được phân tích (task_id: {existing_task_id})")
 
 
 class AnalysisTaskQueue:
@@ -199,7 +199,7 @@ class AnalysisTaskQueue:
         self._max_flow_events_per_task = 200
         
         self._initialized = True
-        logger.info(f"[TaskQueue] 初始化完成，最大并发: {max_workers}")
+        logger.info(f"[TaskQueue] Khởi tạo hoàn tất, số tác vụ tối đa: {max_workers}")
     
     @property
     def executor(self) -> ThreadPoolExecutor:
@@ -243,7 +243,7 @@ class AnalysisTaskQueue:
             target = max(1, int(max_workers))
         except (TypeError, ValueError):
             if log:
-                logger.warning("[TaskQueue] 忽略非法 MAX_WORKERS 值: %r", max_workers)
+                logger.warning("[TaskQueue] Bỏ qua giá trị MAX_WORKERS không hợp lệ: %r", max_workers)
             return "unchanged"
 
         executor_to_shutdown: Optional[ThreadPoolExecutor] = None
@@ -256,7 +256,7 @@ class AnalysisTaskQueue:
             if self._has_inflight_tasks_locked():
                 if log:
                     logger.info(
-                        "[TaskQueue] 最大并发调整延后: 当前繁忙 (%s -> %s)",
+                        "[TaskQueue] Điều chỉnh số tác vụ tối đa bị hoãn: đang bận (%s -> %s)",
                         previous,
                         target,
                     )
@@ -270,7 +270,7 @@ class AnalysisTaskQueue:
             executor_to_shutdown.shutdown(wait=False)
 
         if log:
-            logger.info("[TaskQueue] 最大并发已更新: %s -> %s", previous, target)
+            logger.info("[TaskQueue] Số tác vụ tối đa đã cập nhật: %s -> %s", previous, target)
         return "applied"
     
     # ========== 任务提交与查询 ==========
@@ -353,7 +353,7 @@ class AnalysisTaskQueue:
         """
         stock_code = resolve_index_stock_code_for_analysis(stock_code)
         if not stock_code:
-            raise ValueError("股票代码不能为空或仅包含空白字符")
+            raise ValueError("Mã cổ phiếu không được rỗng hoặc chỉ chứa khoảng trắng")
 
         accepted, duplicates = self.submit_tasks_batch(
             [stock_code],
@@ -420,7 +420,7 @@ class AnalysisTaskQueue:
                     stock_code=stock_code,
                     stock_name=stock_name,
                     status=TaskStatus.PENDING,
-                    message="任务已加入队列",
+                    message="Tác vụ đã được thêm vào hàng chờ",
                     report_type=report_type,
                     analysis_phase=analysis_phase or "auto",
                     original_query=original_query,
@@ -452,7 +452,7 @@ class AnalysisTaskQueue:
                 self._futures[task_id] = future
                 accepted.append(task_info)
                 created_task_ids.append(task_id)
-                logger.info(f"[TaskQueue] 任务已提交: {stock_code} -> {task_id}")
+                logger.info(f"[TaskQueue] Tác vụ đã gửi: {stock_code} -> {task_id}")
 
             # Keep task_created ordered before worker-emitted task_started/task_completed.
             # Broadcasting here also preserves batch rollback semantics because we only
@@ -469,7 +469,7 @@ class AnalysisTaskQueue:
         stock_code: str,
         stock_name: Optional[str] = None,
         report_type: str = "detailed",
-        message: Optional[str] = "任务已加入队列",
+        message: Optional[str] = "Tác vụ đã được thêm vào hàng chờ",
         task_id: Optional[str] = None,
         trace_id: Optional[str] = None,
     ) -> TaskInfo:
@@ -492,7 +492,7 @@ class AnalysisTaskQueue:
 
         with self._data_lock:
             if task_id in self._tasks:
-                raise ValueError(f"任务 ID 已存在: {task_id}")
+                raise ValueError(f"Task ID đã tồn tại: {task_id}")
             self._tasks[task_id] = task_info
             try:
                 future = self.executor.submit(self._execute_background_task, task_id, run_task)
@@ -545,7 +545,7 @@ class AnalysisTaskQueue:
         try:
             event_payload = copy.deepcopy(flow_event)
         except Exception:
-            logger.debug("[TaskQueue] 忽略不可复制的运行流事件: task_id=%s", task_id)
+            logger.debug("[TaskQueue] Bỏ qua sự kiện luồng không sao chép được: task_id=%s", task_id)
             return None
 
         with self._data_lock:
@@ -691,7 +691,7 @@ class AnalysisTaskQueue:
             portfolio_context = dict(task.portfolio_context) if isinstance(task.portfolio_context, dict) else None
             task.status = TaskStatus.PROCESSING
             task.started_at = datetime.now()
-            task.message = "正在分析中..."
+            task.message = "Đang phân tích..."
             task.progress = 10
         
         self._broadcast_event("task_started", task.to_dict())
@@ -742,7 +742,7 @@ class AnalysisTaskQueue:
                         task.progress = 100
                         task.completed_at = datetime.now()
                         task.result = result
-                        task.message = "分析完成"
+                        task.message = "Phân tích hoàn tất"
                         task.stock_name = result.get("stock_name", task.stock_name)
                         
                         # 从分析中集合移除
@@ -751,7 +751,7 @@ class AnalysisTaskQueue:
                             del self._analyzing_stocks[dedupe_key]
                 
                 self._broadcast_event("task_completed", task.to_dict())
-                logger.info(f"[TaskQueue] 任务完成: {task_id} ({stock_code})")
+                logger.info(f"[TaskQueue] Tác vụ hoàn tất: {task_id} ({stock_code})")
                 
                 # 清理过期任务
                 self._cleanup_old_tasks()
@@ -759,13 +759,13 @@ class AnalysisTaskQueue:
                 return result
             else:
                 # 分析返回空结果
-                raise Exception(service.last_error or "分析返回空结果")
+                raise Exception(service.last_error or "Phân tích trả về kết quả rỗng")
                 
         except Exception as e:
             if "diag_token" in locals():
                 reset_run_diagnostic_context(diag_token)
             error_msg = str(e)
-            logger.error(f"[TaskQueue] 任务失败: {task_id} ({stock_code}), 错误: {error_msg}")
+            logger.error(f"[TaskQueue] Tác vụ thất bại: {task_id} ({stock_code}), lỗi: {error_msg}")
             
             with self._data_lock:
                 task = self._tasks.get(task_id)
@@ -773,7 +773,7 @@ class AnalysisTaskQueue:
                     task.status = TaskStatus.FAILED
                     task.completed_at = datetime.now()
                     task.error = error_msg[:200]  # 限制错误信息长度
-                    task.message = f"分析失败: {error_msg[:50]}"
+                    task.message = f"Phân tích thất bại: {error_msg[:50]}"
                     
                     # 从分析中集合移除
                     dedupe_key = _dedupe_stock_code_key(task.stock_code)
@@ -810,7 +810,7 @@ class AnalysisTaskQueue:
             trace_id = task.trace_id or task_id
             task.status = TaskStatus.PROCESSING
             task.started_at = datetime.now()
-            task.message = "任务执行中"
+            task.message = "Đang thực thi tác vụ"
             task.progress = 10
             self._broadcast_event("task_started", task.to_dict())
 
@@ -830,7 +830,7 @@ class AnalysisTaskQueue:
             finally:
                 reset_run_diagnostic_context(diag_token)
             if result is None:
-                raise RuntimeError("任务返回空结果，未生成可持久化内容")
+                raise RuntimeError("Tác vụ trả về kết quả rỗng, không có nội dung để lưu")
 
             with self._data_lock:
                 task = self._tasks.get(task_id)
@@ -839,10 +839,10 @@ class AnalysisTaskQueue:
                     task.progress = 100
                     task.completed_at = datetime.now()
                     task.result = result
-                    task.message = "任务执行完成"
+                    task.message = "Tác vụ thực thi hoàn tất"
 
             self._broadcast_event("task_completed", task.to_dict())
-            logger.info(f"[TaskQueue] 自定义任务完成: {task_id}")
+            logger.info(f"[TaskQueue] Tác vụ tùy chỉnh hoàn tất: {task_id}")
 
             self._cleanup_old_tasks()
             return result
@@ -850,7 +850,7 @@ class AnalysisTaskQueue:
         except Exception as e:  # pragma: no cover - behavior verified in downstream tests
             error_msg = str(e)
             logger.error(
-                f"[TaskQueue] 自定义任务失败: {task_id}, 错误: {error_msg}"
+                f"[TaskQueue] Tác vụ tùy chỉnh thất bại: {task_id}, lỗi: {error_msg}"
             )
 
             with self._data_lock:
@@ -859,7 +859,7 @@ class AnalysisTaskQueue:
                     task.status = TaskStatus.FAILED
                     task.completed_at = datetime.now()
                     task.error = error_msg[:200]
-                    task.message = f"任务失败: {error_msg[:80]}"
+                    task.message = f"Tác vụ thất bại: {error_msg[:80]}"
 
             if task:
                 self._broadcast_event("task_failed", task.to_dict())
@@ -897,7 +897,7 @@ class AnalysisTaskQueue:
                 removed += 1
             
             if removed > 0:
-                logger.debug(f"[TaskQueue] 清理了 {removed} 个过期任务")
+                logger.debug(f"[TaskQueue] Đã dọn dẹp {removed} tác vụ hết hạn")
             
             return removed
     
@@ -921,7 +921,7 @@ class AnalysisTaskQueue:
                     self._main_loop = asyncio.get_event_loop()
                 except RuntimeError:
                     pass
-            logger.debug(f"[TaskQueue] 新订阅者加入，当前订阅者数: {len(self._subscribers)}")
+            logger.debug(f"[TaskQueue] Người đăng ký mới tham gia, số người đăng ký hiện tại: {len(self._subscribers)}")
     
     def unsubscribe(self, queue: 'AsyncQueue') -> None:
         """
@@ -933,7 +933,7 @@ class AnalysisTaskQueue:
         with self._subscribers_lock:
             if queue in self._subscribers:
                 self._subscribers.remove(queue)
-                logger.debug(f"[TaskQueue] 订阅者离开，当前订阅者数: {len(self._subscribers)}")
+                logger.debug(f"[TaskQueue] Người đăng ký rời đi, số người đăng ký hiện tại: {len(self._subscribers)}")
     
     def _broadcast_event(self, event_type: str, data: Dict[str, Any]) -> None:
         """
@@ -955,7 +955,7 @@ class AnalysisTaskQueue:
             return
         
         if loop is None:
-            logger.warning("[TaskQueue] 无法广播事件：主事件循环未设置")
+            logger.warning("[TaskQueue] Không thể phát sự kiện: vòng lặp sự kiện chính chưa được cài đặt")
             return
         
         for queue in subscribers:
@@ -965,9 +965,9 @@ class AnalysisTaskQueue:
                 loop.call_soon_threadsafe(queue.put_nowait, event)
             except RuntimeError as e:
                 # 事件循环已关闭
-                logger.debug(f"[TaskQueue] 广播事件跳过（循环已关闭）: {e}")
+                logger.debug(f"[TaskQueue] Bỏ qua phát sự kiện (vòng lặp đã đóng): {e}")
             except Exception as e:
-                logger.warning(f"[TaskQueue] 广播事件失败: {e}")
+                logger.warning(f"[TaskQueue] Phát sự kiện thất bại: {e}")
     
     # ========== 清理方法 ==========
     
@@ -976,7 +976,7 @@ class AnalysisTaskQueue:
         if self._executor:
             self._executor.shutdown(wait=True)
             self._executor = None
-            logger.info("[TaskQueue] 线程池已关闭")
+            logger.info("[TaskQueue] Nhóm luồng đã đóng")
 
 
 # ========== 便捷函数 ==========
@@ -996,6 +996,6 @@ def get_task_queue() -> AnalysisTaskQueue:
         target_workers = max(1, int(getattr(config, "max_workers", queue.max_workers)))
         queue.sync_max_workers(target_workers, log=False)
     except Exception as exc:
-        logger.debug("[TaskQueue] 读取 MAX_WORKERS 失败，使用当前并发设置: %s", exc)
+        logger.debug("[TaskQueue] Không đọc được MAX_WORKERS, dùng cài đặt hiện tại: %s", exc)
 
     return queue

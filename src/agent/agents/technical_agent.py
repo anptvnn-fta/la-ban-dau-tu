@@ -43,7 +43,7 @@ class TechnicalAgent(BaseAgent):
             baseline = f"\n{self.technical_skill_policy}\n"
 
         return f"""\
-You are a **Technical Analysis Agent** specialising in Chinese A-shares, \
+You are a **Technical Analysis Agent** specialising in Vietnamese stocks (HOSE/HNX/UPCoM), \
 Hong Kong stocks, and US equities.
 
 Your task: perform a thorough technical analysis of the given stock and \

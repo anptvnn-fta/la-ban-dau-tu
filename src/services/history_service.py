@@ -186,13 +186,13 @@ class HistoryService:
                 try:
                     start_dt = datetime.strptime(start_date, "%Y-%m-%d").date()
                 except ValueError:
-                    logger.warning(f"无效的 start_date 格式: {start_date}")
+                    logger.warning(f"Định dạng start_date không hợp lệ: {start_date}")
             
             if end_date:
                 try:
                     end_dt = datetime.strptime(end_date, "%Y-%m-%d").date()
                 except ValueError:
-                    logger.warning(f"无效的 end_date 格式: {end_date}")
+                    logger.warning(f"Định dạng end_date không hợp lệ: {end_date}")
             
             # Calculate offset
             offset = (page - 1) * limit
@@ -218,7 +218,7 @@ class HistoryService:
             }
             
         except Exception as e:
-            logger.error(f"查询历史列表失败: {e}", exc_info=True)
+            logger.error(f"Truy vấn danh sách lịch sử thất bại: {e}", exc_info=True)
             return {"total": 0, "items": []}
 
     @staticmethod
@@ -485,7 +485,7 @@ class HistoryService:
                 return None
             return self._record_to_detail_dict(record)
         except Exception as e:
-            logger.error(f"根据 ID 查询历史详情失败: {e}", exc_info=True)
+            logger.error(f"Truy vấn chi tiết lịch sử theo ID thất bại: {e}", exc_info=True)
             return None
 
     @staticmethod
@@ -639,7 +639,7 @@ class HistoryService:
             return items
 
         except Exception as e:
-            logger.error(f"查询新闻情报失败: {e}", exc_info=True)
+            logger.error(f"Truy vấn tin tức thất bại: {e}", exc_info=True)
             return []
 
     def get_news_intel_by_record_id(self, record_id: int, limit: int = 20) -> List[Dict[str, str]]:
@@ -666,7 +666,7 @@ class HistoryService:
             return self.get_news_intel(query_id=record.query_id, limit=limit)
 
         except Exception as e:
-            logger.error(f"根据 record_id 查询新闻情报失败: {e}", exc_info=True)
+            logger.error(f"Truy vấn tin tức theo record_id thất bại: {e}", exc_info=True)
             return []
 
     def _fallback_news_by_analysis_context(self, query_id: str, limit: int) -> List[Any]:
@@ -733,15 +733,15 @@ class HistoryService:
             Sentiment label
         """
         if score >= 80:
-            return "极度乐观"
+            return "Rất lạc quan"
         elif score >= 60:
-            return "乐观"
+            return "Lạc quan"
         elif score >= 40:
-            return "中性"
+            return "Trung lập"
         elif score >= 20:
-            return "悲观"
+            return "Bi quan"
         else:
-            return "极度悲观"
+            return "Rất bi quan"
 
     def get_markdown_report(self, record_id: str) -> Optional[str]:
         """
@@ -901,14 +901,14 @@ class HistoryService:
         report_time = record.created_at.strftime("%H:%M:%S") if record.created_at else datetime.now().strftime("%H:%M:%S")
         report_language = normalize_report_language(getattr(result, "report_language", "zh"))
         labels = get_report_labels(report_language)
-        analysis_date_label = "Analysis Date" if report_language == "en" else "分析日期"
-        report_time_label = "Report Time" if report_language == "en" else "报告生成时间"
-        reason_label = "Rationale" if report_language == "en" else "操作理由"
-        risk_warning_label = "Risk Warning" if report_language == "en" else "风险提示"
-        technical_heading = "Technicals" if report_language == "en" else "技术面"
-        ma_label = "Moving Averages" if report_language == "en" else "均线"
-        volume_analysis_label = "Volume" if report_language == "en" else "量能"
-        news_heading = "News Flow" if report_language == "en" else "消息面"
+        analysis_date_label = "Analysis Date" if report_language == "en" else "Ngày phân tích"
+        report_time_label = "Report Time" if report_language == "en" else "Thời gian tạo báo cáo"
+        reason_label = "Rationale" if report_language == "en" else "Lý do thao tác"
+        risk_warning_label = "Risk Warning" if report_language == "en" else "Cảnh báo rủi ro"
+        technical_heading = "Technicals" if report_language == "en" else "Kỹ thuật"
+        ma_label = "Moving Averages" if report_language == "en" else "Đường trung bình"
+        volume_analysis_label = "Volume" if report_language == "en" else "Thanh khoản"
+        news_heading = "News Flow" if report_language == "en" else "Tin tức"
 
         # Escape markdown special characters in stock name
         name_escaped = self._escape_md(

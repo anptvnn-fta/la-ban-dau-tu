@@ -75,17 +75,17 @@ _IMAGE_SIGNATURES = {
 def _verify_image_magic_bytes(image_bytes: bytes, mime_type: str) -> None:
     """Verify actual file content matches declared MIME type (rejects forged Content-Type)."""
     if len(image_bytes) < 12:
-        raise ValueError("图片文件过小或损坏")
+        raise ValueError("Tệp ảnh quá nhỏ hoặc bị hỏng")
     if mime_type not in _IMAGE_SIGNATURES:
-        raise ValueError(f"无法验证类型: {mime_type}")
+        raise ValueError(f"Không thể xác minh kiểu tệp: {mime_type}")
     if mime_type == "image/webp":
         if image_bytes[:4] != b"RIFF" or image_bytes[8:12] != b"WEBP":
-            raise ValueError("文件内容与声明的类型 image/webp 不匹配，可能被篡改")
+            raise ValueError("Nội dung tệp không khớp với kiểu khai báo image/webp, có thể bị giả mạo")
         return
     for sig in _IMAGE_SIGNATURES[mime_type]:
         if image_bytes.startswith(sig):
             return
-    raise ValueError(f"文件内容与声明的类型 {mime_type} 不匹配，可能被篡改")
+    raise ValueError(f"Nội dung tệp không khớp với kiểu khai báo {mime_type}, có thể bị giả mạo")
 
 
 def _normalize_code(raw: str) -> Optional[str]:
@@ -203,7 +203,7 @@ def _parse_items_from_text(text: str) -> List[Tuple[str, Optional[str], str]]:
     # Fallback: legacy format (codes only)
     codes = _parse_codes_from_text(text)
     if not codes:
-        logger.info("[ImageExtractor] 无法解析为结构化 items，且 legacy code 提取为空")
+        logger.info("[ImageExtractor] Không thể phân tích thành items có cấu trúc, legacy code cũng không trích xuất được")
     return [(c, None, "medium") for c in codes]
 
 
@@ -241,7 +241,7 @@ def _call_litellm_vision(image_b64: str, mime_type: str, api_key: Optional[str] 
     cfg = get_config()
     model = _resolve_vision_model()
     if not model:
-        raise ValueError("未配置 Vision API。请设置 LITELLM_MODEL 或相关 API Key。")
+        raise ValueError("Chưa cấu hình Vision API. Hãy cài đặt LITELLM_MODEL hoặc API Key tương ứng.")
 
     keys = _get_api_keys_for_model(model, cfg)
     if not keys:
@@ -302,10 +302,10 @@ def extract_stock_codes_from_image(
     """
     mime_type = (mime_type or "image/jpeg").strip().lower().split(";")[0].strip()
     if mime_type not in ALLOWED_MIME:
-        raise ValueError(f"不支持的图片类型: {mime_type}。允许: {list(ALLOWED_MIME)}")
+        raise ValueError(f"Kiểu ảnh không được hỗ trợ: {mime_type}. Cho phép: {list(ALLOWED_MIME)}")
 
     if not image_bytes:
-        raise ValueError("图片内容为空")
+        raise ValueError("Nội dung ảnh trống")
 
     if len(image_bytes) > MAX_SIZE_BYTES:
         raise ValueError(f"Image too large (max {MAX_SIZE_BYTES // (1024 * 1024)}MB)")
@@ -324,7 +324,7 @@ def extract_stock_codes_from_image(
             logger.debug("[ImageExtractor] raw LLM response:\n%s", raw)
             items = _parse_items_from_text(raw)
             logger.info(
-                f"[ImageExtractor] {model} 提取 {len(items)} 个: "
+                f"[ImageExtractor] {model} trích xuất {len(items)} mã: "
                 f"{[(i[0], i[1]) for i in items[:5]]}{'...' if len(items) > 5 else ''}"
             )
             return items, raw
@@ -332,9 +332,9 @@ def extract_stock_codes_from_image(
             last_error = e
             if attempt < 2:
                 delay = 2 ** attempt
-                logger.warning(f"[ImageExtractor] 尝试 {attempt + 1}/3 失败，{delay}s 后重试: {e}")
+                logger.warning(f"[ImageExtractor] Lần thử {attempt + 1}/3 thất bại, thử lại sau {delay}s: {e}")
                 time.sleep(delay)
 
     raise ValueError(
-        f"Vision API 调用失败，请检查 API Key 与网络: {last_error}"
+        f"Gọi Vision API thất bại, hãy kiểm tra API Key và kết nối mạng: {last_error}"
     ) from last_error

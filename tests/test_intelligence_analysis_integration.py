@@ -69,7 +69,7 @@ class PersistedIntelligenceAnalysisIntegrationTestCase(unittest.TestCase):
         )
         self.assertIsNotNone(context)
         assert context is not None
-        self.assertIn("本地资讯证据池", context)
+        self.assertIn("Kho tình báo nội bộ", context)
         self.assertIn("Company wins major AI order", context)
         self.assertIn("https://news.example.com/symbol", context)
 

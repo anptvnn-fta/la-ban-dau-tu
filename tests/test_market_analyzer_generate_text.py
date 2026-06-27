@@ -140,7 +140,7 @@ class TestAnalyzerGenerateText:
         assert zh_by_name["stock_name"]["text"] == "贵州茅台"
         assert zh_by_name["analysis_date"]["text"] == "2026-06-19"
         assert zh_by_name["market_phase"]["text"] == "## 市场阶段上下文"
-        assert zh_by_name["daily_market_context"]["text"] == "## 大盘环境摘要"
+        assert zh_by_name["daily_market_context"]["text"] == "## Tóm tắt môi trường thị trường"
         assert zh_by_name["analysis_context_pack"]["text"] == "pack summary"
         assert zh_by_name["quote"]["text"] == "## 📈 技术面数据"
         assert zh_by_name["news_context"]["text"] == "## 📰 舆情情报"
@@ -2215,11 +2215,11 @@ class TestMarketAnalyzerBypassFix:
 
         result = ma.generate_market_review(overview, [])
 
-        assert "## 2026-03-05 大盘复盘" in result
-        assert "### 一、盘面总览" in result
-        assert "今日美股市场整体呈现**小幅下跌**态势" in result
+        assert "## 2026-03-05 Tổng kết thị trường Mỹ" in result
+        assert "### 1. Tổng quan phiên" in result
+        assert "Thị trường Mỹ hôm nay nhìn chung **giảm nhẹ**" in result
         assert "### 6. Strategy Framework" not in result
-        assert "### 六、策略框架" in result
+        assert "### 6. Khung chiến lược" in result
         assert "### 1. Market Summary" not in result
         assert "US Market Recap" not in result
 
@@ -2319,27 +2319,28 @@ Sector text.
 
         result = ma._inject_data_into_review(review, overview, news)
 
-        assert "盘面信号" in result
-        assert "66/100（偏暖，可进攻）" in result
+        assert "Tín hiệu thị trường" in result
+        assert "66/100" in result
+        assert "ấm" in result
         assert "绿灯（可进攻）" not in result
         assert "大盘红绿灯" not in result
         assert "green（可进攻）" not in result
-        assert "信号依据" in result
-        signal_line = next(line for line in result.splitlines() if "**盘面信号**" in line)
-        drivers_line = next(line for line in result.splitlines() if "**信号依据**" in line)
+        assert "Cơ sở tín hiệu" in result
+        signal_line = next(line for line in result.splitlines() if "**Tín hiệu thị trường**" in line)
+        drivers_line = next(line for line in result.splitlines() if "**Cơ sở tín hiệu**" in line)
         assert signal_line.startswith("- ")
         assert "66/100" in signal_line
         assert "█" not in result
         assert "░" not in result
         assert "盘面温度" not in drivers_line
-        assert "操作建议" in result
+        assert "Khuyến nghị vận hành" in result
         assert "盘面温度" not in result
-        assert "| 上涨/下跌/平盘 | 3200 / 1800 / 100 |" in result
-        assert "| 指数 | 最新 | 涨跌幅 | 开盘 | 最高 | 最低 | 振幅 | 成交额(亿) |" in result
+        assert "| Tăng/Giảm/Đi ngang | 3200 / 1800 / 100 |" in result
+        assert "| Chỉ số | Hiện tại | Thay đổi % | Mở cửa | Cao | Thấp | Biên độ |" in result
         assert "| 上证指数 | 3300.00 | 🟢 +0.36% | 3288.00 | 3312.00 | 3276.00 | 1.10% | 1450 |" in result
-        assert "#### 领涨板块 Top 5" in result
+        assert "#### Nhóm ngành tăng mạnh nhất Top 5" in result
         assert "| 1 | AI算力 | +3.25% |" in result
-        assert "#### 近三日市场线索" not in result
+        assert "#### Tin thị trường 3 ngày gần nhất" not in result
         assert "AI算力板块走强" not in result
         assert "新闻。" in result
         assert "算力产业链延续活跃" not in result
@@ -2381,7 +2382,7 @@ Sector text.
             }
         ])
 
-        assert "#### 近三日市场线索" in result
+        assert "#### Tin thị trường 3 ngày gần nhất" in result
         assert "| 序号 |" not in result
         assert "摘要/线索片段" not in result
         assert "关注点" not in result
@@ -2475,7 +2476,7 @@ Sector text.
         snapshot = ma.build_market_light_snapshot(overview)
 
         assert snapshot["status"] == "red"
-        assert snapshot["label"] == "偏防守"
+        assert snapshot["label"] == "thiên về phòng thủ"
         assert snapshot["score"] < 40
         assert snapshot["region"] == "cn"
         assert snapshot["trade_date"] == "2026-03-06"
@@ -2483,7 +2484,7 @@ Sector text.
         assert snapshot["dimensions"]["breadth"]["available"] is True
         assert snapshot["dimensions"]["index"]["available"] is True
         assert snapshot["dimensions"]["limit"]["available"] is True
-        assert any("亏钱效应" in reason for reason in snapshot["reasons"])
+        assert any("áp lực giảm chiếm ưu thế" in reason for reason in snapshot["reasons"])
 
     def test_market_light_snapshot_uses_english_labels_and_reasons(self):
         from src.market_analyzer import MarketIndex, MarketOverview
@@ -2690,7 +2691,7 @@ Sector text.
         import ast
         import pathlib
 
-        src = pathlib.Path("src/market_analyzer.py").read_text()
+        src = pathlib.Path("src/market_analyzer.py").read_text(encoding="utf-8")
         tree = ast.parse(src)
         forbidden = {
             "_model", "_router", "_use_openai", "_use_anthropic",  # historical

@@ -133,12 +133,12 @@ def run_walk_forward_ai_backtest(request: WalkForwardRequest) -> WalkForwardResp
     "/run",
     response_model=BacktestRunResponse,
     responses={
-        200: {"description": "回测执行完成"},
-        400: {"description": "请求参数错误", "model": ErrorResponse},
-        500: {"description": "服务器错误", "model": ErrorResponse},
+        200: {"description": "Kiểm tra ngược hoàn thành"},
+        400: {"description": "Tham số yêu cầu không hợp lệ", "model": ErrorResponse},
+        500: {"description": "Lỗi máy chủ", "model": ErrorResponse},
     },
-    summary="触发回测",
-    description="对历史分析记录进行回测评估，并写入 backtest_results/backtest_summaries",
+    summary="Kích hoạt kiểm tra ngược",
+    description="Đánh giá kiểm tra ngược trên bản ghi lịch sử phân tích và ghi vào backtest_results/backtest_summaries",
 )
 def run_backtest(
     request: BacktestRunRequest,
@@ -176,21 +176,21 @@ def run_backtest(
     "/results",
     response_model=BacktestResultsResponse,
     responses={
-        200: {"description": "回测结果列表"},
-        400: {"description": "请求参数错误", "model": ErrorResponse},
-        500: {"description": "服务器错误", "model": ErrorResponse},
+        200: {"description": "Danh sách kết quả kiểm tra ngược"},
+        400: {"description": "Tham số yêu cầu không hợp lệ", "model": ErrorResponse},
+        500: {"description": "Lỗi máy chủ", "model": ErrorResponse},
     },
-    summary="获取回测结果",
-    description="分页获取回测结果，支持按股票代码过滤",
+    summary="Lấy kết quả kiểm tra ngược",
+    description="Lấy kết quả kiểm tra ngược theo phân trang, hỗ trợ lọc theo mã cổ phiếu",
 )
 def get_backtest_results(
-    code: Optional[str] = Query(None, description="股票代码筛选"),
-    eval_window_days: Optional[int] = Query(None, ge=1, le=120, description="评估窗口过滤"),
-    analysis_date_from: Optional[date] = Query(None, description="分析日期起始（含）"),
-    analysis_date_to: Optional[date] = Query(None, description="分析日期结束（含）"),
-    analysis_phase: Optional[BacktestAnalysisPhaseQuery] = Query(None, description="分析阶段过滤：premarket/intraday/postmarket/unknown"),
-    page: int = Query(1, ge=1, description="页码"),
-    limit: int = Query(20, ge=1, le=200, description="每页数量"),
+    code: Optional[str] = Query(None, description="Lọc theo mã cổ phiếu"),
+    eval_window_days: Optional[int] = Query(None, ge=1, le=120, description="Lọc theo cửa sổ đánh giá"),
+    analysis_date_from: Optional[date] = Query(None, description="Ngày phân tích bắt đầu (bao gồm)"),
+    analysis_date_to: Optional[date] = Query(None, description="Ngày phân tích kết thúc (bao gồm)"),
+    analysis_phase: Optional[BacktestAnalysisPhaseQuery] = Query(None, description="Lọc theo giai đoạn phân tích: premarket/intraday/postmarket/unknown"),
+    page: int = Query(1, ge=1, description="Số trang"),
+    limit: int = Query(20, ge=1, le=200, description="Số lượng mỗi trang"),
     db_manager: DatabaseManager = Depends(get_database_manager),
 ) -> BacktestResultsResponse:
     try:
@@ -231,18 +231,18 @@ def get_backtest_results(
     "/performance",
     response_model=PerformanceMetrics,
     responses={
-        200: {"description": "整体回测表现"},
-        400: {"description": "请求参数错误", "model": ErrorResponse},
-        404: {"description": "无回测汇总", "model": ErrorResponse},
-        500: {"description": "服务器错误", "model": ErrorResponse},
+        200: {"description": "Hiệu suất kiểm tra ngược tổng thể"},
+        400: {"description": "Tham số yêu cầu không hợp lệ", "model": ErrorResponse},
+        404: {"description": "Không có tóm tắt kiểm tra ngược", "model": ErrorResponse},
+        500: {"description": "Lỗi máy chủ", "model": ErrorResponse},
     },
-    summary="获取整体回测表现",
+    summary="Lấy hiệu suất kiểm tra ngược tổng thể",
 )
 def get_overall_performance(
-    eval_window_days: Optional[int] = Query(None, ge=1, le=120, description="评估窗口过滤"),
-    analysis_date_from: Optional[date] = Query(None, description="分析日期起始（含）"),
-    analysis_date_to: Optional[date] = Query(None, description="分析日期结束（含）"),
-    analysis_phase: Optional[BacktestAnalysisPhaseQuery] = Query(None, description="分析阶段过滤：premarket/intraday/postmarket/unknown"),
+    eval_window_days: Optional[int] = Query(None, ge=1, le=120, description="Lọc theo cửa sổ đánh giá"),
+    analysis_date_from: Optional[date] = Query(None, description="Ngày phân tích bắt đầu (bao gồm)"),
+    analysis_date_to: Optional[date] = Query(None, description="Ngày phân tích kết thúc (bao gồm)"),
+    analysis_phase: Optional[BacktestAnalysisPhaseQuery] = Query(None, description="Lọc theo giai đoạn phân tích: premarket/intraday/postmarket/unknown"),
     db_manager: DatabaseManager = Depends(get_database_manager),
 ) -> PerformanceMetrics:
     try:
@@ -281,19 +281,19 @@ def get_overall_performance(
     "/performance/{code}",
     response_model=PerformanceMetrics,
     responses={
-        200: {"description": "单股回测表现"},
-        400: {"description": "请求参数错误", "model": ErrorResponse},
-        404: {"description": "无回测汇总", "model": ErrorResponse},
-        500: {"description": "服务器错误", "model": ErrorResponse},
+        200: {"description": "Hiệu suất kiểm tra ngược của cổ phiếu đơn lẻ"},
+        400: {"description": "Tham số yêu cầu không hợp lệ", "model": ErrorResponse},
+        404: {"description": "Không có tóm tắt kiểm tra ngược", "model": ErrorResponse},
+        500: {"description": "Lỗi máy chủ", "model": ErrorResponse},
     },
-    summary="获取单股回测表现",
+    summary="Lấy hiệu suất kiểm tra ngược của cổ phiếu đơn lẻ",
 )
 def get_stock_performance(
     code: str,
-    eval_window_days: Optional[int] = Query(None, ge=1, le=120, description="评估窗口过滤"),
-    analysis_date_from: Optional[date] = Query(None, description="分析日期起始（含）"),
-    analysis_date_to: Optional[date] = Query(None, description="分析日期结束（含）"),
-    analysis_phase: Optional[BacktestAnalysisPhaseQuery] = Query(None, description="分析阶段过滤：premarket/intraday/postmarket/unknown"),
+    eval_window_days: Optional[int] = Query(None, ge=1, le=120, description="Lọc theo cửa sổ đánh giá"),
+    analysis_date_from: Optional[date] = Query(None, description="Ngày phân tích bắt đầu (bao gồm)"),
+    analysis_date_to: Optional[date] = Query(None, description="Ngày phân tích kết thúc (bao gồm)"),
+    analysis_phase: Optional[BacktestAnalysisPhaseQuery] = Query(None, description="Lọc theo giai đoạn phân tích: premarket/intraday/postmarket/unknown"),
     db_manager: DatabaseManager = Depends(get_database_manager),
 ) -> PerformanceMetrics:
     try:

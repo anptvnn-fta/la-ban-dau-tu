@@ -43,7 +43,7 @@ class SlackSender:
         return bool(self._slack_bot_token and self._slack_channel_id)
 
     def _is_slack_configured(self) -> bool:
-        """检查 Slack 配置是否完整（支持 Webhook 或 Bot API）"""
+        """Kiểm tra cấu hình Slack có đầy đủ không (hỗ trợ Webhook hoặc Bot API)"""
         return self._use_bot or bool(self._slack_webhook_url)
 
     def send_to_slack(self, content: str, *, timeout_seconds: Optional[float] = None) -> bool:
@@ -63,18 +63,18 @@ class SlackSender:
         try:
             chunks = chunk_content_by_max_bytes(content, _TEXT_LIMIT, add_page_marker=True)
         except Exception as e:
-            logger.error(f"分割 Slack 消息失败: {e}, 尝试整段发送。")
+            logger.error(f"Tách tin nhắn Slack thất bại: {e}, thử gửi nguyên vẹn.")
             chunks = [content]
 
-        # 优先使用 Bot API（与 _send_slack_image 保持一致）
+        # Ưu tiên sử dụng Bot API (nhất quán với _send_slack_image)
         if self._use_bot:
             return all(self._send_slack_bot(chunk, timeout_seconds=timeout_seconds) for chunk in chunks)
 
-        # 其次使用 Webhook
+        # Sau đó sử dụng Webhook
         if self._slack_webhook_url:
             return all(self._send_slack_webhook(chunk, timeout_seconds=timeout_seconds) for chunk in chunks)
 
-        logger.warning("Slack 配置不完整，跳过推送")
+        logger.warning("Cấu hình Slack chưa đầy đủ, bỏ qua gửi thông báo")
         return False
 
     def _build_blocks(self, content: str) -> list:
@@ -121,12 +121,12 @@ class SlackSender:
                 verify=self._webhook_verify_ssl,
             )
             if response.status_code == 200 and response.text == "ok":
-                logger.info("Slack Webhook 消息发送成功")
+                logger.info("Gửi tin nhắn Slack Webhook thành công")
                 return True
-            logger.error(f"Slack Webhook 发送失败: HTTP {response.status_code} {response.text[:200]}")
+            logger.error(f"Gửi Slack Webhook thất bại: HTTP {response.status_code} {response.text[:200]}")
             return False
         except Exception as e:
-            logger.error(f"Slack Webhook 发送异常: {e}")
+            logger.error(f"Ngoại lệ khi gửi Slack Webhook: {e}")
             return False
 
     def _send_slack_bot(self, content: str, *, timeout_seconds: Optional[float] = None) -> bool:
@@ -157,12 +157,12 @@ class SlackSender:
             )
             result = response.json()
             if result.get("ok"):
-                logger.info("Slack Bot 消息发送成功")
+                logger.info("Gửi tin nhắn Slack Bot thành công")
                 return True
-            logger.error(f"Slack Bot 发送失败: {result.get('error', 'unknown')}")
+            logger.error(f"Gửi Slack Bot thất bại: {result.get('error', 'unknown')}")
             return False
         except Exception as e:
-            logger.error(f"Slack Bot 发送异常: {e}")
+            logger.error(f"Ngoại lệ khi gửi Slack Bot: {e}")
             return False
 
     def _send_slack_image(self, image_bytes: bytes, fallback_content: str = "") -> bool:
@@ -195,7 +195,7 @@ class SlackSender:
                 )
                 result1 = resp1.json()
                 if not result1.get("ok"):
-                    logger.error("Slack 获取上传 URL 失败: %s", result1.get('error', 'unknown'))
+                    logger.error("Slack lấy URL tải lên thất bại: %s", result1.get('error', 'unknown'))
                     raise RuntimeError(result1.get('error', 'unknown'))
 
                 upload_url = result1['upload_url']
@@ -209,7 +209,7 @@ class SlackSender:
                     timeout=30,
                 )
                 if resp2.status_code != 200:
-                    logger.error("Slack 文件上传失败: HTTP %s", resp2.status_code)
+                    logger.error("Tải tệp lên Slack thất bại: HTTP %s", resp2.status_code)
                     raise RuntimeError(f"HTTP {resp2.status_code}")
 
                 # Step 3: 完成上传并分享到频道
@@ -217,23 +217,23 @@ class SlackSender:
                     'https://slack.com/api/files.completeUploadExternal',
                     headers={**headers, 'Content-Type': 'application/json'},
                     json={
-                        'files': [{'id': file_id, 'title': '股票分析报告'}],
+                        'files': [{'id': file_id, 'title': 'Báo cáo phân tích cổ phiếu'}],
                         'channel_id': self._slack_channel_id,
                     },
                     timeout=30,
                 )
                 result3 = resp3.json()
                 if result3.get("ok"):
-                    logger.info("Slack Bot 图片发送成功")
+                    logger.info("Gửi ảnh Slack Bot thành công")
                     return True
-                logger.error("Slack 完成上传失败: %s", result3.get('error', 'unknown'))
+                logger.error("Hoàn tất tải lên Slack thất bại: %s", result3.get('error', 'unknown'))
             except Exception as e:
-                logger.error("Slack Bot 图片发送异常: %s", e)
+                logger.error("Ngoại lệ khi gửi ảnh Slack Bot: %s", e)
 
-        # Webhook 模式或 Bot 上传失败：回退为文本
+        # Chế độ Webhook hoặc tải lên Bot thất bại: dùng văn bản thay thế
         if fallback_content:
-            logger.info("Slack 图片不支持或失败，回退为文本发送")
+            logger.info("Slack không hỗ trợ ảnh hoặc thất bại, chuyển sang gửi văn bản")
             return self.send_to_slack(fallback_content)
 
-        logger.warning("Slack 图片发送失败，且无回退内容")
+        logger.warning("Gửi ảnh Slack thất bại và không có nội dung dự phòng")
         return False

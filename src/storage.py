@@ -1203,7 +1203,7 @@ class DatabaseManager(metaclass=_DatabaseManagerMeta):
             self._ensure_intelligence_items_unique_index()
 
             self._initialized = True
-            logger.info(f"数据库初始化完成: {db_url}")
+            logger.info(f"Khởi tạo cơ sở dữ liệu hoàn thành: {db_url}")
 
             # 注册退出钩子，确保程序退出时关闭数据库连接
             atexit.register(DatabaseManager._cleanup_engine, self._engine)
@@ -1213,7 +1213,7 @@ class DatabaseManager(metaclass=_DatabaseManagerMeta):
                 if created_engine is not None:
                     created_engine.dispose()
             except Exception as cleanup_exc:
-                logger.warning("数据库初始化失败后的引擎清理也失败: %s", cleanup_exc)
+                logger.warning("Dọn dẹp engine sau khi khởi tạo cơ sở dữ liệu thất bại cũng thất bại: %s", cleanup_exc)
             self._engine = None
             self._SessionLocal = None
             self.__class__._instance = None
@@ -1409,7 +1409,7 @@ class DatabaseManager(metaclass=_DatabaseManagerMeta):
                 for column in inspect(self._engine).get_columns(IntelligenceItem.__tablename__)
             }
         except Exception as exc:
-            logger.warning("资讯池 scope_value 回填检查失败，已跳过: %s", exc)
+            logger.warning("Kiểm tra điền lại scope_value kho tin tức thất bại, đã bỏ qua: %s", exc)
             return
         if "scope_value" not in existing:
             return
@@ -1422,7 +1422,7 @@ class DatabaseManager(metaclass=_DatabaseManagerMeta):
                     (INTELLIGENCE_ITEM_NULL_SCOPE_VALUE,),
                 )
         except Exception as exc:
-            logger.warning("资讯池 scope_value 回填失败，已跳过: %s", exc)
+            logger.warning("Điền lại scope_value kho tin tức thất bại, đã bỏ qua: %s", exc)
 
     @classmethod
     def get_instance(cls) -> 'DatabaseManager':
@@ -1455,9 +1455,9 @@ class DatabaseManager(metaclass=_DatabaseManagerMeta):
         try:
             if engine is not None:
                 engine.dispose()
-                logger.debug("数据库引擎已清理")
+                logger.debug("Engine cơ sở dữ liệu đã được dọn dẹp")
         except Exception as e:
-            logger.warning(f"清理数据库引擎时出错: {e}")
+            logger.warning(f"Lỗi khi dọn dẹp engine cơ sở dữ liệu: {e}")
 
     def _install_sqlite_pragma_handler(self) -> None:
         """为 SQLite 连接安装竞争保护参数。"""
@@ -1472,7 +1472,7 @@ class DatabaseManager(metaclass=_DatabaseManagerMeta):
                 if self._sqlite_file_db and self._sqlite_wal_enabled:
                     cursor.execute("PRAGMA journal_mode=WAL")
             except Exception as exc:
-                logger.warning("初始化 SQLite PRAGMA 失败: %s", exc)
+                logger.warning("Khởi tạo SQLite PRAGMA thất bại: %s", exc)
             finally:
                 cursor.close()
 
@@ -1507,7 +1507,7 @@ class DatabaseManager(metaclass=_DatabaseManagerMeta):
                 ):
                     delay = self._sqlite_write_retry_base_delay * (2 ** attempt)
                     logger.warning(
-                        "SQLite 写入锁冲突，准备重试: %s (%s/%s, %.2fs)",
+                        "SQLite xung đột khoá ghi, chuẩn bị thử lại: %s (%s/%s, %.2fs)",
                         operation_name,
                         attempt + 1,
                         max_retries,
@@ -1565,8 +1565,8 @@ class DatabaseManager(metaclass=_DatabaseManagerMeta):
         """
         if not getattr(self, '_initialized', False) or not hasattr(self, '_SessionLocal'):
             raise RuntimeError(
-                "DatabaseManager 未正确初始化。"
-                "请确保通过 DatabaseManager.get_instance() 获取实例。"
+                "DatabaseManager chưa được khởi tạo đúng cách. "
+                "Hãy đảm bảo lấy instance qua DatabaseManager.get_instance()."
             )
         session = self._SessionLocal()
         try:
@@ -1759,7 +1759,7 @@ class DatabaseManager(metaclass=_DatabaseManagerMeta):
                         session.flush()
                     local_saved_count += 1
                 except IntegrityError:
-                    logger.debug("新闻情报重复（已跳过）: %s %s", code, url_key)
+                    logger.debug("Tin tức trùng lặp (đã bỏ qua): %s %s", code, url_key)
 
             return local_saved_count
 
@@ -1768,9 +1768,9 @@ class DatabaseManager(metaclass=_DatabaseManagerMeta):
                 f"save_news_intel[{code}]",
                 _write,
             )
-            logger.info(f"保存新闻情报成功: {code}, 新增 {saved_count} 条")
+            logger.info(f"Lưu tin tức thành công: {code}, thêm mới {saved_count} bản ghi")
         except Exception as e:
-            logger.error(f"保存新闻情报失败: {e}")
+            logger.error(f"Lưu tin tức thất bại: {e}")
             raise
 
         return saved_count
@@ -1807,7 +1807,7 @@ class DatabaseManager(metaclass=_DatabaseManagerMeta):
             )
         except Exception as e:
             logger.debug(
-                "基本面快照写入失败（fail-open）: query_id=%s code=%s err=%s",
+                "Ghi snapshot nền tảng cơ bản thất bại (fail-open): query_id=%s code=%s err=%s",
                 query_id,
                 code,
                 e,
@@ -1842,7 +1842,7 @@ class DatabaseManager(metaclass=_DatabaseManagerMeta):
                 ).scalar_one_or_none()
             except Exception as e:
                 logger.debug(
-                    "基本面快照读取失败（fail-open）: query_id=%s code=%s err=%s",
+                    "Đọc snapshot nền tảng cơ bản thất bại (fail-open): query_id=%s code=%s err=%s",
                     query_id,
                     code,
                     e,
@@ -1956,7 +1956,7 @@ class DatabaseManager(metaclass=_DatabaseManagerMeta):
                 _write,
             )
         except Exception as e:
-            logger.error(f"保存分析历史失败: {e}")
+            logger.error(f"Lưu lịch sử phân tích thất bại: {e}")
             return 0
 
     def update_analysis_history_diagnostics(
@@ -2031,7 +2031,7 @@ class DatabaseManager(metaclass=_DatabaseManagerMeta):
             )
         except Exception as e:
             logger.warning(
-                "更新分析历史诊断快照失败（fail-open）: query_id=%s code=%s err=%s",
+                "Cập nhật snapshot chẩn đoán lịch sử phân tích thất bại (fail-open): query_id=%s code=%s err=%s",
                 query_id,
                 code,
                 e,
@@ -2444,7 +2444,7 @@ class DatabaseManager(metaclass=_DatabaseManagerMeta):
             本次实际新增的记录数（不含更新）
         """
         if df is None or df.empty:
-            logger.warning(f"保存数据为空，跳过 {code}")
+            logger.warning(f"Dữ liệu cần lưu rỗng, bỏ qua {code}")
             return 0
 
         now = datetime.now()
@@ -2567,10 +2567,10 @@ class DatabaseManager(metaclass=_DatabaseManagerMeta):
                 f"save_daily_data[{code}]",
                 _write,
             )
-            logger.info(f"保存 {code} 数据成功，新增 {saved_count} 条")
+            logger.info(f"Lưu dữ liệu {code} thành công, thêm mới {saved_count} bản ghi")
             return saved_count
         except Exception as e:
-            logger.error(f"保存 {code} 数据失败: {e}")
+            logger.error(f"Lưu dữ liệu {code} thất bại: {e}")
             raise
     
     def get_analysis_context(
@@ -2601,7 +2601,7 @@ class DatabaseManager(metaclass=_DatabaseManagerMeta):
         recent_data = self.get_latest_data(code, days=2)
         
         if not recent_data:
-            logger.warning(f"未找到 {code} 的数据")
+            logger.warning(f"Không tìm thấy dữ liệu của {code}")
             return None
         
         today_data = recent_data[0]
@@ -2650,15 +2650,15 @@ class DatabaseManager(metaclass=_DatabaseManagerMeta):
         ma20 = data.ma20 or 0
         
         if close > ma5 > ma10 > ma20 > 0:
-            return "多头排列 📈"
+            return "Xu hướng tăng 📈"
         elif close < ma5 < ma10 < ma20 and ma20 > 0:
-            return "空头排列 📉"
+            return "Xu hướng giảm 📉"
         elif close > ma5 and ma5 > ma10:
-            return "短期向好 🔼"
+            return "Ngắn hạn tích cực 🔼"
         elif close < ma5 and ma5 < ma10:
-            return "短期走弱 🔽"
+            return "Ngắn hạn yếu 🔽"
         else:
-            return "震荡整理 ↔️"
+            return "Dao động tích lũy ↔️"
 
     @staticmethod
     def _parse_published_date(value: Optional[str]) -> Optional[datetime]:
@@ -3055,7 +3055,7 @@ class DatabaseManager(metaclass=_DatabaseManagerMeta):
                     .order_by(ConversationMessage.created_at)
                     .limit(1)
                 ).scalar()
-                title = (first_user_msg or "新对话")[:60]
+                title = (first_user_msg or "Cuộc trò chuyện mới")[:60]
 
                 results.append({
                     "session_id": sid,
@@ -3381,12 +3381,12 @@ if __name__ == "__main__":
     
     db = get_db()
     
-    print("=== 数据库测试 ===")
-    print(f"数据库初始化成功")
+    print("=== Kiểm tra cơ sở dữ liệu ===")
+    print(f"Khởi tạo cơ sở dữ liệu thành công")
     
     # 测试检查今日数据
     has_data = db.has_today_data('600519')
-    print(f"茅台今日是否有数据: {has_data}")
+    print(f"Có dữ liệu hôm nay: {has_data}")
     
     # 测试保存数据
     test_df = pd.DataFrame({
@@ -3405,8 +3405,8 @@ if __name__ == "__main__":
     })
     
     saved = db.save_daily_data(test_df, '600519', 'TestSource')
-    print(f"保存测试数据: {saved} 条")
+    print(f"Đã lưu dữ liệu thử nghiệm: {saved} bản ghi")
     
     # 测试获取上下文
     context = db.get_analysis_context('600519')
-    print(f"分析上下文: {context}")
+    print(f"Ngữ cảnh phân tích: {context}")

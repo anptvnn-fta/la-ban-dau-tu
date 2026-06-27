@@ -35,8 +35,8 @@ class DiscordSender:
         self._webhook_verify_ssl = getattr(config, 'webhook_verify_ssl', True)
     
     def _is_discord_configured(self) -> bool:
-        """检查 Discord 配置是否完整（支持 Bot 或 Webhook）"""
-        # 只要配置了 Webhook 或完整的 Bot Token+Channel，即视为可用
+        """Kiểm tra cấu hình Discord có đầy đủ không (hỗ trợ Bot hoặc Webhook)"""
+        # Chỉ cần cấu hình Webhook hoặc đầy đủ Bot Token+Channel là có thể dùng
         bot_ok = bool(self._discord_config['bot_token'] and self._discord_config['channel_id'])
         webhook_ok = bool(self._discord_config['webhook_url'])
         return bot_ok or webhook_ok
@@ -55,18 +55,18 @@ class DiscordSender:
         try:
             chunks = chunk_content_by_max_words(content, self._discord_max_words)
         except ValueError as e:
-            logger.error(f"分割 Discord 消息失败: {e}, 尝试整段发送。")
+            logger.error(f"Tách tin nhắn Discord thất bại: {e}, thử gửi nguyên vẹn.")
             chunks = [content]
 
-        # 优先使用 Webhook（配置简单，权限低）
+        # Ưu tiên sử dụng Webhook (cấu hình đơn giản, quyền thấp)
         if self._discord_config['webhook_url']:
             return all(self._send_discord_webhook(chunk, timeout_seconds=timeout_seconds) for chunk in chunks)
 
-        # 其次使用 Bot API（权限高，需要 channel_id）
+        # Sau đó sử dụng Bot API (quyền cao hơn, cần channel_id)
         if self._discord_config['bot_token'] and self._discord_config['channel_id']:
             return all(self._send_discord_bot(chunk, timeout_seconds=timeout_seconds) for chunk in chunks)
 
-        logger.warning("Discord 配置不完整，跳过推送")
+        logger.warning("Cấu hình Discord chưa đầy đủ, bỏ qua gửi thông báo")
         return False
 
   
@@ -85,7 +85,7 @@ class DiscordSender:
         try:
             payload = {
                 'content': content,
-                'username': 'A股分析机器人',
+                'username': 'Bot phân tích cổ phiếu',
                 'avatar_url': 'https://picsum.photos/200'
             }
             
@@ -97,13 +97,13 @@ class DiscordSender:
             )
             
             if response.status_code in [200, 204]:
-                logger.info("Discord Webhook 消息发送成功")
+                logger.info("Gửi tin nhắn Discord Webhook thành công")
                 return True
             else:
-                logger.error(f"Discord Webhook 发送失败: {response.status_code} {response.text}")
+                logger.error(f"Gửi Discord Webhook thất bại: {response.status_code} {response.text}")
                 return False
         except Exception as e:
-            logger.error(f"Discord Webhook 发送异常: {e}")
+            logger.error(f"Ngoại lệ khi gửi Discord Webhook: {e}")
             return False
     
     def _send_discord_bot(self, content: str, *, timeout_seconds: Optional[float] = None) -> bool:
@@ -130,11 +130,11 @@ class DiscordSender:
             response = requests.post(url, json=payload, headers=headers, timeout=timeout_seconds or 10)
             
             if response.status_code == 200:
-                logger.info("Discord Bot 消息发送成功")
+                logger.info("Gửi tin nhắn Discord Bot thành công")
                 return True
             else:
-                logger.error(f"Discord Bot 发送失败: {response.status_code} {response.text}")
+                logger.error(f"Gửi Discord Bot thất bại: {response.status_code} {response.text}")
                 return False
         except Exception as e:
-            logger.error(f"Discord Bot 发送异常: {e}")
+            logger.error(f"Ngoại lệ khi gửi Discord Bot: {e}")
             return False

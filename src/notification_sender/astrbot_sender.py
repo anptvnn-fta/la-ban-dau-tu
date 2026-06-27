@@ -36,8 +36,8 @@ class AstrbotSender:
         self._webhook_verify_ssl = getattr(config, 'webhook_verify_ssl', True)
         
     def _is_astrbot_configured(self) -> bool:
-        """检查 AstrBot 配置是否完整（支持 Bot 或 Webhook）"""
-        # 只要配置了 URL，即视为可用
+        """Kiểm tra cấu hình AstrBot có đầy đủ không (hỗ trợ Bot hoặc Webhook)"""
+        # Chỉ cần cấu hình URL là có thể dùng
         url_ok = bool(self._astrbot_config['astrbot_url'])
         return url_ok
 
@@ -54,7 +54,7 @@ class AstrbotSender:
         if self._astrbot_config['astrbot_url']:
             return self._send_astrbot(content, timeout_seconds=timeout_seconds)
 
-        logger.warning("AstrBot 配置不完整，跳过推送")
+        logger.warning("Cấu hình AstrBot chưa đầy đủ, bỏ qua gửi thông báo")
         return False
 
 
@@ -100,11 +100,11 @@ class AstrbotSender:
             )
 
             if response.status_code == 200:
-                logger.info("AstrBot 消息发送成功")
+                logger.info("Gửi tin nhắn AstrBot thành công")
                 return True
             else:
-                logger.error(f"AstrBot 发送失败: {response.status_code} {response.text}")
+                logger.error(f"Gửi AstrBot thất bại: {response.status_code} {response.text}")
                 return False
         except Exception as e:
-            logger.error(f"AstrBot 发送异常: {e}")
+            logger.error(f"Ngoại lệ khi gửi AstrBot: {e}")
             return False

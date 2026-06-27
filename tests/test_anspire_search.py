@@ -280,7 +280,7 @@ class TestAnspireSearchProvider(unittest.TestCase):
         self.assertEqual(response.provider, "Anspire")
         self.assertEqual(len(response.results), 0)
         # 错误消息检查
-        self.assertTrue("超时" in response.error_message or "Timeout" in response.error_message)
+        self.assertTrue("thời gian" in response.error_message or "Timeout" in response.error_message)
     
     @patch('src.search_service.requests')
     def test_search_network_error(self, mock_requests):
@@ -300,7 +300,7 @@ class TestAnspireSearchProvider(unittest.TestCase):
         self.assertFalse(response.success)
         self.assertEqual(response.provider, "Anspire")
         self.assertEqual(len(response.results), 0)
-        self.assertTrue("网络" in response.error_message or "Connection" in response.error_message)
+        self.assertTrue("mạng" in response.error_message or "Connection" in response.error_message)
     
     @patch('src.search_service.requests')
     def test_search_empty_results(self, mock_requests):
