@@ -35,7 +35,14 @@ from api.v1.schemas.portfolio import (
     PortfolioTradeListResponse,
     PortfolioTradeCreateRequest,
 )
+from api.v1.schemas.other_asset import (
+    OtherAssetCreateRequest,
+    OtherAssetItem,
+    OtherAssetListResponse,
+    OtherAssetUpdateRequest,
+)
 from src.services.task_queue import get_task_queue
+from src.services.other_asset_service import OtherAssetService
 from src.services.portfolio_import_service import PortfolioImportService
 from src.services.portfolio_risk_service import PortfolioRiskService
 from src.services.portfolio_service import (
@@ -639,6 +646,97 @@ def refresh_fx_rates(
         raise _bad_request(exc)
     except Exception as exc:
         raise _internal_error("Refresh FX rates failed", exc)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  Tài sản khác: vàng / tiết kiệm / trái phiếu (theo dõi thủ công theo giá trị)
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+@router.get(
+    "/other-assets",
+    response_model=OtherAssetListResponse,
+    responses={500: {"model": ErrorResponse}},
+    summary="List other assets (gold/savings/bonds) of an account",
+)
+def list_other_assets(
+    account_id: int = Query(..., description="Account id"),
+) -> OtherAssetListResponse:
+    try:
+        data = OtherAssetService().list_assets(account_id=account_id)
+        return OtherAssetListResponse(**data)
+    except Exception as exc:
+        raise _internal_error("List other assets failed", exc)
+
+
+@router.post(
+    "/other-assets",
+    response_model=OtherAssetItem,
+    responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
+    summary="Add an other asset (gold/savings/bond)",
+)
+def create_other_asset(request: OtherAssetCreateRequest) -> OtherAssetItem:
+    try:
+        row = OtherAssetService().create_asset(
+            account_id=request.account_id,
+            asset_class=request.asset_class,
+            label=request.label,
+            value=request.value,
+            interest_rate=request.interest_rate,
+            maturity_date=request.maturity_date,
+            note=request.note,
+        )
+        return OtherAssetItem(**row)
+    except ValueError as exc:
+        raise _bad_request(exc)
+    except Exception as exc:
+        raise _internal_error("Create other asset failed", exc)
+
+
+@router.put(
+    "/other-assets/{asset_id}",
+    response_model=OtherAssetItem,
+    responses={400: {"model": ErrorResponse}, 404: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
+    summary="Update an other asset",
+)
+def update_other_asset(asset_id: int, request: OtherAssetUpdateRequest) -> OtherAssetItem:
+    try:
+        updated = OtherAssetService().update_asset(
+            asset_id,
+            asset_class=request.asset_class,
+            label=request.label,
+            value=request.value,
+            interest_rate=request.interest_rate,
+            maturity_date=request.maturity_date,
+            note=request.note,
+        )
+        if updated is None:
+            raise api_error(404, "not_found", f"Other asset not found: {asset_id}")
+        return OtherAssetItem(**updated)
+    except HTTPException:
+        raise
+    except ValueError as exc:
+        raise _bad_request(exc)
+    except Exception as exc:
+        raise _internal_error("Update other asset failed", exc)
+
+
+@router.delete(
+    "/other-assets/{asset_id}",
+    response_model=PortfolioDeleteResponse,
+    responses={404: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
+    summary="Delete an other asset",
+)
+def delete_other_asset(asset_id: int) -> PortfolioDeleteResponse:
+    try:
+        ok = OtherAssetService().delete_asset(asset_id)
+        if not ok:
+            raise api_error(404, "not_found", f"Other asset not found: {asset_id}")
+        return PortfolioDeleteResponse(deleted=1)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise _internal_error("Delete other asset failed", exc)
 
 
 @router.get(

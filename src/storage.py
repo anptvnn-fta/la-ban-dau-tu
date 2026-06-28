@@ -701,6 +701,31 @@ class PortfolioFxRate(Base):
     )
 
 
+class PortfolioOtherAsset(Base):
+    """Tài sản khác ngoài cổ phiếu trong danh mục: vàng, tiết kiệm, trái phiếu.
+
+    Theo dõi thủ công theo GIÁ TRỊ HIỆN TẠI (VND) để gộp vào tổng tài sản ròng
+    và biểu đồ phân bổ. Không tham gia cơ chế replay giao dịch của cổ phiếu.
+    """
+
+    __tablename__ = 'portfolio_other_assets'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    account_id = Column(Integer, ForeignKey('portfolio_accounts.id'), nullable=False, index=True)
+    asset_class = Column(String(16), nullable=False, index=True)  # vang/tiet_kiem/trai_phieu
+    label = Column(String(64), nullable=False)
+    value = Column(Float, nullable=False, default=0.0)            # giá trị hiện tại (VND)
+    interest_rate = Column(Float)                                  # %/năm (tiết kiệm/trái phiếu)
+    maturity_date = Column(Date)                                   # ngày đáo hạn (tuỳ chọn)
+    note = Column(String(255))
+    created_at = Column(DateTime, default=datetime.now, index=True)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    __table_args__ = (
+        Index('ix_portfolio_other_asset_account_class', 'account_id', 'asset_class'),
+    )
+
+
 class ConversationMessage(Base):
     """
     Agent 对话历史记录表

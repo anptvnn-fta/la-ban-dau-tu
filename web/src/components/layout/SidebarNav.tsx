@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 import { CandlestickChart, Moon, Sun } from 'lucide-react'
-import { NAV_ITEMS } from '@/nav'
+import { NAV_GROUPS } from '@/nav'
 import { VI } from '@/strings/vi'
 import { cn } from '@/lib/utils'
 
@@ -39,25 +39,32 @@ export function SidebarNav() {
         </div>
       </div>
 
-      {/* Điều hướng */}
-      <nav className="flex flex-1 flex-col gap-1">
-        {NAV_ITEMS.map(({ path, label, icon: Icon }) => (
-          <NavLink
-            key={path}
-            to={path}
-            end={path === '/'}
-            className={({ isActive }) =>
-              cn(
-                'relative flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                isActive
-                  ? 'bg-primary/15 text-primary ring-1 ring-primary/25 before:absolute before:left-0 before:top-1/2 before:h-5 before:w-1 before:-translate-y-1/2 before:rounded-r-full before:bg-primary'
-                  : 'text-muted-foreground hover:bg-white/5 hover:text-foreground',
-              )
-            }
-          >
-            <Icon className="h-5 w-5 shrink-0" />
-            <span className="truncate">{label}</span>
-          </NavLink>
+      {/* Điều hướng theo nhóm */}
+      <nav className="flex flex-1 flex-col gap-4 overflow-y-auto">
+        {NAV_GROUPS.map((group) => (
+          <div key={group.label} className="flex flex-col gap-1">
+            <p className="px-3 pb-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+              {group.label}
+            </p>
+            {group.items.map(({ path, label, icon: Icon }) => (
+              <NavLink
+                key={path}
+                to={path}
+                end={path === '/'}
+                className={({ isActive }) =>
+                  cn(
+                    'relative flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    isActive
+                      ? 'bg-primary/15 text-primary ring-1 ring-primary/25 before:absolute before:left-0 before:top-1/2 before:h-5 before:w-1 before:-translate-y-1/2 before:rounded-r-full before:bg-primary'
+                      : 'text-muted-foreground hover:bg-white/5 hover:text-foreground',
+                  )
+                }
+              >
+                <Icon className="h-5 w-5 shrink-0" />
+                <span className="truncate">{label}</span>
+              </NavLink>
+            ))}
+          </div>
         ))}
       </nav>
 

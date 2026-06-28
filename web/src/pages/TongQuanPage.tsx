@@ -1,10 +1,16 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import {
   ArrowDown, ArrowUp, BarChart3, Layers, Minus, RefreshCw, TrendingDown, TrendingUp,
+  Coins, Fuel, PiggyBank, Landmark, ChevronRight, Compass,
 } from 'lucide-react'
 import { PageHeader } from '@/components/common/PageHeader'
 import { Card, CardLabel } from '@/components/ui/card'
 import { marketApi } from '@/api/market'
+import { goldApi } from '@/api/gold'
+import { petrolApi } from '@/api/petrol'
+import { savingsApi } from '@/api/savings'
+import { bondApi } from '@/api/bond'
 import type { MarketIndex, MarketMover, MarketOverview, MarketSector } from '@/types/market'
 import { fmtPrice, fmtPct, fmtCompact, priceToneClass } from '@/utils/num'
 import { cn } from '@/lib/utils'
@@ -128,6 +134,70 @@ function Skeleton() {
   )
 }
 
+// ── dải toàn cảnh đa tài sản (vàng / xăng dầu / tiết kiệm / trái phiếu) ──
+interface AssetTile { to: string; icon: ReactNode; iconCls: string; label: string; value: string; sub?: string }
+
+function MultiAssetSummary() {
+  const [tiles, setTiles] = useState<AssetTile[] | null>(null)
+
+  useEffect(() => {
+    let on = true
+    Promise.allSettled([
+      goldApi.getOverview(), petrolApi.getOverview(), savingsApi.getOverview(), bondApi.getOverview(),
+    ]).then(([g, p, s, b]) => {
+      if (!on) return
+      const out: AssetTile[] = []
+      if (g.status === 'fulfilled' && g.value.sjcSell != null) {
+        out.push({ to: '/vang', icon: <Coins className="h-[18px] w-[18px]" />, iconCls: 'text-amber-500', label: 'Vàng SJC (bán)',
+          value: fmtCompact(g.value.sjcSell), sub: g.value.premiumPct != null ? `Chênh thế giới ${g.value.premiumPct}%` : 'VND/lượng' })
+      }
+      if (p.status === 'fulfilled') {
+        const ron = p.value.fuels?.find((f) => /RON\s?95/i.test(f.name)) ?? p.value.fuels?.[0]
+        if (ron?.price != null) {
+          out.push({ to: '/xang-dau', icon: <Fuel className="h-[18px] w-[18px]" />, iconCls: 'text-rose-500', label: ron.name || 'Xăng RON 95',
+            value: `${ron.price.toLocaleString('vi-VN')} đ/l`, sub: ron.changePct != null ? `${ron.changePct > 0 ? '+' : ''}${ron.changePct}% kỳ trước` : undefined })
+        }
+      }
+      if (s.status === 'fulfilled') {
+        const best = s.value.best?.find((x) => x.term === 12) ?? s.value.best?.[0]
+        if (best) {
+          out.push({ to: '/tiet-kiem', icon: <PiggyBank className="h-[18px] w-[18px]" />, iconCls: 'text-emerald-500',
+            label: best.term ? `Tiết kiệm ${best.term} tháng` : 'Tiết kiệm tốt nhất', value: `${best.rate}%/năm`, sub: best.bank })
+        }
+      }
+      if (b.status === 'fulfilled' && b.value.usYield != null) {
+        out.push({ to: '/trai-phieu', icon: <Landmark className="h-[18px] w-[18px]" />, iconCls: 'text-violet-500', label: 'Trái phiếu Mỹ 10 năm',
+          value: `${b.value.usYield}%`, sub: b.value.sbvPolicyRate != null ? `SBV ${b.value.sbvPolicyRate}%/năm` : undefined })
+      }
+      setTiles(out)
+    }).catch(() => { if (on) setTiles([]) })
+    return () => { on = false }
+  }, [])
+
+  if (tiles && tiles.length === 0) return null
+
+  return (
+    <Card className="p-4">
+      <CardLabel icon={<Compass className="h-3.5 w-3.5" />}>{VI.market.multiAsset}</CardLabel>
+      <div className="mt-2 grid grid-cols-2 gap-2 lg:grid-cols-4">
+        {tiles === null
+          ? [0, 1, 2, 3].map((i) => <div key={i} className="h-[68px] animate-pulse rounded-xl bg-secondary/50" />)
+          : tiles.map((t) => (
+            <Link key={t.to} to={t.to} className="group flex items-center gap-3 rounded-xl border border-border/60 p-3 transition-colors hover:bg-secondary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              <span className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary', t.iconCls)}>{t.icon}</span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[11px] text-muted-foreground">{t.label}</p>
+                <p className="truncate font-mono text-sm font-bold tabular-nums text-foreground">{t.value}</p>
+                {t.sub && <p className="truncate text-[10px] text-muted-foreground">{t.sub}</p>}
+              </div>
+              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/40 transition-colors group-hover:text-foreground" />
+            </Link>
+          ))}
+      </div>
+    </Card>
+  )
+}
+
 // ── trang chính ───────────────────────────────────────────
 export default function TongQuanPage() {
   const [data, setData] = useState<MarketOverview | null>(null)
@@ -188,6 +258,9 @@ export default function TongQuanPage() {
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {data.indices.map((idx) => <IndexCard key={idx.code} idx={idx} />)}
           </div>
+
+          {/* Toàn cảnh các kênh đầu tư khác (vàng / xăng dầu / tiết kiệm / trái phiếu) */}
+          <MultiAssetSummary />
 
           {/* Độ rộng */}
           <BreadthBar ov={data} />

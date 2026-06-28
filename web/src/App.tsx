@@ -1,11 +1,16 @@
 import { Suspense, lazy } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import { Shell } from '@/components/layout/Shell'
 
 // Tách mã theo route (lazy) để giảm bundle ban đầu.
 const TongQuanPage = lazy(() => import('@/pages/TongQuanPage'))
+const VangPage = lazy(() => import('@/pages/VangPage'))
+const XangDauPage = lazy(() => import('@/pages/XangDauPage'))
+const TietKiemPage = lazy(() => import('@/pages/TietKiemPage'))
+const TraiPhieuPage = lazy(() => import('@/pages/TraiPhieuPage'))
+const TuVanDauTuPage = lazy(() => import('@/pages/TuVanDauTuPage'))
 const PhanTichPage = lazy(() => import('@/pages/PhanTichPage'))
 const TroLyAIPage = lazy(() => import('@/pages/TroLyAIPage'))
 const DanhMucPage = lazy(() => import('@/pages/DanhMucPage'))
@@ -32,6 +37,12 @@ function ShellRoutes() {
         <Routes>
           <Route path="/" element={<PhanTichPage />} />
           <Route path="/tong-quan" element={<TongQuanPage />} />
+          <Route path="/vang" element={<VangPage />} />
+          <Route path="/xang-dau" element={<XangDauPage />} />
+          <Route path="/tiet-kiem" element={<TietKiemPage />} />
+          <Route path="/trai-phieu" element={<TraiPhieuPage />} />
+          <Route path="/tu-van-dau-tu" element={<TuVanDauTuPage />} />
+          <Route path="/goi-y-dau-tu" element={<Navigate to="/tu-van-dau-tu" replace />} />
           <Route path="/tro-ly" element={<TroLyAIPage />} />
           <Route path="/danh-muc" element={<DanhMucPage />} />
           <Route path="/tin-hieu" element={<TinHieuPage />} />

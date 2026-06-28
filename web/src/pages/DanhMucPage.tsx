@@ -22,7 +22,13 @@ import {
   ArrowDown,
   AlertCircle,
   Loader2,
+  Coins,
+  PiggyBank,
+  Landmark,
+  Banknote,
+  Trash2,
 } from 'lucide-react'
+import { PieChart as RPieChart, Pie, Cell, ResponsiveContainer, Tooltip as RTooltip, Legend } from 'recharts'
 import { toast } from 'sonner'
 import { PageHeader } from '@/components/common/PageHeader'
 import { Card, CardLabel } from '@/components/ui/card'
@@ -36,6 +42,9 @@ import type {
   PortfolioAccountSnapshot,
   PortfolioPositionItem,
   PortfolioTradeListItem,
+  OtherAssetItem,
+  OtherAssetClass,
+  OtherAssetListResponse,
 } from '@/types/portfolio'
 
 // ─── Hàng skeleton khi đang tải ──────────────────────────────────────────────
@@ -596,6 +605,254 @@ function TradesSection({ accountId, refreshTick = 0 }: { accountId: number; refr
   )
 }
 
+// ─── Tài sản khác (vàng / tiết kiệm / trái phiếu) + phân bổ tài sản ───────────
+
+const cssVar = (name: string, fallback: string) =>
+  typeof window !== 'undefined'
+    ? getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback
+    : fallback
+
+// Màu cho từng lớp tài sản trong biểu đồ phân bổ.
+const CLASS_COLOR: Record<string, string> = {
+  co_phieu: cssVar('--primary', '#3b82f6'),
+  tien_mat: cssVar('--neutral-slate', '#94a3b8'),
+  vang: '#f59e0b',
+  tiet_kiem: '#10b981',
+  trai_phieu: '#8b5cf6',
+}
+
+const CLASS_ICON: Record<OtherAssetClass, typeof Coins> = {
+  vang: Coins,
+  tiet_kiem: PiggyBank,
+  trai_phieu: Landmark,
+}
+
+const otherInputCls =
+  'h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50'
+
+/** Biểu đồ tròn cơ cấu toàn bộ tài sản: cổ phiếu + tiền mặt + vàng/tiết kiệm/trái phiếu. */
+function AssetAllocationCard({
+  snapshot,
+  otherByClass,
+}: {
+  snapshot: PortfolioAccountSnapshot
+  otherByClass: { assetClass: OtherAssetClass; label: string; value: number }[]
+}) {
+  const rows = [
+    { key: 'co_phieu', label: VI.portfolio.classCoPhieu, value: snapshot.totalMarketValue },
+    { key: 'tien_mat', label: VI.portfolio.classTienMat, value: snapshot.totalCash },
+    ...otherByClass.map(o => ({ key: o.assetClass, label: o.label, value: o.value })),
+  ].filter(r => r.value > 0)
+
+  const total = rows.reduce((s, r) => s + r.value, 0)
+  if (total <= 0) {
+    return (
+      <Card className="p-5">
+        <CardLabel icon={<PieChart className="h-3.5 w-3.5" aria-hidden />}>{VI.portfolio.allocationTitle}</CardLabel>
+        <p className="py-8 text-center text-sm text-muted-foreground">{VI.common.noData}</p>
+      </Card>
+    )
+  }
+
+  return (
+    <Card className="p-5">
+      <CardLabel icon={<PieChart className="h-3.5 w-3.5" aria-hidden />}>{VI.portfolio.allocationTitle}</CardLabel>
+      <p className="mb-2 mt-1 text-xs text-muted-foreground">{VI.portfolio.allocationHint}</p>
+      <div className="grid items-center gap-4 sm:grid-cols-2">
+        <ResponsiveContainer width="100%" height={220}>
+          <RPieChart>
+            <Pie data={rows} dataKey="value" nameKey="label" cx="50%" cy="50%" innerRadius={52} outerRadius={88} paddingAngle={2}>
+              {rows.map(r => (
+                <Cell key={r.key} fill={CLASS_COLOR[r.key] ?? '#64748b'} stroke={cssVar('--card', '#0f172a')} strokeWidth={2} />
+              ))}
+            </Pie>
+            <RTooltip
+              contentStyle={{ background: cssVar('--card', '#0f172a'), border: `1px solid ${cssVar('--border', '#334155')}`, borderRadius: 8, fontSize: 12 }}
+              labelStyle={{ color: cssVar('--foreground', '#f8fafc') }}
+              formatter={(value) => fmtCompact(Number(value))}
+            />
+            <Legend formatter={(v) => <span className="text-xs text-muted-foreground">{v}</span>} />
+          </RPieChart>
+        </ResponsiveContainer>
+        <div className="space-y-1.5">
+          <div className="mb-2 flex items-center justify-between border-b border-border/50 pb-2">
+            <span className="text-xs font-medium text-muted-foreground">{VI.portfolio.totalNetWorth}</span>
+            <span className="font-mono text-base font-bold tabular-nums text-foreground">{fmtCompact(total)}</span>
+          </div>
+          {rows.map(r => (
+            <div key={r.key} className="flex items-center justify-between gap-2">
+              <span className="flex items-center gap-2 text-sm text-foreground">
+                <span className="h-2.5 w-2.5 rounded-sm" style={{ background: CLASS_COLOR[r.key] ?? '#64748b' }} aria-hidden />
+                {r.label}
+              </span>
+              <span className="font-mono text-xs tabular-nums text-muted-foreground">
+                {fmtCompact(r.value)} · {fmtPct((r.value / total) * 100)}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+/** Khu vực tài sản khác: form thêm + bảng danh sách + xoá. */
+function OtherAssetsSection({
+  accountId,
+  assets,
+  onChange,
+}: {
+  accountId: number
+  assets: OtherAssetItem[]
+  onChange: () => void
+}) {
+  const [showForm, setShowForm] = useState(false)
+  const [assetClass, setAssetClass] = useState<OtherAssetClass>('vang')
+  const [label, setLabel] = useState('')
+  const [value, setValue] = useState('')
+  const [rate, setRate] = useState('')
+  const [maturity, setMaturity] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const needsRate = assetClass === 'tiet_kiem' || assetClass === 'trai_phieu'
+
+  const reset = () => { setLabel(''); setValue(''); setRate(''); setMaturity(''); setError(null) }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const v = parseFloat(value)
+    if (!label.trim() || !(v >= 0)) {
+      setError('Vui lòng nhập tên và giá trị hợp lệ.')
+      return
+    }
+    setSubmitting(true)
+    setError(null)
+    try {
+      await portfolioApi.createOtherAsset({
+        accountId,
+        assetClass,
+        label: label.trim(),
+        value: v,
+        interestRate: needsRate && rate ? parseFloat(rate) : undefined,
+        maturityDate: needsRate && maturity ? maturity : undefined,
+      })
+      toast.success(VI.portfolio.assetAdded)
+      reset()
+      setShowForm(false)
+      onChange()
+    } catch {
+      setError('Không thể thêm tài sản. Hãy thử lại.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleDelete = async (id: number) => {
+    try {
+      await portfolioApi.deleteOtherAsset(id)
+      toast.success(VI.portfolio.assetDeleted)
+      onChange()
+    } catch {
+      toast.error('Không thể xoá tài sản.')
+    }
+  }
+
+  return (
+    <Card className="overflow-hidden">
+      <div className="flex items-center justify-between gap-2 border-b border-border px-5 py-4">
+        <div>
+          <h2 className="font-heading font-semibold text-foreground">{VI.portfolio.otherAssets}</h2>
+          <p className="text-xs text-muted-foreground">{VI.portfolio.otherAssetsHint}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowForm(v => !v)}
+          className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <Plus className="h-3.5 w-3.5" aria-hidden />{VI.portfolio.addOtherAsset}
+        </button>
+      </div>
+
+      {showForm && (
+        <form onSubmit={handleSubmit} className="space-y-3 border-b border-border bg-background/40 px-5 py-4" aria-label={VI.portfolio.addOtherAsset}>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">{VI.portfolio.assetClass}</label>
+              <select value={assetClass} onChange={e => setAssetClass(e.target.value as OtherAssetClass)} className={cn(otherInputCls, 'cursor-pointer')} disabled={submitting}>
+                <option value="vang">{VI.portfolio.classVang}</option>
+                <option value="tiet_kiem">{VI.portfolio.classTietKiem}</option>
+                <option value="trai_phieu">{VI.portfolio.classTraiPhieu}</option>
+              </select>
+            </div>
+            <div className={needsRate ? '' : 'col-span-2'}>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">{VI.portfolio.assetLabel}</label>
+              <input value={label} onChange={e => setLabel(e.target.value)} placeholder="Vàng SJC / Sổ TK VCB…" className={otherInputCls} required disabled={submitting} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">{VI.portfolio.assetValue}</label>
+              <input type="number" value={value} onChange={e => setValue(e.target.value)} placeholder="100000000" className={cn(otherInputCls, 'font-mono')} required disabled={submitting} min="0" step="any" />
+            </div>
+            {needsRate && (
+              <>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">{VI.portfolio.interestRate}</label>
+                  <input type="number" value={rate} onChange={e => setRate(e.target.value)} placeholder="5.1" className={cn(otherInputCls, 'font-mono')} disabled={submitting} min="0" step="any" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">{VI.portfolio.maturityDate}</label>
+                  <input type="date" value={maturity} onChange={e => setMaturity(e.target.value)} className={otherInputCls} disabled={submitting} />
+                </div>
+              </>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            <button type="submit" disabled={submitting} className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              {submitting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Plus className="h-4 w-4" aria-hidden />}
+              {VI.portfolio.addOtherAsset}
+            </button>
+            {error && <p className="flex items-center gap-1 text-xs text-danger"><AlertCircle className="h-3.5 w-3.5" aria-hidden />{error}</p>}
+          </div>
+        </form>
+      )}
+
+      {assets.length === 0 ? (
+        <p className="px-5 py-8 text-center text-sm text-muted-foreground">{VI.portfolio.noOtherAssets}</p>
+      ) : (
+        <ul className="divide-y divide-border/50">
+          {assets.map(a => {
+            const Icon = CLASS_ICON[a.assetClass] ?? Banknote
+            return (
+              <li key={a.id} className="flex items-center gap-3 px-5 py-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg" style={{ background: (CLASS_COLOR[a.assetClass] ?? '#64748b') + '22', color: CLASS_COLOR[a.assetClass] ?? '#64748b' }}>
+                  <Icon className="h-4 w-4" aria-hidden />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-foreground">{a.label}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {a.assetClassLabel}
+                    {a.interestRate != null && <> · {a.interestRate}%/năm</>}
+                    {a.maturityDate && <> · đáo hạn {a.maturityDate}</>}
+                  </p>
+                </div>
+                <span className="font-mono text-sm font-semibold tabular-nums text-foreground">{fmtCompact(a.value)}</span>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(a.id)}
+                  aria-label={VI.portfolio.deleteAsset}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-danger/10 hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </Card>
+  )
+}
+
 // ─── Trang chính ─────────────────────────────────────────────────────────────
 
 export default function DanhMucPage() {
@@ -611,6 +868,8 @@ export default function DanhMucPage() {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [showTradeForm, setShowTradeForm] = useState(false)
   const [tradesRefresh, setTradesRefresh] = useState(0)
+
+  const [otherAssets, setOtherAssets] = useState<OtherAssetListResponse | null>(null)
 
   // Tải danh sách tài khoản
   const loadAccounts = useCallback(async () => {
@@ -655,6 +914,22 @@ export default function DanhMucPage() {
   useEffect(() => {
     loadSnapshot()
   }, [loadSnapshot])
+
+  // Tải tài sản khác (vàng / tiết kiệm / trái phiếu) theo tài khoản
+  const loadOtherAssets = useCallback(() => {
+    if (selectedId === null) {
+      setOtherAssets(null)
+      return
+    }
+    portfolioApi
+      .listOtherAssets(selectedId)
+      .then(setOtherAssets)
+      .catch(() => setOtherAssets(null))
+  }, [selectedId])
+
+  useEffect(() => {
+    loadOtherAssets()
+  }, [loadOtherAssets])
 
   const handleAccountCreated = (acc: PortfolioAccountItem) => {
     setAccounts(prev => [...prev, acc])
@@ -790,6 +1065,9 @@ export default function DanhMucPage() {
             <>
               <SummaryCards snap={snapshot} />
 
+              {/* Phân bổ tài sản (cổ phiếu + tiền mặt + vàng/tiết kiệm/trái phiếu) */}
+              <AssetAllocationCard snapshot={snapshot} otherByClass={otherAssets?.byClass ?? []} />
+
               {/* Bảng cổ phiếu nắm giữ */}
               <Card className="overflow-hidden">
                 <div className="flex items-center justify-between gap-2 border-b border-border px-5 py-4">
@@ -822,6 +1100,15 @@ export default function DanhMucPage() {
                   totalMarketValue={snapshot.totalMarketValue}
                 />
               </Card>
+
+              {/* Tài sản khác: vàng / tiết kiệm / trái phiếu */}
+              {selectedId !== null && (
+                <OtherAssetsSection
+                  accountId={selectedId}
+                  assets={otherAssets?.items ?? []}
+                  onChange={loadOtherAssets}
+                />
+              )}
 
               {/* Giao dịch gần đây */}
               {selectedId !== null && <TradesSection accountId={selectedId} refreshTick={tradesRefresh} />}

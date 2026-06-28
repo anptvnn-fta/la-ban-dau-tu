@@ -18,11 +18,16 @@ from api.v1.endpoints import (
     analysis,
     auth,
     backtest,
+    bond,
     decision_signals,
+    gold,
     health,
     history,
     intelligence,
     market,
+    petrol,
+    savings,
+    tu_van,
     portfolio,
     stocks,
     system_config,
@@ -67,6 +72,36 @@ router.include_router(
     market.router,
     prefix="/market",
     tags=["Market"]
+)
+
+router.include_router(
+    gold.router,
+    prefix="/gold",
+    tags=["Gold"]
+)
+
+router.include_router(
+    petrol.router,
+    prefix="/petrol",
+    tags=["Petrol"]
+)
+
+router.include_router(
+    savings.router,
+    prefix="/savings",
+    tags=["Savings"]
+)
+
+router.include_router(
+    bond.router,
+    prefix="/bond",
+    tags=["Bond"]
+)
+
+router.include_router(
+    tu_van.router,
+    prefix="/tu-van",
+    tags=["TuVan"]
 )
 
 router.include_router(

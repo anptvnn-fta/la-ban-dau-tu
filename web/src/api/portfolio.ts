@@ -21,6 +21,10 @@ import type {
   PortfolioSnapshotResponse,
   PortfolioTradeCreateRequest,
   PortfolioTradeListResponse,
+  OtherAssetItem,
+  OtherAssetListResponse,
+  OtherAssetCreatePayload,
+  OtherAssetUpdatePayload,
 } from '../types/portfolio';
 
 type SnapshotQuery = {
@@ -281,5 +285,43 @@ export const portfolioApi = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return toCamelCase<PortfolioImportCommitResponse>(response.data);
+  },
+
+  // ── Tài sản khác: vàng / tiết kiệm / trái phiếu ──────────────────────────────
+  async listOtherAssets(accountId: number): Promise<OtherAssetListResponse> {
+    const response = await apiClient.get<Record<string, unknown>>('/api/v1/portfolio/other-assets', {
+      params: { account_id: accountId },
+    });
+    return toCamelCase<OtherAssetListResponse>(response.data);
+  },
+
+  async createOtherAsset(payload: OtherAssetCreatePayload): Promise<OtherAssetItem> {
+    const response = await apiClient.post<Record<string, unknown>>('/api/v1/portfolio/other-assets', {
+      account_id: payload.accountId,
+      asset_class: payload.assetClass,
+      label: payload.label,
+      value: payload.value,
+      interest_rate: payload.interestRate,
+      maturity_date: payload.maturityDate,
+      note: payload.note,
+    });
+    return toCamelCase<OtherAssetItem>(response.data);
+  },
+
+  async updateOtherAsset(assetId: number, payload: OtherAssetUpdatePayload): Promise<OtherAssetItem> {
+    const response = await apiClient.put<Record<string, unknown>>(`/api/v1/portfolio/other-assets/${assetId}`, {
+      asset_class: payload.assetClass,
+      label: payload.label,
+      value: payload.value,
+      interest_rate: payload.interestRate,
+      maturity_date: payload.maturityDate,
+      note: payload.note,
+    });
+    return toCamelCase<OtherAssetItem>(response.data);
+  },
+
+  async deleteOtherAsset(assetId: number): Promise<PortfolioDeleteResponse> {
+    const response = await apiClient.delete<Record<string, unknown>>(`/api/v1/portfolio/other-assets/${assetId}`);
+    return toCamelCase<PortfolioDeleteResponse>(response.data);
   },
 };

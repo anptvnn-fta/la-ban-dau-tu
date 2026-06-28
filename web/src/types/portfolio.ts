@@ -331,3 +331,51 @@ export interface PortfolioFxRefreshResponse {
   staleCount: number;
   errorCount: number;
 }
+
+// ── Tài sản khác trong danh mục: vàng / tiết kiệm / trái phiếu ─────────────────
+export type OtherAssetClass = 'vang' | 'tiet_kiem' | 'trai_phieu';
+
+export interface OtherAssetItem {
+  id: number;
+  accountId: number;
+  assetClass: OtherAssetClass;
+  assetClassLabel: string;
+  label: string;
+  value: number;
+  interestRate?: number | null;
+  maturityDate?: string | null;
+  note?: string | null;
+  updatedAt?: string | null;
+}
+
+export interface OtherAssetClassTotal {
+  assetClass: OtherAssetClass;
+  label: string;
+  value: number;
+}
+
+export interface OtherAssetListResponse {
+  accountId: number;
+  items: OtherAssetItem[];
+  totalValue: number;
+  byClass: OtherAssetClassTotal[];
+}
+
+export interface OtherAssetCreatePayload {
+  accountId: number;
+  assetClass: OtherAssetClass;
+  label: string;
+  value: number;
+  interestRate?: number | null;
+  maturityDate?: string | null;
+  note?: string | null;
+}
+
+export interface OtherAssetUpdatePayload {
+  assetClass?: OtherAssetClass;
+  label?: string;
+  value?: number;
+  interestRate?: number | null;
+  maturityDate?: string | null;
+  note?: string | null;
+}
