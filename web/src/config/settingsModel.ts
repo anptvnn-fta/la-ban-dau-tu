@@ -85,7 +85,7 @@ export const SETTINGS_SECTIONS: SettingSection[] = [
           {
             key: 'LITELLM_MODEL',
             label: 'Mô hình phân tích chính',
-            help: 'Mặc định gemini/gemini-2.5-flash — nhanh và tiết kiệm. Cần phân tích sâu hơn có thể đổi sang gemini/gemini-2.5-pro.',
+            help: 'Mặc định gemini/gemini-2.5-flash — nhanh và tiết kiệm. Đổi mô hình ở đây là đổi luôn nhà cung cấp: ví dụ gemini/gemini-2.5-pro, openai/gpt-4o-mini hay anthropic/claude-3-5-haiku-latest (nhớ điền khoá tương ứng bên dưới).',
             placeholder: 'gemini/gemini-2.5-flash',
             control: 'text',
           },

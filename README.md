@@ -4,7 +4,7 @@
 
 **Hỗ trợ thông tin đầu tư bằng AI — đa kênh cho thị trường Việt Nam**
 
-Cổ phiếu · Vàng · Xăng dầu · Tiết kiệm · Trái phiếu — phân tích & tư vấn bằng Google Gemini + dữ liệu vnstock
+Cổ phiếu · Vàng · Xăng dầu · Tiết kiệm · Trái phiếu — phân tích & tư vấn bằng AI (LiteLLM) + dữ liệu vnstock
 
 </div>
 
@@ -14,7 +14,7 @@ Cổ phiếu · Vàng · Xăng dầu · Tiết kiệm · Trái phiếu — phân
 
 **La Bàn Đầu Tư** là một nền tảng **hỗ trợ đầu tư đa kênh** dành riêng cho thị trường Việt Nam — không chỉ chứng khoán. Hệ thống giúp nhà đầu tư cá nhân theo dõi toàn cảnh các kênh đầu tư, phân tích cổ phiếu chuyên sâu, và nhận **gợi ý phân bổ danh mục theo hồ sơ rủi ro** — tất cả **100% tiếng Việt**.
 
-- **Google Gemini** (qua LiteLLM) làm bộ não phân tích & diễn giải.
+- **Mô hình AI qua LiteLLM** làm bộ não phân tích & diễn giải — mặc định **Google Gemini**, nhưng có thể đổi sang **OpenAI**, **Anthropic** hay endpoint tương thích chỉ bằng cấu hình (xem [Chọn nhà cung cấp AI](#chọn-nhà-cung-cấp-ai)).
 - **vnstock** + các nguồn công khai (SJC/BTMC, CafeF, yfinance…) làm dữ liệu giá cổ phiếu, vàng, xăng dầu, lãi suất, trái phiếu.
 - Mọi nguồn dữ liệu đều **fail-open** (thiếu nguồn nào thì ẩn phần đó, phần còn lại vẫn chạy).
 
@@ -47,7 +47,7 @@ Dự án xây dựng lại trên nền engine đã kiểm chứng của `daily_s
 pip install -r requirements.txt
 
 # 2) Cấu hình
-cp .env.example .env        # rồi điền GEMINI_API_KEY
+cp .env.example .env        # rồi điền khoá AI (mặc định GEMINI_API_KEY)
 
 # 3) Chạy máy chủ web (chỉ phục vụ, không tự lên lịch)
 python main.py --serve-only --host 127.0.0.1 --port 8000
@@ -62,6 +62,19 @@ npm install
 npm run dev        # phát triển (proxy /api → :8000)
 npm run build      # đóng gói ra ../static để FastAPI phục vụ
 ```
+
+## Chọn nhà cung cấp AI
+
+Hệ thống gọi mô hình qua **[LiteLLM](https://github.com/BerriAI/litellm)** nên **không khoá cứng vào một hãng**. Mặc định là **Google Gemini** (miễn phí, dễ lấy khoá), nhưng bạn có thể dùng nhà cung cấp khác chỉ bằng cách đổi `LITELLM_MODEL` + điền khoá tương ứng trong `.env`:
+
+| Nhà cung cấp | `LITELLM_MODEL` (ví dụ) | Biến khoá trong `.env` |
+|---|---|---|
+| Google Gemini *(mặc định)* | `gemini/gemini-2.5-flash` | `GEMINI_API_KEY` |
+| OpenAI | `openai/gpt-4o-mini` | `OPENAI_API_KEY` |
+| Anthropic | `anthropic/claude-3-5-haiku-latest` | `ANTHROPIC_API_KEY` |
+| Endpoint tương thích OpenAI *(self-host, OpenRouter…)* | `openai/<tên-model>` | `OPENAI_API_KEY` + `OPENAI_BASE_URL` |
+
+> Có thể đổi ngay trong trang **Cài Đặt** (ghi vào `.env`) mà không cần sửa file tay. Mọi mô hình LiteLLM hỗ trợ đều dùng được — chỉ cần đặt đúng tiền tố nhà cung cấp ở `LITELLM_MODEL`.
 
 ## Kiến trúc
 
@@ -79,8 +92,8 @@ npm run build      # đóng gói ra ../static để FastAPI phục vụ
 Yêu cầu: Docker + Docker Compose. Chạy các lệnh từ **gốc dự án**.
 
 ```bash
-# 1) Tạo .env với khóa Gemini (bắt buộc)
-cp .env.example .env        # rồi điền GEMINI_API_KEY
+# 1) Tạo .env với khóa AI (bắt buộc; mặc định Gemini)
+cp .env.example .env        # điền khoá AI + chọn LITELLM_MODEL nếu dùng hãng khác
 
 # 2) Build + chạy web/API (cổng 8000)
 docker compose -f docker/docker-compose.yml up -d --build server
