@@ -1,8 +1,10 @@
 <div align="center">
 
-# 📈 La Bàn Đầu Tư
+# 🧭 La Bàn Đầu Tư
 
-**Phân tích cổ phiếu Việt Nam thông minh — bằng AI (Google Gemini) + dữ liệu vnstock**
+**Hỗ trợ thông tin đầu tư bằng AI — đa kênh cho thị trường Việt Nam**
+
+Cổ phiếu · Vàng · Xăng dầu · Tiết kiệm · Trái phiếu — phân tích & tư vấn bằng Google Gemini + dữ liệu vnstock
 
 </div>
 
@@ -10,20 +12,33 @@
 
 ## Giới thiệu
 
-**La Bàn Đầu Tư** là hệ thống phân tích chứng khoán dành riêng cho thị trường Việt Nam (HOSE / HNX / UPCOM). Hệ thống dùng:
+**La Bàn Đầu Tư** là một nền tảng **hỗ trợ đầu tư đa kênh** dành riêng cho thị trường Việt Nam — không chỉ chứng khoán. Hệ thống giúp nhà đầu tư cá nhân theo dõi toàn cảnh các kênh đầu tư, phân tích cổ phiếu chuyên sâu, và nhận **gợi ý phân bổ danh mục theo hồ sơ rủi ro** — tất cả **100% tiếng Việt**.
 
-- **Google Gemini** (qua LiteLLM) làm bộ não phân tích.
-- **vnstock** làm nguồn dữ liệu giá, cơ bản, chỉ số kỹ thuật và tin tức.
-- Báo cáo & giao diện **100% tiếng Việt**.
+- **Google Gemini** (qua LiteLLM) làm bộ não phân tích & diễn giải.
+- **vnstock** + các nguồn công khai (SJC/BTMC, CafeF, yfinance…) làm dữ liệu giá cổ phiếu, vàng, xăng dầu, lãi suất, trái phiếu.
+- Mọi nguồn dữ liệu đều **fail-open** (thiếu nguồn nào thì ẩn phần đó, phần còn lại vẫn chạy).
 
-Dự án được xây dựng lại trên nền engine đã kiểm chứng của `daily_stock_analysis`, tinh gọn và Việt hoá hoàn toàn cho người dùng Việt.
+Dự án xây dựng lại trên nền engine đã kiểm chứng của `daily_stock_analysis`, tinh gọn, Việt hoá hoàn toàn và mở rộng thành hệ thống đầu tư đầy đủ.
 
 ## Tính năng chính
 
-- **Phân tích cổ phiếu**: nhận định kỹ thuật + cơ bản + khối ngoại + tin tức, kèm khuyến nghị và mốc giao dịch.
-- **Diễn biến thị trường**: tổng kết VN-Index / VN30 / HNX-Index / UPCOM-Index bằng tiếng Việt.
-- **Trợ lý AI**: hỏi đáp đa lượt về cổ phiếu.
-- **Danh mục, Tín hiệu AI, Đánh giá dự báo, Cảnh báo** và nhiều hơn nữa.
+### 📊 Thị trường — toàn cảnh đầu tư
+- **Tổng Quan**: VN-Index / VN30 / HNX / UPCOM, độ rộng, nhóm ngành, top tăng/giảm — kèm dải tóm tắt **các kênh đầu tư khác** (vàng, xăng dầu, tiết kiệm, trái phiếu).
+- **Vàng**: giá SJC trong nước, giá thế giới quy đổi và **chênh lệch (premium)**, kèm lịch sử.
+- **Xăng Dầu**: giá RON95 / E5 / E10 / dầu DO trong nước + dầu thế giới (Brent/WTI) + kỳ điều hành kế.
+- **Tiết Kiệm**: lãi suất gửi của ~28 ngân hàng theo kỳ hạn + lãi suất điều hành SBV.
+- **Trái Phiếu**: lợi suất TPCP Mỹ 10 năm, lãi suất điều hành SBV/Fed, mức tham khảo VN10Y.
+
+### 🧠 Phân tích & Tư vấn
+- **Phân Tích Cổ Phiếu**: nhận định kỹ thuật + cơ bản + khối ngoại + tin tức, kèm khuyến nghị và mốc giao dịch.
+- **Tư Vấn Đầu Tư**: bảng hỏi hồ sơ **26 trường** (nhân khẩu / tài chính / hành vi) → chấm điểm **2 thang Khả năng vs Khẩu vị** (nguyên tắc thận trọng) → **phân bổ đa kênh** (tiết kiệm / trái phiếu / cổ phiếu / vàng) + danh sách cổ phiếu theo rổ biến động + **AI phân tích chân dung khách hàng** (chỉ diễn giải, không bịa số).
+- **Trợ Lý AI**: hỏi đáp đa lượt, trả lời được **mọi kênh** — cổ phiếu, vàng, lãi suất tiết kiệm, trái phiếu, giá xăng dầu, danh mục.
+
+### 💼 Đầu tư của tôi
+- **Danh Mục**: theo dõi cổ phiếu **và** tài sản khác (vàng / tiết kiệm / trái phiếu), kèm **biểu đồ phân bổ tài sản** + tổng tài sản ròng.
+- **Tín Hiệu AI**, **Đánh Giá Dự Báo** (kiểm thử lùi), **Cảnh Báo** (Telegram/Email), **Sử Dụng** (token AI), **Cài Đặt**.
+
+> ⚖️ Mọi gợi ý mang tính **tham khảo**, không phải lời khuyên đầu tư chính thức. Con số phân bổ do **luật** quyết định; AI chỉ diễn giải.
 
 ## Cài đặt nhanh
 
@@ -52,11 +67,12 @@ npm run build      # đóng gói ra ../static để FastAPI phục vụ
 
 | Tầng | Vị trí | Vai trò |
 |---|---|---|
-| Backend (Python/FastAPI) | `api/`, `src/`, `data_provider/` | Engine phân tích, pipeline, agent, dữ liệu vnstock |
-| Frontend (React/Vite) | `web/` | Giao diện tiếng Việt (thiết kế mới) |
-| Dữ liệu | `data/` (SQLite) | Lịch sử phân tích, danh mục, cảnh báo |
+| Backend (Python/FastAPI) | `api/`, `src/`, `data_provider/` | Engine phân tích, pipeline, agent đa kênh, dữ liệu vnstock |
+| Dịch vụ đa tài sản | `src/services/{gold,petrol,savings,bond,tu_van}_service.py` | Lấy & tổng hợp dữ liệu vàng/xăng/tiết kiệm/trái phiếu + chấm điểm hồ sơ rủi ro |
+| Frontend (React/Vite) | `web/` | Giao diện tiếng Việt (thiết kế mới, điều hướng theo nhóm) |
+| Dữ liệu | `data/` (SQLite) | Lịch sử phân tích, danh mục (gồm tài sản khác), cảnh báo |
 
-> Mã nguồn gốc tiếng Trung đang được Việt hoá dần (comment/docstring) — không ảnh hưởng vận hành.
+> Mã nguồn gốc tiếng Trung đã được Việt hoá phần lớn (chuỗi người dùng thấy + comment) — không ảnh hưởng vận hành.
 
 ## Triển khai bằng Docker
 
