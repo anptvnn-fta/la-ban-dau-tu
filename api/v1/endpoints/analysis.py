@@ -190,6 +190,24 @@ def _is_obviously_invalid_analysis_input(text: str) -> bool:
     return has_letters and has_digits
 
 
+# Mã trần dạng ticker Việt Nam (2-3 chữ cái in hoa), ví dụ 'VCB', 'FPT'. Khớp với
+# quy ước ở src/agent/tools/data_tools._to_vn_code để hai luồng (phân tích + chat)
+# xử lý mã trần nhất quán.
+_BARE_VN_TICKER_RE = re.compile(r"^[A-Z]{2,3}$")
+
+
+def _default_bare_to_vn(code: str) -> str:
+    """App phục vụ RIÊNG thị trường VN: mã trần (vd 'VCB') mặc định là mã VN → thêm '.VN'.
+
+    Nhờ vậy pipeline phân tích + fetch định tuyến đúng nguồn vnstock, không bị nhầm
+    sang ticker quốc tế (Yahoo). Mã đã có '.VN', có chữ số, hoặc mã chỉ số giữ nguyên.
+    """
+    c = (code or "").strip()
+    if _BARE_VN_TICKER_RE.match(c.upper()):
+        return f"{c.upper()}.VN"
+    return code
+
+
 def _resolve_and_normalize_input(raw_value: str) -> str:
     """
     Resolve and normalize a stock input for analysis requests.
@@ -203,14 +221,16 @@ def _resolve_and_normalize_input(raw_value: str) -> str:
         return ""
 
     if is_code_like(text):
-        return resolve_index_stock_code_for_analysis(text)
+        # Mã chỉ số (VNINDEX...) được resolver canonical hoá trước; sau đó mã trần
+        # còn lại (VCB, FPT) mới được mặc định về .VN.
+        return _default_bare_to_vn(resolve_index_stock_code_for_analysis(text))
 
     if _is_obviously_invalid_analysis_input(text):
         raise _invalid_analysis_input_error()
 
     resolved = resolve_name_to_code(text)
     if resolved:
-        return canonical_stock_code(resolved)
+        return _default_bare_to_vn(canonical_stock_code(resolved))
 
     raise _invalid_analysis_input_error()
 
